@@ -1,0 +1,75 @@
+### ОС и IDE ###
+.DS_Store
+Thumbs.db
+*.swp
+*~
+*.sublime-*
+
+### IDE ###
+.idea/
+.nova/
+.fleet/
+.zed/
+.vscode/
+*.code-workspace
+.phpactor.json
+
+### Laravel ###
+.env
+.env.*.local
+.env.local
+.env.production
+.env.backup
+.env.testing
+
+### Composer ###
+vendor/
+composer.phar
+composer.lock
+bootstrap/cache/
+
+### Node/NPM ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+### Logs ###
+*.log
+storage/logs/
+
+### Laravel Storage ###
+storage/*.key
+storage/pail
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+
+### Frontend Build ###
+public/build/
+public/hot
+public/storage
+vite-manifest.json
+vite-hot
+
+### Testing ###
+.phpunit.result.cache
+.phpunit.cache
+.coverage/
+
+### Homestead ###
+Homestead.json
+Homestead.yaml
+Vagrantfile
+
+### Ваши кастомные папки ###
+.osp/
+plan/
+
+### Прочее ###
+auth.json
+.gitattributes
+.gitkeep

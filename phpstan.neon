@@ -1,0 +1,27 @@
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+
+    level: 5
+
+    tmpDir: var/phpstan
+
+    checkGenericClassInNonGenericObjectType: false
+
+    checkMissingIterableValueType: true
+
+    checkMissingCallableSignature: true
+
+    reportUnmatchedIgnoredErrors: true
+
+    ignoreErrors: []
+
+    excludePaths:
+        analyse:
+            - tests/*
+            - bootstrap/*
+            - storage/*
+            - vendor/*
