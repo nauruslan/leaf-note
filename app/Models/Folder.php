@@ -16,7 +16,6 @@ class Folder extends Model
         'color',
         'icon',
         'trash_id',
-        'moved_to_trash_at',
     ];
 
     protected $casts = [
