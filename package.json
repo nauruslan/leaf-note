@@ -153,6 +153,7 @@
         "lightningcss": "^1.30.2",
         "lightningcss-win32-x64-msvc": "^1.30.2",
         "locate-path": "^6.0.0",
+        "lucide": "^0.575.0",
         "magic-string": "^0.30.21",
         "math-intrinsics": "^1.1.0",
         "mime-db": "^1.52.0",

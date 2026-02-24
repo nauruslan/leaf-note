@@ -13,7 +13,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     <!-- Scripts -->
-    <script src="https://unpkg.com/lucide@latest" defer></script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -57,22 +57,20 @@
         {{-- <livewire:footer /> --}}
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Дополнительная логика при необходимости
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        });
-        document.addEventListener('livewire:navigated', () => {
-            // Дополнительная логика при необходимости
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        });
-    </script>
 
     @livewireScripts
+    {{-- <script src="https://unpkg.com/lucide@latest"></script> --}}
+
+    {{-- <script>
+        function initLucide() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initLucide);
+    </script> --}}
+
+
 </body>
 
 </html>
