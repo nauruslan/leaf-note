@@ -23,47 +23,76 @@
                 <ul class="mt-1 space-y-1">
                     <li>
                         <a href="#" wire:click.prevent="navigateTo('dashboard')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'dashboard' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : '' }}">
-                            <i data-lucide="layout-dashboard" class="w-6 h-6 flex-shrink-0"></i>
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'dashboard' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
+                            <i data-lucide="layout-grid" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Главная
                                 доска</span>
                             <span
-                                class="ml-auto bg-white/20 text-white text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">24</span>
+                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+                                18
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" wire:click.prevent="navigateTo('checklist')"
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'checklist' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
+                            <i data-lucide="clipboard-list" class="w-6 h-6 flex-shrink-0"></i>
+                            <span
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Списки
+                                задач</span>
+                            <span
+                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+                                4
+                            </span>
                         </a>
                     </li>
                     <li>
                         <a href="#" wire:click.prevent="navigateTo('favorites')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'favorites' ? 'bg-gray-100 text-indigo-600' : '' }}">
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'favorites' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="star" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Избранное</span>
                             <span
-                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">8</span>
+                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+                                3
+                            </span>
                         </a>
                     </li>
                     <li>
                         <a href="#" wire:click.prevent="navigateTo('safe')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'safe' ? 'bg-gray-100 text-indigo-600' : '' }}">
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'safe' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="lock" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Сейф</span>
+                            <span
+                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+                                7
+                            </span>
                         </a>
                     </li>
                     <li>
                         <a href="#" wire:click.prevent="navigateTo('archive')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'archive' ? 'bg-gray-100 text-indigo-600' : '' }}">
-                            <i data-lucide="archive" class="w-6 h-6 flex-shrink-0"></i>
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'archive' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
+                            <i data-lucide="package" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Архив</span>
+                            <span
+                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+                                5
+                            </span>
                         </a>
                     </li>
                     <li>
                         <a href="#" wire:click.prevent="navigateTo('trash')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'trash' ? 'bg-gray-100 text-indigo-600' : '' }}">
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'trash' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="trash" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Корзина</span>
+                            <span
+                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+                                11
+                            </span>
                         </a>
                     </li>
                 </ul>
@@ -80,16 +109,16 @@
                 <ul class="mt-1 space-y-1">
                     <li>
                         <a href="#" wire:click.prevent="navigateTo('create-note')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
-                            <i data-lucide="plus" class="w-6 h-6 flex-shrink-0"></i>
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-note' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
+                            <i data-lucide="file-plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
                                 заметку</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
+                        <a href="#" wire:click.prevent="navigateTo('create-checklist')"
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-checklist' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="list-plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
@@ -97,8 +126,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
+                        <a href="#" wire:click.prevent="navigateTo('create-folder')"
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-folder' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="folder-plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
@@ -120,17 +149,17 @@
                     @foreach ($folders as $folder)
                         <li wire:key="folder-{{ $folder->id }}">
                             <a href="#" wire:click.prevent="navigateTo('folder', {{ $folder->id }})"
-                                class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item
-                    {{ $section === 'folder' && $folderId == $folder->id ? 'bg-gray-100 text-indigo-600' : '' }}">
-                                <i data-lucide="folder" class="w-6 h-6 flex-shrink-0 text-amber-500"></i>
+                                class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700transition-all group/item {{ $section === 'folder' && $folderId == $folder->id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
+                                <i data-lucide="{{ $folder->icon }}" class="w-6 h-6 flex-shrink-0 "></i>
                                 <span
                                     class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
                                     {{ $folder->title }}
                                 </span>
                                 <span
-                                    class="ml-auto bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+                                    class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
                                     {{ $folder->notes()->count() }}
                                 </span>
+
                             </a>
                         </li>
                     @endforeach
@@ -147,24 +176,24 @@
                     Аккаунт</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
-                        <a href="#"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
+                        <a href="#" wire:click.prevent="navigateTo('profile')"
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'profile' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="user" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Профиль</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
+                        <a href="#" wire:click.prevent="navigateTo('setting')"
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'setting' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="settings" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Настройки</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
+                        <a href="#" wire:click.prevent="logout"
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'logout' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="log-out" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Выйти</span>

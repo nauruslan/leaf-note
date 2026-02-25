@@ -20,17 +20,17 @@ class AppLayout extends Component
     public function mount(): void
     {
         // Загружаем начальное состояние из сервиса
-        $this->section = StateManager::get('section', 'dashboard');
+        $this->section = StateManager::get('section') ?: 'dashboard';
         $this->folderId = StateManager::get('folderId');
         $this->search = StateManager::get('search', '');
     }
 
-    public function updateState($section, $folderId, $search)
+    public function updateState(string $section, ?int $folderId, string $search): void
     {
         $this->section  = $section;
         $this->folderId = $folderId;
         $this->search   = $search;
-        $this->componentKey++; // ключ меняется ТОЛЬКО при смене состояния
+        $this->componentKey++;
     }
 
     public function render()

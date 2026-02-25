@@ -4,10 +4,10 @@ namespace App\Livewire\ControlPanels;
 
 use Livewire\Component;
 
-class ControlPanelCreateNote extends Component
+class ControlPanelSetting extends Component
 {
     public function render()
     {
-        return view('livewire.control-panels.create-note');
+        return view('livewire.control-panels.setting');
     }
 }

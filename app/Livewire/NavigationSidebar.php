@@ -1,6 +1,7 @@
 <?php
 namespace App\Livewire;
 
+use App\Livewire\Actions\Logout;
 use App\Models\Folder;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +67,12 @@ class NavigationSidebar extends Component
     {
         $this->scrollPosition = $position;
         Session::put('sidebar_scroll_position', $position);
+    }
+
+    public function logout()
+    {
+        app(Logout::class)();
+        return redirect()->route('login');
     }
 
     public function render()

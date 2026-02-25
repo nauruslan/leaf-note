@@ -5,9 +5,9 @@
             <div>
                 <h1
                     class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    Создать список
+                    Профиль
                 </h1>
-                <p class="text-sm text-gray-500 mt-0.5">Создание нового списка</p>
+                <p class="text-sm text-gray-500 mt-0.5">Все ваши заметки и списки в одном месте</p>
             </div>
 
             <div class="relative">
@@ -17,7 +17,7 @@
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </div>
-                <input type="text" placeholder="Поиск в архиве..."
+                <input type="text" placeholder="Поиск заметок..."
                     class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 transition-all">
             </div>
         </div>

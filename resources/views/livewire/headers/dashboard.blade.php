@@ -5,7 +5,7 @@
             <div>
                 <h1
                     class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    {{ $section }}
+                    Главная доска
                 </h1>
                 <p class="text-sm text-gray-500 mt-0.5">Все ваши заметки и списки в одном месте</p>
             </div>

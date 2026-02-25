@@ -7,7 +7,7 @@
                     class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                     Создать заметку
                 </h1>
-                <p class="text-sm text-gray-500 mt-0.5">Создание новой заметки или списка</p>
+                <p class="text-sm text-gray-500 mt-0.5">Создание новой заметки</p>
             </div>
 
             <div class="relative">
