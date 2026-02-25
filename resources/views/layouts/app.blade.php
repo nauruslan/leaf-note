@@ -57,20 +57,7 @@
         {{-- <livewire:footer /> --}}
     </div>
 
-
     @livewireScripts
-    {{-- <script src="https://unpkg.com/lucide@latest"></script> --}}
-
-    {{-- <script>
-        function initLucide() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        }
-        document.addEventListener('DOMContentLoaded', initLucide);
-    </script> --}}
-
-
 </body>
 
 </html>

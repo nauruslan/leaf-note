@@ -1,1 +1,3 @@
-<div style="display:none"></div>
+<div style="display:none">
+    {{-- AppState --}}
+</div>

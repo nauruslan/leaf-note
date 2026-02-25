@@ -1,25 +1,24 @@
 <!-- Боковое меню NavigationSidebar -->
-<aside
-    class="group fixed left-0 top-0 h-full z-50 flex flex-col bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out hover:w-64 w-[72px] overflow-hidden"
+<aside id="navigation-sidebar"
+    class="group fixed left-0 top-0 h-full z-50 flex flex-col bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out {{ $isExpanded ? 'w-64' : 'hover:w-64 w-[72px]' }} overflow-hidden"
     role="navigation" aria-label="Основное меню">
-
     <!-- Логотип -->
     <div class="flex items-center h-16 border-b border-gray-200 px-4 shrink-0">
         <div class="flex items-center justify-center w-10 h-10 flex-shrink-0">
             <x-logo></x-logo>
         </div>
         <h2
-            class="ml-3 font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            class="ml-3 font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
             LeafNote</h2>
     </div>
-
     <!-- Навигация -->
-    <nav class="flex-1 py-4 px-2 overflow-hidden group-hover:overflow-y-auto">
+    <nav id="sidebar-nav"
+        class="flex-1 py-4 px-2 overflow-hidden {{ $isExpanded ? 'overflow-y-auto' : 'group-hover:overflow-y-auto' }}">
         <ul class="space-y-1">
             <!-- Основное меню -->
             <li>
                 <h4
-                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
                     Основное меню</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
@@ -27,10 +26,10 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'dashboard' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : '' }}">
                             <i data-lucide="layout-dashboard" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Главная
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Главная
                                 доска</span>
                             <span
-                                class="ml-auto bg-white/20 text-white text-xs font-medium px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">24</span>
+                                class="ml-auto bg-white/20 text-white text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">24</span>
                         </a>
                     </li>
                     <li>
@@ -38,9 +37,9 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'favorites' ? 'bg-gray-100 text-indigo-600' : '' }}">
                             <i data-lucide="star" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Избранное</span>
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Избранное</span>
                             <span
-                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">8</span>
+                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">8</span>
                         </a>
                     </li>
                     <li>
@@ -48,7 +47,7 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'safe' ? 'bg-gray-100 text-indigo-600' : '' }}">
                             <i data-lucide="lock" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Сейф</span>
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Сейф</span>
                         </a>
                     </li>
                     <li>
@@ -56,7 +55,7 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'archive' ? 'bg-gray-100 text-indigo-600' : '' }}">
                             <i data-lucide="archive" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Архив</span>
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Архив</span>
                         </a>
                     </li>
                     <li>
@@ -64,20 +63,19 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item {{ $section === 'trash' ? 'bg-gray-100 text-indigo-600' : '' }}">
                             <i data-lucide="trash" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Корзина</span>
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Корзина</span>
                         </a>
                     </li>
                 </ul>
             </li>
-
             <!-- Разделитель -->
-            <li class="my-2 mx-4 h-px bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <li
+                class="my-2 mx-4 h-px bg-gray-200 opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
             </li>
-
             <!-- Действия -->
             <li>
                 <h4
-                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
                     Действия</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
@@ -85,7 +83,7 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
                             <i data-lucide="plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Создать
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
                                 заметку</span>
                         </a>
                     </li>
@@ -94,7 +92,7 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
                             <i data-lucide="list-plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Создать
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
                                 список</span>
                         </a>
                     </li>
@@ -103,57 +101,49 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
                             <i data-lucide="folder-plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Создать
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
                                 папку</span>
                         </a>
                     </li>
                 </ul>
             </li>
-
             <!-- Разделитель -->
-            <li class="my-2 mx-4 h-px bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <li
+                class="my-2 mx-4 h-px bg-gray-200 opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
             </li>
-
             <!-- Папки -->
             <li>
                 <h4
-                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
                     Папки</h4>
                 <ul class="mt-1 space-y-1">
                     @foreach ($folders as $folder)
                         <li wire:key="folder-{{ $folder->id }}">
                             <a href="#" wire:click.prevent="navigateTo('folder', {{ $folder->id }})"
                                 class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item
-               {{ $section === 'folder' && $folderId == $folder->id ? 'bg-gray-100 text-indigo-600' : '' }}">
-
+                    {{ $section === 'folder' && $folderId == $folder->id ? 'bg-gray-100 text-indigo-600' : '' }}">
                                 <i data-lucide="folder" class="w-6 h-6 flex-shrink-0 text-amber-500"></i>
-
                                 <span
-                                    class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
                                     {{ $folder->title }}
                                 </span>
-
                                 <span
-                                    class="ml-auto bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                    class="ml-auto bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
                                     {{ $folder->notes()->count() }}
                                 </span>
                             </a>
                         </li>
                     @endforeach
-
-
-
                 </ul>
             </li>
-
             <!-- Разделитель -->
-            <li class="my-2 mx-4 h-px bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <li
+                class="my-2 mx-4 h-px bg-gray-200 opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
             </li>
-
             <!-- Аккаунт -->
             <li>
                 <h4
-                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
                     Аккаунт</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
@@ -161,7 +151,7 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
                             <i data-lucide="user" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Профиль</span>
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Профиль</span>
                         </a>
                     </li>
                     <li>
@@ -169,7 +159,7 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
                             <i data-lucide="settings" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Настройки</span>
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Настройки</span>
                         </a>
                     </li>
                     <li>
@@ -177,7 +167,7 @@
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-all group/item">
                             <i data-lucide="log-out" class="w-6 h-6 flex-shrink-0"></i>
                             <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Выйти</span>
+                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Выйти</span>
                         </a>
                     </li>
                 </ul>
@@ -185,3 +175,74 @@
         </ul>
     </nav>
 </aside>
+
+@script
+    <script>
+        let collapseTimer = null;
+        const sidebar = document.getElementById('navigation-sidebar');
+
+        // Управление сворачиванием
+        sidebar.addEventListener('mouseenter', () => {
+            if (collapseTimer) clearTimeout(collapseTimer);
+        });
+
+        sidebar.addEventListener('mouseleave', () => {
+            if (collapseTimer) clearTimeout(collapseTimer);
+            collapseTimer = setTimeout(() => {
+                $wire.clearSidebarFlag();
+            }, 300);
+        });
+
+        // Сохранение скролла при прокрутке
+        let scrollTimeout;
+
+        function handleScroll() {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const nav = document.getElementById('sidebar-nav');
+                if (nav) {
+                    $wire.handleSidebarScrolled(nav.scrollTop);
+                }
+            }, 100);
+        }
+
+        // Слушатель скролла (переживает ререндеры)
+        function setupScrollListener() {
+            const nav = document.getElementById('sidebar-nav');
+            if (nav) {
+                nav.removeEventListener('scroll', handleScroll);
+                nav.addEventListener('scroll', handleScroll);
+            }
+        }
+
+        setupScrollListener();
+
+        // MutationObserver — на случай, если nav пересоздаётся
+        const observer = new MutationObserver(setupScrollListener);
+        observer.observe(sidebar, {
+            childList: true,
+            subtree: true
+        });
+
+        // Восстановление скролла после клика — значение приходит из события
+        $wire.on('restoreScroll', (event) => {
+            const scrollPos = event.scrollPosition;
+            const nav = document.getElementById('sidebar-nav');
+            if (nav && scrollPos > 0) {
+                requestAnimationFrame(() => {
+                    nav.scrollTop = scrollPos;
+                });
+            }
+        });
+
+        // Восстановление при инициализации (если свойство уже есть)
+        $wire.$watch('scrollPosition', (value) => {
+            if (value > 0) {
+                const nav = document.getElementById('sidebar-nav');
+                if (nav) {
+                    nav.scrollTop = value;
+                }
+            }
+        });
+    </script>
+@endscript

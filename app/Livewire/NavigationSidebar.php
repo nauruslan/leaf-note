@@ -1,29 +1,32 @@
 <?php
-
 namespace App\Livewire;
 
 use App\Models\Folder;
 use App\Services\StateManager;
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Livewire\Component;
 
 class NavigationSidebar extends Component
 {
     public string $section = 'dashboard';
     public ?int $folderId = null;
+    public bool $isExpanded = false;
+    public ?int $scrollPosition = null; // Позиция скролла
     public $folders = [];
 
     protected $listeners = [
-        'stateUpdated' => 'updateState'
+        'stateUpdated' => 'updateState',
+        'sidebarScrolled' => 'handleSidebarScrolled',
     ];
 
     public function mount(): void
     {
-        // Загружаем начальное состояние из сервиса
         $this->section = StateManager::get('section', 'dashboard');
         $this->folderId = StateManager::get('folderId');
+        $this->isExpanded = Session::get('sidebar_expanded', false);
+        $this->scrollPosition = Session::get('sidebar_scroll_position', 0);
 
-        // Загружаем папки пользователя
         $userId = Auth::id();
         if (!$userId) {
             $this->folders = collect();
@@ -36,15 +39,33 @@ class NavigationSidebar extends Component
     {
         $this->section  = $section;
         $this->folderId = $folderId;
+
+        // Принудительно восстановим скролл после обновления
+        $this->dispatch('restoreScroll', scrollPosition: $this->scrollPosition);
     }
 
     public function navigateTo(string $section, ?int $folderId = null): void
     {
-        // Если нажали на тот же раздел — ничего не делаем
         if ($this->section === $section && $this->folderId === $folderId) {
             return;
         }
+
+        Session::put('sidebar_expanded', true);
+
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
+    }
+
+    public function clearSidebarFlag(): void
+    {
+        Session::forget('sidebar_expanded');
+        $this->isExpanded = false;
+    }
+
+    // Сохраняем позицию скролла
+    public function handleSidebarScrolled($position): void
+    {
+        $this->scrollPosition = $position;
+        Session::put('sidebar_scroll_position', $position);
     }
 
     public function render()
