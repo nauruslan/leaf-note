@@ -1,3 +1,374 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#editor {
+    max-width: 100%;
+    overflow: hidden !important;
+    cursor: default !important;
+}
+#editor p {
+    cursor: text !important;
+}
+#editor button,
+#editor label {
+    cursor: pointer !important;
+}
+
+/* TipTap Placeholder Styles */
+.tiptap p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #9ca3af; /* gray-400 */
+    pointer-events: none;
+    height: 0;
+    font-size: 1rem;
+}
+.tiptap p.is-editor-empty:first-child:has(br)::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #9ca3af;
+    pointer-events: none;
+    height: 0;
+    font-size: 1rem;
+}
+/* Для темной темы (опционально) */
+.dark .tiptap p.is-editor-empty:first-child::before {
+    color: #6b7280; /* gray-500 */
+}
+
+/* Стили для списков в редакторе TipTap */
+.tiptap ul {
+    @apply list-disc space-y-1 pl-5;
+}
+.tiptap ol {
+    @apply list-decimal space-y-1 pl-5;
+}
+.tiptap li {
+    @apply my-0.5;
+}
+.tiptap li p {
+    @apply my-0;
+}
+
+/* Стили для списка задач (Task List) */
+.tiptap ul[data-type='taskList'] {
+    @apply mb-2 list-none pl-0;
+}
+.tiptap ul[data-type='taskList'] li {
+    @apply flex items-center gap-2 py-1;
+}
+.tiptap ul[data-type='taskList'] li > label {
+    @apply m-0 flex cursor-pointer items-center p-0;
+}
+.tiptap ul[data-type='taskList'] li > label input[type='checkbox'] {
+    @apply m-0 h-4 w-4 flex-shrink-0 cursor-pointer rounded border-gray-300;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: white;
+    transition: all 0.2s ease;
+    position: relative;
+}
+.tiptap ul[data-type='taskList'] li > label input[type='checkbox']:checked {
+    @apply border-indigo-600 bg-indigo-600;
+}
+.tiptap ul[data-type='taskList'] li > label input[type='checkbox']:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.tiptap ul[data-type='taskList'] li > label span {
+    @apply hidden;
+}
+.tiptap ul[data-type='taskList'] li > div {
+    @apply m-0 min-w-0 flex-1 p-0;
+}
+.tiptap ul[data-type='taskList'] li > div p {
+    @apply m-0 leading-relaxed;
+    transition: color 0.2s ease;
+}
+/* Перечеркивание текста при выполненной задаче */
+.tiptap ul[data-type='taskList'] li[data-checked='true'] > div p {
+    @apply text-gray-500 line-through;
+}
+.tiptap ul[data-type='taskList'] li[data-checked='true'] > div p * {
+    @apply line-through;
+}
+/* Hover эффект */
+.tiptap ul[data-type='taskList'] li:hover {
+    @apply rounded bg-gray-50;
+}
+/* Вложенные списки задач */
+.tiptap ul[data-type='taskList'] ul[data-type='taskList'] {
+    @apply ml-6;
+}
+/* Анимация чекбокса */
+.tiptap ul[data-type='taskList'] li > label input[type='checkbox']:hover {
+    @apply border-indigo-400;
+}
+.tiptap ul[data-type='taskList'] li[data-checked='true'] > label input[type='checkbox']:hover {
+    @apply border-indigo-700 bg-indigo-700;
+}
+
+/* Стили для заголовков в редакторе TipTap */
+.tiptap h1 {
+    @apply mb-4 mt-6 text-2xl;
+    font-size: 2em;
+    line-height: 1.25;
+}
+.tiptap h2 {
+    @apply mb-3 mt-5 text-xl;
+    font-size: 1.5em;
+    line-height: 1.25;
+}
+.tiptap p {
+    @apply mb-4;
+    line-height: 1.25;
+}
+
+/* Стили для блока кода в редакторе */
+.tiptap pre {
+    @apply my-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-gray-100;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    position: relative;
+}
+.tiptap pre::before {
+    @apply absolute right-3 top-2 text-xs text-gray-500;
+    content: attr(data-language);
+    pointer-events: none;
+}
+.tiptap pre code {
+    @apply text-gray-100;
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0;
+    color: inherit;
+}
+
+/* Стили для темной темы (опционально) */
+.dark .tiptap pre {
+    @apply bg-gray-800 text-gray-100;
+}
+.dark .tiptap pre:hover {
+    @apply bg-gray-700;
+}
+
+/* Стили для цветного текста */
+.tiptap .has-color {
+    @apply inline;
+}
+
+/* Сброс стилей для списков с цветным текстом */
+.tiptap ul li .has-color,
+.tiptap ol li .has-color {
+    @apply inline;
+}
+
+/* Стили для белого текста на темном фоне */
+.tiptap .has-color[color='#ffffff'] {
+    @apply rounded bg-gray-800 px-0.5;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    [data-color-palette] {
+        @apply grid grid-cols-5 gap-1 p-1;
+    }
+    [data-color-palette] button {
+        @apply h-5 w-5;
+    }
+}
+
+/* Стили для палитры цветов */
+[data-color-palette] {
+    @apply border border-gray-200 shadow-lg;
+}
+[data-color-palette] button {
+    @apply transition-transform;
+}
+[data-color-palette] button:hover {
+    @apply scale-110;
+}
+
+/* Гарантируем, что тулбар не обрезает выпадающие элементы */
+.tiptap-toolbar,
+.tiptap-toolbar > div {
+    overflow: visible !important;
+}
+
+/* ========================================
+СТИЛИ ДЛЯ ТАБЛИЦ
+======================================== */
+.ProseMirror {
+    overflow-x: visible !important;
+    max-width: 100% !important;
+}
+
+.tiptap table {
+    @apply my-4 border-collapse !important;
+    table-layout: fixed !important;
+    width: 100%;
+    min-width: 200px;
+    max-width: 100%;
+    cursor: default !important;
+}
+
+.tiptap table td,
+.tiptap table th {
+    @apply border border-gray-300 px-4 py-4 text-left !important;
+    cursor: text !important;
+    color: #1f2937 !important;
+    background-color: white !important;
+    word-break: break-word;
+    min-width: 50px !important;
+}
+.tiptap table td > p,
+.tiptap table th > p {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.tiptap table th {
+    @apply bg-gray-100 font-bold !important;
+}
+
+.tiptap .selectedCell {
+    @apply bg-blue-100 !important;
+}
+
+/* 🔑 ОБЁРТКА ТАБЛИЦЫ */
+.tiptap-table-wrapper {
+    position: relative !important;
+    display: block !important;
+    width: 30%;
+    max-width: 100%;
+    min-width: 200px;
+    margin: 1rem 0 !important;
+}
+
+/* 🔥 РУЧКА ИЗМЕНЕНИЯ РАЗМЕРА */
+.table-resize-handle {
+    position: absolute !important;
+    top: 0px !important;
+    right: -20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    background-color: rgba(99, 102, 241, 0.4) !important;
+    border: 2px solid #6366f1 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    z-index: 100 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition:
+        transform 0.2s,
+        background-color 0.2s !important;
+    pointer-events: auto !important;
+    outline: none !important;
+}
+
+.table-resize-handle:hover {
+    background-color: rgba(99, 102, 241, 0.6) !important;
+    transform: scale(1) !important;
+}
+
+.table-resize-handle:active {
+    background-color: rgba(99, 102, 241, 0.6) !important;
+    transform: scale(1) !important;
+}
+
+.table-resize-handle svg {
+    width: 12px;
+    height: 12px;
+    stroke: #6366f1;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .tiptap-table-wrapper {
+        width: 100%;
+        min-width: 100%;
+    }
+    .table-resize-handle {
+        width: 24px !important;
+        height: 24px !important;
+        bottom: -12px !important;
+        right: -12px !important;
+    }
+}
+
+/* ========================================
+СТИЛИ ДЛЯ ИЗОБРАЖЕНИЙ И КНОПКИ УДАЛЕНИЯ
+======================================== */
+.tiptap .image-wrapper {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+    max-width: 100%;
+}
+
+.tiptap .image-wrapper img {
+    max-width: 100%;
+    height: auto;
+}
+
+.tiptap .delete-image-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    padding: 0;
+    color: #ef4444;
+}
+
+.tiptap .image-wrapper:hover .delete-image-btn {
+    opacity: 1;
+}
+
+/* Для мобильных: кнопка появляется при клике на изображение (управляется JS) */
+.tiptap .delete-image-btn.show {
+    opacity: 1;
+}
+
+.tiptap mark {
+    padding: 0.1em 0;
+    border-radius: 0.2em;
+}
+
+.tiptap img {
+    display: block;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 600px;
+}
+.tiptap a {
+    text-decoration: underline;
+    color: #6366f1;
+    cursor: pointer;
+}

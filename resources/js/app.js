@@ -3,61 +3,59 @@ import './bootstrap';
 
 import { createIcons, icons } from 'lucide';
 
+import { initCreateNoteEditor } from './editor/create-note-editor';
+
 /**
- * Инициализация Lucide иконок внутри root
+ * Инициализация Lucide иконок
  */
 function initLucide(root = document) {
-    // ищем только <i data-lucide>, которые ещё не заменены
     const iconsToReplace = root.querySelectorAll('i[data-lucide]');
     if (iconsToReplace.length === 0) return;
     createIcons({ icons, root });
 }
 
-/**
- * Первый рендер при загрузке страницы
- */
+// Первый рендер при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     initLucide();
+    initCreateNoteEditor();
 });
 
-/**
- * Livewire SPA: после навигации
- */
+document.addEventListener('livewire:load', () => {
+    Livewire.hook('afterNavigate', () => {
+        // повторная инициализация ваших библиотек
+        initLucide();
+        initCreateNoteEditor();
+    });
+});
+
+// Livewire SPA: после навигации
 document.addEventListener('livewire:navigated', () => {
     initLucide();
+    // initCreateNoteEditor();
 });
 
-/**
- * Livewire: после обновления любого компонента
- */
+// Livewire: после обновления любого компонента
 document.addEventListener('livewire:rendered', (event) => {
     initLucide(event.target);
+    // initCreateNoteEditor(event.target);
 });
 
-/**
- * MutationObserver для отслеживания добавления новых иконок
- * (например, когда Livewire вставляет HTML динамически)
- */
-const observerRoot = document.body; // можно ограничить конкретным контейнером
+// MutationObserver для динамически добавляемых иконок
 if ('MutationObserver' in window) {
     const observer = new MutationObserver((mutationsList) => {
         let hasNewIcons = false;
-
         for (const mutation of mutationsList) {
             mutation.addedNodes.forEach((node) => {
                 if (node.nodeType === 1) {
-                    // ELEMENT_NODE
                     if (node.matches('i[data-lucide]') || node.querySelector('i[data-lucide]')) {
                         hasNewIcons = true;
                     }
                 }
             });
         }
-
         if (hasNewIcons) {
-            initLucide(observerRoot);
+            initLucide(document.body);
         }
     });
-
-    observer.observe(observerRoot, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
 }
