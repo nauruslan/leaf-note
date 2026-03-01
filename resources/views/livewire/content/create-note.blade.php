@@ -172,13 +172,13 @@
 
         <!-- Note Title Input -->
         <div class="px-6 pt-6 pb-2 border-b border-gray-100">
-            <input type="text" placeholder="Название заметки"
+            <input type="text" name="title" placeholder="Название заметки"
                 class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
         </div>
 
         <!-- TipTap Editor Content Area -->
         <div class="flex p-6 overflow-x-hidden">
-            <div id="editor"
+            <div wire:ignore id="editor"
                 class="tiptap-container prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700 w-full overflow-x-hidden">
             </div>
         </div>

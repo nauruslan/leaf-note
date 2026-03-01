@@ -17,11 +17,10 @@
     cursor: pointer !important;
 }
 
-/* TipTap Placeholder Styles */
 .tiptap p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     float: left;
-    color: #9ca3af; /* gray-400 */
+    color: #9ca3af;
     pointer-events: none;
     height: 0;
     font-size: 1rem;
@@ -35,7 +34,6 @@
     font-size: 1rem;
 }
 
-/* Стили для списков в редакторе TipTap */
 .tiptap ul {
     @apply list-disc space-y-1 pl-5;
 }
@@ -49,7 +47,6 @@
     @apply my-0;
 }
 
-/* Стили для списка задач (Task List) */
 .tiptap ul[data-type='taskList'] {
     @apply mb-2 list-none pl-0;
 }
@@ -92,22 +89,18 @@
     @apply m-0 leading-relaxed;
     transition: color 0.2s ease;
 }
-/* Перечеркивание текста при выполненной задаче */
 .tiptap ul[data-type='taskList'] li[data-checked='true'] > div p {
     @apply text-gray-500 line-through;
 }
 .tiptap ul[data-type='taskList'] li[data-checked='true'] > div p * {
     @apply line-through;
 }
-/* Hover эффект */
 .tiptap ul[data-type='taskList'] li:hover {
     @apply rounded bg-gray-50;
 }
-/* Вложенные списки задач */
 .tiptap ul[data-type='taskList'] ul[data-type='taskList'] {
     @apply ml-6;
 }
-/* Анимация чекбокса */
 .tiptap ul[data-type='taskList'] li > label input[type='checkbox']:hover {
     @apply border-indigo-400;
 }
@@ -115,7 +108,6 @@
     @apply border-indigo-700 bg-indigo-700;
 }
 
-/* Стили для заголовков в редакторе TipTap */
 .tiptap h1 {
     @apply mb-4 mt-6 text-2xl;
     font-size: 2em;
@@ -131,7 +123,6 @@
     line-height: 1.25;
 }
 
-/* Стили для блока кода в редакторе */
 .tiptap pre {
     @apply my-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-gray-100;
     font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
@@ -153,23 +144,17 @@
     color: inherit;
 }
 
-/* Стили для цветного текста */
 .tiptap .has-color {
     @apply inline;
 }
-
-/* Сброс стилей для списков с цветным текстом */
 .tiptap ul li .has-color,
 .tiptap ol li .has-color {
     @apply inline;
 }
-
-/* Стили для белого текста на темном фоне */
 .tiptap .has-color[color='#ffffff'] {
     @apply rounded bg-gray-800 px-0.5;
 }
 
-/* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
     [data-color-palette] {
         @apply grid grid-cols-5 gap-1 p-1;
@@ -179,7 +164,6 @@
     }
 }
 
-/* Стили для палитры цветов */
 [data-color-palette] {
     @apply border border-gray-200 shadow-lg;
 }
@@ -190,15 +174,11 @@
     @apply scale-110;
 }
 
-/* Гарантируем, что тулбар не обрезает выпадающие элементы */
 .tiptap-toolbar,
 .tiptap-toolbar > div {
     overflow: visible !important;
 }
 
-/* ========================================
-СТИЛИ ДЛЯ ТАБЛИЦ (без изменения размера)
-======================================== */
 .ProseMirror {
     overflow-x: visible !important;
     max-width: 100% !important;
@@ -236,49 +216,78 @@
     @apply bg-blue-100 !important;
 }
 
-/* ========================================
-СТИЛИ ДЛЯ ИЗОБРАЖЕНИЙ И КНОПКИ УДАЛЕНИЯ
-======================================== */
-.tiptap .image-wrapper {
-    position: relative;
-    display: inline-block;
-    line-height: 0;
-    max-width: 100%;
+.tiptap .image-node-wrapper {
+    position: relative !important;
+    display: inline-block !important;
+    margin: 1rem 0 !important;
+    line-height: 0 !important;
+    width: 100%;
 }
 
-.tiptap .image-wrapper img {
-    max-width: 100%;
-    height: auto;
+.tiptap .image-node-wrapper img {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    height: auto !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    display: block !important;
+    transition: box-shadow 0.2s ease !important;
+    cursor: pointer !important;
 }
 
-.tiptap .delete-image-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    z-index: 10;
-    padding: 0;
-    color: #ef4444;
+.tiptap .image-node-wrapper img:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
 }
 
-.tiptap .image-wrapper:hover .delete-image-btn {
-    opacity: 1;
+.tiptap .image-node-wrapper .image-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-radius: 0.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 100 !important;
+    cursor: pointer !important;
 }
 
-/* Для мобильных: кнопка появляется при клике на изображение (управляется JS) */
-.tiptap .delete-image-btn.show {
-    opacity: 1;
+.tiptap .image-node-wrapper .image-overlay .delete-image-btn {
+    background-color: #ffffff !important;
+    border: 2px solid #ef4444 !important;
+    border-radius: 50% !important;
+    width: 48px !important;
+    height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+    padding: 0 !important;
+    color: #ef4444 !important;
+    transition: all 0.2s ease !important;
+    z-index: 101 !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .delete-image-btn:hover {
+    background-color: #fef2f2 !important;
+    border-color: #dc2626 !important;
+    transform: scale(1.15) !important;
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4) !important;
+}
+
+.tiptap .image-node-wrapper img.ProseMirror-selectednode {
+    outline: 2px solid #6366f1 !important;
+    outline-offset: 2px !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .delete-image-btn:focus {
+    outline: 3px solid #6366f1 !important;
+    outline-offset: 2px !important;
 }
 
 .tiptap mark {
@@ -286,12 +295,6 @@
     border-radius: 0.2em;
 }
 
-.tiptap img {
-    display: block;
-    margin: 0 auto;
-    width: 100%;
-    max-width: 600px;
-}
 .tiptap a {
     text-decoration: underline;
     color: #6366f1;

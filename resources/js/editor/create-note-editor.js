@@ -1,7 +1,6 @@
-import { Editor } from '@tiptap/core';
+import { Editor, mergeAttributes, Node } from '@tiptap/core';
 import { Color } from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
-import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Table } from '@tiptap/extension-table';
 import TableCell from '@tiptap/extension-table-cell';
@@ -45,7 +44,6 @@ function hideAllPalettes() {
         });
 }
 
-// Универсальная функция создания палитры
 function createPalette(editor, button, type) {
     const paletteAttr = type === 'color' ? 'data-color-palette' : 'data-highlight-palette';
     const existingPalette = document.querySelector(`[${paletteAttr}]`);
@@ -182,7 +180,6 @@ function updateToolbarButtons(editor) {
         }
     });
 
-    // Кнопка цвета текста
     const colorBtn = document.querySelector('[data-editor-action="color"]');
     if (colorBtn) {
         const color = editor.getAttributes('textStyle').color;
@@ -199,7 +196,6 @@ function updateToolbarButtons(editor) {
         }
     }
 
-    // Кнопка маркера (highlight)
     const highlightBtn = document.querySelector('[data-editor-action="highlight"]');
     if (highlightBtn) {
         const highlightColor = editor.getAttributes('highlight').color;
@@ -246,7 +242,228 @@ function updateTableControls(editor) {
     }
 }
 
-// ИНИЦИАЛИЗАЦИЯ КНОПОК ТУЛБАРА
+let activeImageWrapper = null;
+
+const CustomImage = Node.create({
+    name: 'image',
+    group: 'block',
+    draggable: true,
+    selectable: true,
+    inline: false,
+
+    addAttributes() {
+        return {
+            src: {
+                default: null,
+            },
+            alt: {
+                default: null,
+            },
+            title: {
+                default: null,
+            },
+        };
+    },
+
+    parseHTML() {
+        return [
+            {
+                tag: 'img[src]',
+            },
+        ];
+    },
+
+    renderHTML({ HTMLAttributes }) {
+        return [
+            'div',
+            {
+                class: 'image-node-wrapper',
+                style: 'position: relative; display: inline-block; margin: 1rem 0;',
+            },
+            [
+                'img',
+                mergeAttributes(HTMLAttributes, {
+                    class: 'rounded-lg max-w-full h-auto shadow-md',
+                }),
+            ],
+            [
+                'button',
+                {
+                    type: 'button',
+                    class: 'delete-image-btn',
+                    'data-action': 'delete-image',
+                    title: 'Удалить изображение',
+                    'aria-label': 'Удалить изображение',
+                },
+                [
+                    'svg',
+                    {
+                        width: '20',
+                        height: '20',
+                        viewBox: '0 0 24 24',
+                        fill: 'none',
+                        stroke: 'currentColor',
+                        'stroke-width': '2',
+                        'stroke-linecap': 'round',
+                        'stroke-linejoin': 'round',
+                    },
+                    ['polyline', { points: '3 6 5 6 21 6' }],
+                    [
+                        'path',
+                        {
+                            d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+                        },
+                    ],
+                    ['line', { x1: '10', y1: '11', x2: '10', y2: '17' }],
+                    ['line', { x1: '14', y1: '11', x2: '14', y2: '17' }],
+                ],
+            ],
+        ];
+    },
+
+    addCommands() {
+        return {
+            setImage:
+                (options) =>
+                ({ commands }) => {
+                    return commands.insertContent({
+                        type: this.name,
+                        attrs: options,
+                    });
+                },
+        };
+    },
+
+    addNodeView() {
+        return ({ node, HTMLAttributes, getPos, editor }) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'image-node-wrapper';
+            wrapper.style.position = 'relative';
+            wrapper.style.display = 'inline-block';
+            wrapper.style.margin = '1rem 0';
+            wrapper.style.lineHeight = '0';
+
+            const img = document.createElement('img');
+            img.src = node.attrs.src;
+            img.alt = node.attrs.alt || '';
+            img.title = node.attrs.title || '';
+            img.className = 'rounded-lg max-w-full h-auto shadow-md cursor-pointer';
+            img.style.display = 'block';
+
+            const overlay = document.createElement('div');
+            overlay.className = 'image-overlay';
+            overlay.style.position = 'absolute';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.right = '0';
+            overlay.style.bottom = '0';
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.borderRadius = '0.5rem';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.opacity = '0';
+            overlay.style.visibility = 'hidden';
+            overlay.style.transition = 'all 0.2s ease';
+            overlay.style.zIndex = '100';
+            overlay.style.cursor = 'pointer';
+            overlay.style.pointerEvents = 'none';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'delete-image-btn';
+            deleteBtn.style.background = '#ffffff';
+            deleteBtn.style.border = '2px solid #ef4444';
+            deleteBtn.style.borderRadius = '50%';
+            deleteBtn.style.width = '48px';
+            deleteBtn.style.height = '48px';
+            deleteBtn.style.display = 'flex';
+            deleteBtn.style.alignItems = 'center';
+            deleteBtn.style.justifyContent = 'center';
+            deleteBtn.style.cursor = 'pointer';
+            deleteBtn.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+            deleteBtn.style.padding = '0';
+            deleteBtn.style.color = '#ef4444';
+            deleteBtn.style.transition = 'all 0.2s ease';
+            deleteBtn.style.zIndex = '101';
+            deleteBtn.style.pointerEvents = 'auto';
+            deleteBtn.title = 'Удалить изображение';
+            deleteBtn.setAttribute('aria-label', 'Удалить изображение');
+            deleteBtn.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            `;
+
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (typeof getPos === 'function') {
+                    const pos = getPos();
+                    editor
+                        .chain()
+                        .focus()
+                        .deleteRange({ from: pos, to: pos + 1 })
+                        .run();
+                }
+
+                activeImageWrapper = null;
+            });
+
+            img.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (activeImageWrapper && activeImageWrapper !== wrapper) {
+                    const prevOverlay = activeImageWrapper.querySelector('.image-overlay');
+                    if (prevOverlay) {
+                        prevOverlay.style.opacity = '0';
+                        prevOverlay.style.visibility = 'hidden';
+                        prevOverlay.style.pointerEvents = 'none';
+                        prevOverlay.classList.remove('active');
+                    }
+                }
+
+                overlay.style.opacity = '1';
+                overlay.style.visibility = 'visible';
+                overlay.style.pointerEvents = 'auto';
+                overlay.classList.add('active');
+
+                activeImageWrapper = wrapper;
+
+                if (typeof getPos === 'function') {
+                    const pos = getPos();
+                    editor.chain().focus().setNodeSelection(pos).run();
+                }
+            });
+
+            overlay.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(overlay);
+            overlay.appendChild(deleteBtn);
+
+            return {
+                dom: wrapper,
+                contentDOM: null,
+            };
+        };
+    },
+});
+
+function hideAllImageOverlays() {
+    document.querySelectorAll('.image-overlay').forEach((overlay) => {
+        overlay.style.opacity = '0';
+        overlay.style.visibility = 'hidden';
+        overlay.style.pointerEvents = 'none';
+        overlay.classList.remove('active');
+    });
+    activeImageWrapper = null;
+}
+
 function initToolbarButtons(editor) {
     const buttonActions = {
         bold: () => editor.chain().focus().toggleBold().run(),
@@ -299,6 +516,9 @@ function initToolbarButtons(editor) {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
+
+            const editorContainer = document.querySelector('#editor').closest('div');
+
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -311,7 +531,6 @@ function initToolbarButtons(editor) {
                     return;
                 }
                 try {
-                    const editorContainer = document.querySelector('#editor').closest('div');
                     const loadingEl = document.createElement('div');
                     loadingEl.className =
                         'absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg';
@@ -369,6 +588,9 @@ function initToolbarButtons(editor) {
         ) {
             hideAllPalettes();
         }
+        if (!e.target.closest('#editor')) {
+            hideAllImageOverlays();
+        }
     });
 
     const tableBtn = document.querySelector('[data-editor-action="table"]');
@@ -401,13 +623,11 @@ function initToolbarButtons(editor) {
     }
 }
 
-// ОСНОВНАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ
-
 export function initCreateNoteEditor() {
     const editorElement = document.querySelector('#editor');
     if (!editorElement) return null;
     if (editorElement.querySelector('.tiptap')) {
-        console.warn('TipTap уже инициализирован. Пропускаем повторную инициализацию.');
+        console.warn('TipTap уже инициализирован');
         return null;
     }
 
@@ -429,13 +649,7 @@ export function initCreateNoteEditor() {
             TextStyle,
             Color.configure({ types: ['textStyle'] }),
             Placeholder.configure({ placeholder: 'Начните вводить текст заметки...' }),
-            Image.configure({
-                HTMLAttributes: {
-                    class: 'rounded-lg max-w-full h-auto shadow-md',
-                    alt: 'Изображение',
-                },
-                allowBase64: true,
-            }),
+            CustomImage,
             TaskList,
             TaskItem.configure({ nested: true }),
             Table.configure({
@@ -486,6 +700,19 @@ export function initCreateNoteEditor() {
     editor.on('selectionUpdate', () => {
         updateToolbarButtons(editor);
         updateTableControls(editor);
+
+        const { node } = editor.state.selection;
+        if (!node || node.type.name !== 'image') {
+            hideAllImageOverlays();
+        }
+    });
+
+    editor.on('blur', () => {
+        hideAllImageOverlays();
+    });
+
+    editor.on('update', () => {
+        hideAllImageOverlays();
     });
 
     initToolbarButtons(editor);
