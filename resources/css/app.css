@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 #editor {
-    max-width: 100%;
+    width: 100%;
+    max-width: 1335px;
+    margin: 0 auto;
     overflow: hidden !important;
     cursor: default !important;
 }
@@ -31,10 +33,6 @@
     pointer-events: none;
     height: 0;
     font-size: 1rem;
-}
-/* Для темной темы (опционально) */
-.dark .tiptap p.is-editor-empty:first-child::before {
-    color: #6b7280; /* gray-500 */
 }
 
 /* Стили для списков в редакторе TipTap */
@@ -155,14 +153,6 @@
     color: inherit;
 }
 
-/* Стили для темной темы (опционально) */
-.dark .tiptap pre {
-    @apply bg-gray-800 text-gray-100;
-}
-.dark .tiptap pre:hover {
-    @apply bg-gray-700;
-}
-
 /* Стили для цветного текста */
 .tiptap .has-color {
     @apply inline;
@@ -207,7 +197,7 @@
 }
 
 /* ========================================
-СТИЛИ ДЛЯ ТАБЛИЦ
+СТИЛИ ДЛЯ ТАБЛИЦ (без изменения размера)
 ======================================== */
 .ProseMirror {
     overflow-x: visible !important;
@@ -244,71 +234,6 @@
 
 .tiptap .selectedCell {
     @apply bg-blue-100 !important;
-}
-
-/* 🔑 ОБЁРТКА ТАБЛИЦЫ */
-.tiptap-table-wrapper {
-    position: relative !important;
-    display: block !important;
-    width: 30%;
-    max-width: 100%;
-    min-width: 200px;
-    margin: 1rem 0 !important;
-}
-
-/* 🔥 РУЧКА ИЗМЕНЕНИЯ РАЗМЕРА */
-.table-resize-handle {
-    position: absolute !important;
-    top: 0px !important;
-    right: -20px !important;
-    width: 20px !important;
-    height: 20px !important;
-    background-color: rgba(99, 102, 241, 0.4) !important;
-    border: 2px solid #6366f1 !important;
-    border-radius: 4px !important;
-    cursor: pointer !important;
-    z-index: 100 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition:
-        transform 0.2s,
-        background-color 0.2s !important;
-    pointer-events: auto !important;
-    outline: none !important;
-}
-
-.table-resize-handle:hover {
-    background-color: rgba(99, 102, 241, 0.6) !important;
-    transform: scale(1) !important;
-}
-
-.table-resize-handle:active {
-    background-color: rgba(99, 102, 241, 0.6) !important;
-    transform: scale(1) !important;
-}
-
-.table-resize-handle svg {
-    width: 12px;
-    height: 12px;
-    stroke: #6366f1;
-    stroke-width: 2.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .tiptap-table-wrapper {
-        width: 100%;
-        min-width: 100%;
-    }
-    .table-resize-handle {
-        width: 24px !important;
-        height: 24px !important;
-        bottom: -12px !important;
-        right: -12px !important;
-    }
 }
 
 /* ========================================

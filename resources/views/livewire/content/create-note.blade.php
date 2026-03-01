@@ -1,5 +1,5 @@
 <!-- CreateNote Content (TipTap Editor) -->
-<div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+<div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 overflow-x-hidden">
     <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
 
         <!-- TipTap Toolbar -->
@@ -35,8 +35,9 @@
 
             <!-- Highlight Button (новый) -->
             <button type="button" data-editor-action="highlight"
-                class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
-                title="Выделить текст (маркер)">
+                class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900
+                transition-colors relative"
+                title="Выделить текст">
                 <i data-lucide="highlighter" class="w-4 h-4"></i>
             </button>
 
@@ -176,8 +177,9 @@
         </div>
 
         <!-- TipTap Editor Content Area -->
-        <div class="flex-grow p-6">
-            <div id="editor" class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
+        <div class="flex p-6 overflow-x-hidden">
+            <div id="editor"
+                class="tiptap-container prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700 w-full overflow-x-hidden">
             </div>
         </div>
 

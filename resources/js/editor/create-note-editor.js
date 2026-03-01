@@ -13,9 +13,6 @@ import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import StarterKit from '@tiptap/starter-kit';
 
-// ========================================
-// 🔥 ОБЩИЕ ЦВЕТА ДЛЯ ТЕКСТА И МАРКЕРА
-// ========================================
 const COLOR_PALETTE = [
     { name: 'Черный', value: '#000000' },
     { name: 'Серый', value: '#6b7280' },
@@ -30,9 +27,6 @@ const COLOR_PALETTE = [
     { name: 'Белый', value: '#ffffff' },
 ];
 
-// ========================================
-// 🔥 ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ========================================
 function getContrastColor(hex) {
     if (!hex) return '#374151';
     hex = hex.replace('#', '');
@@ -51,9 +45,10 @@ function hideAllPalettes() {
         });
 }
 
-// Палитра для цвета текста
-function toggleColorPalette(editor, button) {
-    const existingPalette = document.querySelector('[data-color-palette]');
+// Универсальная функция создания палитры
+function createPalette(editor, button, type) {
+    const paletteAttr = type === 'color' ? 'data-color-palette' : 'data-highlight-palette';
+    const existingPalette = document.querySelector(`[${paletteAttr}]`);
     if (existingPalette && existingPalette.parentElement === button.parentElement) {
         existingPalette.remove();
         return;
@@ -61,7 +56,7 @@ function toggleColorPalette(editor, button) {
     hideAllPalettes();
 
     const palette = document.createElement('div');
-    palette.setAttribute('data-color-palette', '');
+    palette.setAttribute(paletteAttr, '');
     palette.className =
         'absolute z-50 mt-1 p-1 bg-white rounded-lg shadow-lg border border-gray-200 flex flex-wrap items-center gap-1 min-w-[150px]';
 
@@ -77,7 +72,11 @@ function toggleColorPalette(editor, button) {
         }
         colorBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            editor.chain().focus().setColor(color.value).run();
+            if (type === 'color') {
+                editor.chain().focus().setColor(color.value).run();
+            } else {
+                editor.chain().focus().setHighlight({ color: color.value }).run();
+            }
             hideAllPalettes();
             updateToolbarButtons(editor);
         });
@@ -86,7 +85,7 @@ function toggleColorPalette(editor, button) {
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.title = 'Убрать цвет и закрыть';
+    closeBtn.title = type === 'color' ? 'Убрать цвет и закрыть' : 'Убрать выделение и закрыть';
     closeBtn.className =
         'w-5 h-5 rounded-full border-2 border-red-500 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-600 hover:text-red-600 transition-colors flex items-center justify-center ml-1';
     closeBtn.innerHTML = `
@@ -97,7 +96,11 @@ function toggleColorPalette(editor, button) {
   `;
     closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        editor.chain().focus().unsetColor().run();
+        if (type === 'color') {
+            editor.chain().focus().unsetColor().run();
+        } else {
+            editor.chain().focus().unsetHighlight().run();
+        }
         hideAllPalettes();
         updateToolbarButtons(editor);
     });
@@ -111,84 +114,13 @@ function toggleColorPalette(editor, button) {
     parent.appendChild(palette);
 
     setTimeout(() => {
-        document.addEventListener('click', handleOutsideClick, { once: true });
-    }, 100);
-
-    function handleOutsideClick(e) {
-        if (!palette.contains(e.target) && !button.contains(e.target)) {
-            hideAllPalettes();
-        }
-    }
-}
-
-// Палитра для маркера (теперь использует те же цвета)
-function toggleHighlightPalette(editor, button) {
-    const existingPalette = document.querySelector('[data-highlight-palette]');
-    if (existingPalette && existingPalette.parentElement === button.parentElement) {
-        existingPalette.remove();
-        return;
-    }
-    hideAllPalettes();
-
-    const palette = document.createElement('div');
-    palette.setAttribute('data-highlight-palette', '');
-    palette.className =
-        'absolute z-50 mt-1 p-1 bg-white rounded-lg shadow-lg border border-gray-200 flex flex-wrap items-center gap-1 min-w-[150px]';
-
-    COLOR_PALETTE.forEach((color) => {
-        const colorBtn = document.createElement('button');
-        colorBtn.type = 'button';
-        colorBtn.title = color.name;
-        colorBtn.className =
-            'w-5 h-5 rounded-full border border-black hover:scale-110 transition-transform flex items-center justify-center';
-        colorBtn.style.backgroundColor = color.value;
-        if (color.value === '#ffffff') {
-            colorBtn.style.boxShadow = '0 0 0 1px rgba(0,0,0,0.2)';
-        }
-        colorBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            editor.chain().focus().setHighlight({ color: color.value }).run();
-            hideAllPalettes();
-            updateToolbarButtons(editor);
+        document.addEventListener('click', function handler(e) {
+            if (!palette.contains(e.target) && !button.contains(e.target)) {
+                hideAllPalettes();
+                document.removeEventListener('click', handler);
+            }
         });
-        palette.appendChild(colorBtn);
-    });
-
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.title = 'Убрать выделение и закрыть';
-    closeBtn.className =
-        'w-5 h-5 rounded-full border-2 border-red-500 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-600 hover:text-red-600 transition-colors flex items-center justify-center ml-1';
-    closeBtn.innerHTML = `
-    <svg width="10" height="10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-  `;
-    closeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        editor.chain().focus().unsetHighlight().run();
-        hideAllPalettes();
-        updateToolbarButtons(editor);
-    });
-    palette.appendChild(closeBtn);
-
-    const parent = button.parentElement;
-    if (getComputedStyle(parent).position === 'static') {
-        parent.style.position = 'relative';
-    }
-
-    parent.appendChild(palette);
-
-    setTimeout(() => {
-        document.addEventListener('click', handleOutsideClick, { once: true });
     }, 100);
-
-    function handleOutsideClick(e) {
-        if (!palette.contains(e.target) && !button.contains(e.target)) {
-            hideAllPalettes();
-        }
-    }
 }
 
 function updateToolbarButtons(editor) {
@@ -212,22 +144,40 @@ function updateToolbarButtons(editor) {
     buttons.forEach(({ action, check }) => {
         const btn = document.querySelector(`[data-editor-action="${action}"]`);
         if (btn) {
-            if (check()) {
-                btn.classList.add(
-                    'bg-gradient-to-r',
-                    'from-indigo-600',
-                    'to-purple-600',
-                    'text-white',
-                );
-                btn.classList.remove('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
+            if (action === 'highlight') {
+                if (check()) {
+                    btn.classList.add('text-white');
+                    btn.classList.remove(
+                        'text-gray-600',
+                        'hover:text-gray-900',
+                        'hover:bg-gray-200',
+                    );
+                } else {
+                    btn.classList.remove('text-white');
+                    btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
+                }
             } else {
-                btn.classList.remove(
-                    'bg-gradient-to-r',
-                    'from-indigo-600',
-                    'to-purple-600',
-                    'text-white',
-                );
-                btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
+                if (check()) {
+                    btn.classList.add(
+                        'bg-gradient-to-r',
+                        'from-indigo-600',
+                        'to-purple-600',
+                        'text-white',
+                    );
+                    btn.classList.remove(
+                        'text-gray-600',
+                        'hover:text-gray-900',
+                        'hover:bg-gray-200',
+                    );
+                } else {
+                    btn.classList.remove(
+                        'bg-gradient-to-r',
+                        'from-indigo-600',
+                        'to-purple-600',
+                        'text-white',
+                    );
+                    btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
+                }
             }
         }
     });
@@ -253,6 +203,7 @@ function updateToolbarButtons(editor) {
     const highlightBtn = document.querySelector('[data-editor-action="highlight"]');
     if (highlightBtn) {
         const highlightColor = editor.getAttributes('highlight').color;
+
         if (highlightColor) {
             highlightBtn.style.backgroundColor = highlightColor;
             highlightBtn.style.color = getContrastColor(highlightColor);
@@ -295,122 +246,7 @@ function updateTableControls(editor) {
     }
 }
 
-// ========================================
-// РАБОТА С ТАБЛИЦАМИ
-// ========================================
-function createResizeHandle(table) {
-    if (!table || table.tagName !== 'TABLE') return null;
-    let wrapper = table.parentElement;
-    if (!wrapper || !wrapper.classList.contains('tiptap-table-wrapper')) {
-        wrapper = document.createElement('div');
-        wrapper.className = 'tiptap-table-wrapper';
-        wrapper.style.position = 'relative';
-        wrapper.style.display = 'block';
-        table.parentNode.insertBefore(wrapper, table);
-        wrapper.appendChild(table);
-    }
-    const oldHandle = wrapper.querySelector('.table-resize-handle');
-    if (oldHandle) oldHandle.remove();
-    const handle = document.createElement('div');
-    handle.className = 'table-resize-handle';
-    handle.setAttribute('data-resize-handle', 'true');
-    handle.style.cursor = 'nwse-resize';
-    handle.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <path d="M4 16 L28 16" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M8 12 L4 16 L8 20" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <path d="M24 12 L28 16 L24 20" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
-  `;
-    wrapper.appendChild(handle);
-    return handle;
-}
-
-function initResizeHandles() {
-    document.querySelectorAll('#editor table').forEach((table) => createResizeHandle(table));
-}
-
-function initTableResize(editor) {
-    let isResizing = false;
-    let startX = 0,
-        startWidth = 0;
-    let currentWrapper = null,
-        currentHandle = null,
-        currentTable = null;
-
-    const handleMouseDown = (e) => {
-        const handle = e.target.closest('.table-resize-handle');
-        if (!handle) return;
-        e.preventDefault();
-        e.stopPropagation();
-        isResizing = true;
-        currentHandle = handle;
-        currentWrapper = handle.parentElement;
-        currentTable = currentWrapper?.querySelector('table');
-        if (!currentWrapper || !currentTable) {
-            isResizing = false;
-            return;
-        }
-        const tableRect = currentTable.getBoundingClientRect();
-        const tableWidthPx = tableRect.width;
-        currentWrapper.style.width = tableWidthPx + 'px';
-        currentTable.style.width = '100%';
-        startX = e.clientX;
-        startWidth = tableWidthPx;
-        document.body.style.cursor = 'pointer';
-        document.body.style.userSelect = 'none';
-        handle.style.backgroundColor = 'rgba(99, 102, 241, 0.6)';
-        currentTable.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.6)';
-    };
-
-    const handleMouseMove = (e) => {
-        if (!isResizing || !currentWrapper) return;
-        e.preventDefault();
-        const dx = e.clientX - startX;
-        const editorContainer = document.querySelector('#editor');
-        const maxWidth = editorContainer ? editorContainer.clientWidth - 40 : 800;
-        const newWidth = Math.max(200, Math.min(startWidth + dx, maxWidth));
-        currentWrapper.style.width = `${newWidth}px`;
-    };
-
-    const handleMouseUp = () => {
-        if (!isResizing) return;
-        const finalWidth = currentWrapper.offsetWidth;
-        if (currentTable && editor && !editor.isDestroyed) {
-            currentTable.style.width = finalWidth + 'px';
-            editor
-                .chain()
-                .focus()
-                .updateAttributes('table', {
-                    style: `width: ${finalWidth}px; table-layout: fixed;`,
-                })
-                .run();
-        }
-        if (currentWrapper) currentWrapper.style.width = finalWidth + 'px';
-        isResizing = false;
-        if (currentHandle) currentHandle.style.backgroundColor = '';
-        if (currentTable) currentTable.style.boxShadow = '';
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-        currentWrapper = null;
-        currentHandle = null;
-        currentTable = null;
-    };
-
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    setTimeout(() => initResizeHandles(), 100);
-    return () => {
-        document.removeEventListener('mousedown', handleMouseDown);
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-    };
-}
-
-// ========================================
 // ИНИЦИАЛИЗАЦИЯ КНОПОК ТУЛБАРА
-// ========================================
 function initToolbarButtons(editor) {
     const buttonActions = {
         bold: () => editor.chain().focus().toggleBold().run(),
@@ -514,7 +350,7 @@ function initToolbarButtons(editor) {
     if (colorBtn) {
         colorBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            toggleColorPalette(editor, colorBtn);
+            createPalette(editor, colorBtn, 'color');
         });
     }
 
@@ -522,7 +358,7 @@ function initToolbarButtons(editor) {
     if (highlightBtn) {
         highlightBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            toggleHighlightPalette(editor, highlightBtn);
+            createPalette(editor, highlightBtn, 'highlight');
         });
     }
 
@@ -558,8 +394,6 @@ function initToolbarButtons(editor) {
                         sel.removeAllRanges();
                         sel.addRange(range);
                     }
-                    const newTable = document.querySelector('#editor table:last-of-type');
-                    if (newTable) createResizeHandle(newTable);
                     updateToolbarButtons(editor);
                 }, 50);
             }
@@ -567,9 +401,8 @@ function initToolbarButtons(editor) {
     }
 }
 
-// ========================================
 // ОСНОВНАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ
-// ========================================
+
 export function initCreateNoteEditor() {
     const editorElement = document.querySelector('#editor');
     if (!editorElement) return null;
@@ -606,8 +439,8 @@ export function initCreateNoteEditor() {
             TaskList,
             TaskItem.configure({ nested: true }),
             Table.configure({
-                resizable: true,
-                lastColumnResizable: true,
+                resizable: false,
+                lastColumnResizable: false,
                 HTMLAttributes: {
                     class: 'tiptap-table w-full border-collapse my-4',
                 },
@@ -629,7 +462,7 @@ export function initCreateNoteEditor() {
                 defaultAlignment: 'left',
             }),
             Highlight.configure({
-                multicolor: true, // важно для хранения цвета
+                multicolor: true,
             }),
         ],
         content: '',
@@ -648,11 +481,6 @@ export function initCreateNoteEditor() {
             }
             updateToolbarButtons(editor);
         },
-        onCreate: () => {
-            setTimeout(() => {
-                initResizeHandles();
-            }, 100);
-        },
     });
 
     editor.on('selectionUpdate', () => {
@@ -660,24 +488,8 @@ export function initCreateNoteEditor() {
         updateTableControls(editor);
     });
 
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                if (
-                    node.nodeName === 'TABLE' ||
-                    (node.nodeType === 1 && node.querySelector('table'))
-                ) {
-                    initResizeHandles();
-                }
-            });
-        });
-    });
-    observer.observe(editorElement, { childList: true, subtree: true });
-    editor.observer = observer;
-
     initToolbarButtons(editor);
     updateToolbarButtons(editor);
-    initTableResize(editor);
 
     return editor;
 }
