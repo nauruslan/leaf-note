@@ -127,8 +127,8 @@ function updateToolbarButtons(editor) {
         { action: 'italic', check: () => editor.isActive('italic') },
         { action: 'underline', check: () => editor.isActive('underline') },
         { action: 'strike', check: () => editor.isActive('strike') },
-        { action: 'heading1', check: () => editor.isActive('heading', { level: 1 }) },
-        { action: 'heading2', check: () => editor.isActive('heading', { level: 2 }) },
+        { action: 'heading1', check: () => editor.isActive('heading', { level: 2 }) },
+        { action: 'heading2', check: () => editor.isActive('heading', { level: 3 }) },
         { action: 'bulletList', check: () => editor.isActive('bulletList') },
         { action: 'orderedList', check: () => editor.isActive('orderedList') },
         { action: 'taskList', check: () => editor.isActive('taskList') },
@@ -724,7 +724,6 @@ function initToolbarButtons(editor) {
         }
     });
 
-    // === ОБНОВЛЕННАЯ ОБРАБОТКА КНОПКИ ССЫЛКИ ===
     const linkBtn = document.querySelector('[data-editor-action="link"]');
     if (linkBtn) {
         linkBtn.addEventListener('click', () => {
@@ -845,6 +844,20 @@ function initToolbarButtons(editor) {
     }
 }
 
+function getEditorContent() {
+    const editorElement = document.querySelector('#editor');
+    if (!editorElement || !editorElement._editor) return null;
+    return editorElement._editor.getJSON();
+}
+
+function sendContentToLivewire() {
+    const content = getEditorContent();
+
+    if (content !== null) {
+        Livewire.dispatch('editorContent', { content: content });
+    }
+}
+
 export function initCreateNoteEditor() {
     const editorElement = document.querySelector('#editor');
     if (!editorElement) return null;
@@ -856,7 +869,7 @@ export function initCreateNoteEditor() {
     editorElement.innerHTML = '';
 
     initImageModal();
-    initLinkModal(); // <-- Добавлена инициализация модального окна ссылок
+    initLinkModal();
 
     const editor = new Editor({
         element: editorElement,
@@ -922,6 +935,8 @@ export function initCreateNoteEditor() {
         },
     });
 
+    editorElement._editor = editor;
+
     editor.on('selectionUpdate', () => {
         updateToolbarButtons(editor);
         updateTableControls(editor);
@@ -945,3 +960,9 @@ export function initCreateNoteEditor() {
 
     return editor;
 }
+
+document.addEventListener('livewire:init', () => {
+    Livewire.on('getEditorContent', () => {
+        sendContentToLivewire();
+    });
+});

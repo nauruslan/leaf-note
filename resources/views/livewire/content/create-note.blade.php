@@ -154,7 +154,7 @@
         </div>
         <!-- Note Title Input -->
         <div class="px-6 pt-6 pb-2 border-b border-gray-100">
-            <input type="text" placeholder="Название заметки"
+            <input type="text" wire:model="title" placeholder="Название заметки"
                 class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
         </div>
         <!-- TipTap Editor Content Area -->
@@ -162,6 +162,7 @@
             <div id="editor" class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
             </div>
         </div>
+
         <!-- Footer Info -->
         <div
             class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">

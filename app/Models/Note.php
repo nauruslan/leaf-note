@@ -40,7 +40,7 @@ class Note extends Model
      * Приведение типов.
      */
     protected $casts = [
-        'payload' => 'array',        // JSON → массив автоматически
+        'payload' => 'array',
         'is_favorite' => 'boolean',
         'moved_to_trash_at' => 'datetime',
     ];
