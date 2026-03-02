@@ -313,7 +313,6 @@
     outline-offset: 2px !important;
 }
 
-/* Full Screen Image Modal */
 .image-modal {
     position: fixed;
     top: 0;
@@ -336,7 +335,6 @@
 }
 
 .image-modal-content {
-    /* position: relative; */
     max-width: 90vw;
     max-height: 90vh;
     display: flex;
@@ -388,4 +386,55 @@
     text-decoration: underline;
     color: #6366f1;
     cursor: pointer;
+}
+
+.link-modal {
+    @apply fixed inset-0 z-[1000] hidden items-center justify-center;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.link-modal.active {
+    @apply flex;
+}
+
+.link-modal-content {
+    @apply mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-2xl;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.link-modal.active .link-modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.link-modal-title {
+    @apply mb-4 text-lg font-semibold text-gray-900;
+}
+
+.link-modal-input {
+    @apply w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400;
+    @apply focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600;
+    @apply transition-all duration-200;
+}
+
+.link-modal-buttons {
+    @apply mt-6 flex justify-end gap-3;
+}
+
+.link-modal-btn {
+    @apply rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.link-modal-btn-cancel {
+    @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+    @apply focus:ring-gray-500;
+}
+
+.link-modal-btn-ok {
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white;
+    @apply focus:ring-indigo-500;
 }
