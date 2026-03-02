@@ -1,7 +1,6 @@
 <!-- CreateNote Content (TipTap Editor) -->
-<div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-6 overflow-x-hidden">
+<div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-6">
     <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
-
         <!-- TipTap Toolbar -->
         <div class="px-6 py-3 border-b border-gray-200 bg-gray-50/50 flex flex-wrap items-center gap-1">
             <!-- Text Formatting -->
@@ -25,24 +24,19 @@
                 title="Зачеркнутый">
                 <i data-lucide="strikethrough" class="w-4 h-4"></i>
             </button>
-
             <!-- Color Picker Button -->
             <button type="button" data-editor-action="color"
                 class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors relative"
                 title="Цвет текста">
                 <i data-lucide="palette" class="w-4 h-4"></i>
             </button>
-
             <!-- Highlight Button (новый) -->
             <button type="button" data-editor-action="highlight"
-                class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900
-                transition-colors relative"
-                title="Выделить текст">
+                class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+                title="Выделить текст (маркер)">
                 <i data-lucide="highlighter" class="w-4 h-4"></i>
             </button>
-
             <div class="w-px h-6 bg-gray-300 mx-2"></div>
-
             <!-- Headings -->
             <button type="button" data-editor-action="heading1"
                 class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
@@ -54,9 +48,7 @@
                 title="Подзаголовок">
                 <span class="font-bold text-sm">H2</span>
             </button>
-
             <div class="w-px h-6 bg-gray-300 mx-2"></div>
-
             <!-- Lists -->
             <button type="button" data-editor-action="bulletList"
                 class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
@@ -73,9 +65,7 @@
                 title="Задача">
                 <i data-lucide="list-checks" class="w-4 h-4"></i>
             </button>
-
             <div class="w-px h-6 bg-gray-300 mx-2"></div>
-
             <!-- Alignment Buttons -->
             <button type="button" data-editor-action="alignLeft"
                 class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
@@ -92,9 +82,7 @@
                 title="По правому краю">
                 <i data-lucide="align-right" class="w-4 h-4"></i>
             </button>
-
             <div class="w-px h-6 bg-gray-300 mx-2"></div>
-
             <!-- Insert -->
             <button type="button" data-editor-action="link"
                 class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
@@ -111,15 +99,12 @@
                 title="Код">
                 <i data-lucide="code" class="w-4 h-4"></i>
             </button>
-
             <div class="w-px h-6 bg-gray-300 mx-2"></div>
-
             <button type="button" data-editor-action="table"
                 class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
                 title="Таблица">
                 <i data-lucide="table" class="w-4 h-4"></i>
             </button>
-
             <!-- Table Controls (скрыты по умолчанию) -->
             <div class="flex items-center gap-1 hidden table-controls">
                 <button type="button" data-editor-action="addRow"
@@ -154,9 +139,7 @@
                     <i data-lucide="split" class="w-3.5 h-3.5"></i>
                 </button>
             </div>
-
             <div class="w-px h-6 bg-gray-300 mx-2"></div>
-
             <!-- Undo/Redo -->
             <button type="button" data-editor-action="undo"
                 class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
@@ -169,20 +152,16 @@
                 <i data-lucide="redo" class="w-4 h-4"></i>
             </button>
         </div>
-
         <!-- Note Title Input -->
         <div class="px-6 pt-6 pb-2 border-b border-gray-100">
-            <input type="text" name="title" placeholder="Название заметки"
+            <input type="text" placeholder="Название заметки"
                 class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
         </div>
-
         <!-- TipTap Editor Content Area -->
-        <div class="flex p-6 overflow-x-hidden">
-            <div wire:ignore id="editor"
-                class="tiptap-container prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700 w-full overflow-x-hidden">
+        <div class="flex-grow p-6">
+            <div id="editor" class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
             </div>
         </div>
-
         <!-- Footer Info -->
         <div
             class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
