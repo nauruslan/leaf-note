@@ -19,7 +19,6 @@ class AppLayout extends Component
 
     public function mount(): void
     {
-        // Загружаем начальное состояние из сервиса
         $this->section = StateManager::get('section') ?: 'dashboard';
         $this->folderId = StateManager::get('folderId');
         $this->search = StateManager::get('search', '');

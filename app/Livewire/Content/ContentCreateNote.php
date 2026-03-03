@@ -33,12 +33,11 @@ class ContentCreateNote extends Component
 
     private function performSave(): void
     {
-        $this->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required',
-        ]);
-
         try {
+            $this->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required',
+            ]);
             $note = new Note();
             $note->title = $this->title;
             $note->type = Note::TYPE_NOTE;
@@ -60,12 +59,13 @@ class ContentCreateNote extends Component
 
             $this->dispatch('noteSaved');
 
-            $this->dispatch('navigateTo', 'dashboard', noteId: $note->id);
+            $this->dispatch('navigateTo', 'dashboard');
 
         } catch (\Throwable $e) {
             report($e);
             $this->dispatch('showError', 'Не удалось сохранить заметку');
         }
+        $this->dispatch('navigateTo', section: 'dashboard');
     }
 
     public function render()

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 // Очистка сессии на время разработки
 Route::get('/clear-session', function() {
     session()->flush();
-    return 'Session cleared';
+    return redirect()->route('login');
 });
 
 Route::view('/', 'layouts.app')->middleware(['auth', 'verified'])->name('app');

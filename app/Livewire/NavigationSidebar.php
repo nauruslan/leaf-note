@@ -13,7 +13,6 @@ class NavigationSidebar extends Component
     public string $section = 'dashboard';
     public ?int $folderId = null;
     public bool $isExpanded = false;
-    public ?int $scrollPosition = null; // Позиция скролла
     public $folders = [];
 
     protected $listeners = [
@@ -23,10 +22,10 @@ class NavigationSidebar extends Component
 
     public function mount(): void
     {
+        logger()->debug('navigation-sidebar mount', ['id' => $this->getId()]);
         $this->section = StateManager::get('section', 'dashboard');
         $this->folderId = StateManager::get('folderId');
         $this->isExpanded = Session::get('sidebar_expanded', false);
-        $this->scrollPosition = Session::get('sidebar_scroll_position', 0);
 
         $userId = Auth::id();
         if (!$userId) {
@@ -40,9 +39,6 @@ class NavigationSidebar extends Component
     {
         $this->section  = $section;
         $this->folderId = $folderId;
-
-        // Принудительно восстановим скролл после обновления
-        $this->dispatch('restoreScroll', scrollPosition: $this->scrollPosition);
     }
 
     public function navigateTo(string $section, ?int $folderId = null): void
@@ -62,13 +58,6 @@ class NavigationSidebar extends Component
         $this->isExpanded = false;
     }
 
-    // Сохраняем позицию скролла
-    public function handleSidebarScrolled($position): void
-    {
-        $this->scrollPosition = $position;
-        Session::put('sidebar_scroll_position', $position);
-    }
-
     public function logout()
     {
         app(Logout::class)();
@@ -77,6 +66,11 @@ class NavigationSidebar extends Component
 
     public function render()
     {
+    logger()->debug('Rendering navigation-sidebar', [
+        'id' => $this->getId(),
+        'section' => $this->section,
+        'folderId' => $this->folderId
+    ]);
         return view('livewire.navigation-sidebar');
     }
 }

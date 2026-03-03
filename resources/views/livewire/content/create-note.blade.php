@@ -159,7 +159,8 @@
         </div>
         <!-- TipTap Editor Content Area -->
         <div class="flex-grow p-6">
-            <div id="editor" class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
+            <div id="editor" wire:ignore.self
+                class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
             </div>
         </div>
 

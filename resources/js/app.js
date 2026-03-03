@@ -5,45 +5,60 @@ import { createIcons, icons } from 'lucide';
 
 import { initCreateNoteEditor } from './editor/create-note-editor';
 
-/**
- * Инициализация Lucide иконок
- */
+// Для разработки
+Livewire.hook('element.init', ({ component }) => {
+    console.log('🔍 component object:', {
+        name: component.name,
+        id: component.id,
+    });
+});
+
 function initLucide(root = document) {
     const iconsToReplace = root.querySelectorAll('i[data-lucide]');
     if (iconsToReplace.length === 0) return;
     createIcons({ icons, root });
 }
 
-// Первый рендер при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     initLucide();
     initCreateNoteEditor();
 });
 
-document.addEventListener('livewire:load', () => {
-    Livewire.hook('afterNavigate', () => {
-        // повторная инициализация ваших библиотек
-        initLucide();
-        initCreateNoteEditor();
+let editorObserver = null;
+
+function setupEditorObserver() {
+    if (editorObserver) return;
+
+    editorObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType === 1) {
+                    if (node.id === 'editor' || node.querySelector?.('#editor')) {
+                        setTimeout(() => {
+                            initLucide(document.body);
+                            initCreateNoteEditor();
+                        }, 10);
+                        return;
+                    }
+                }
+            }
+        }
     });
-});
 
-// Livewire SPA: после навигации
-document.addEventListener('livewire:navigated', () => {
-    initLucide();
-    // initCreateNoteEditor();
-});
+    editorObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
+}
 
-// Livewire: после обновления любого компонента
-document.addEventListener('livewire:rendered', (event) => {
-    initLucide(event.target);
-    // initCreateNoteEditor(event.target);
-});
+let iconObserver = null;
 
-// MutationObserver для динамически добавляемых иконок
-if ('MutationObserver' in window) {
-    const observer = new MutationObserver((mutationsList) => {
+function setupIconObserver() {
+    if (iconObserver) return;
+
+    iconObserver = new MutationObserver((mutationsList) => {
         let hasNewIcons = false;
+
         for (const mutation of mutationsList) {
             mutation.addedNodes.forEach((node) => {
                 if (node.nodeType === 1) {
@@ -53,9 +68,17 @@ if ('MutationObserver' in window) {
                 }
             });
         }
+
         if (hasNewIcons) {
             initLucide(document.body);
         }
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+
+    iconObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
 }
+
+setupEditorObserver();
+setupIconObserver();

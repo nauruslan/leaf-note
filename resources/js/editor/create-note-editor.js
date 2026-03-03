@@ -858,12 +858,36 @@ function sendContentToLivewire() {
     }
 }
 
+export function destroyCreateNoteEditor() {
+    const editorElement = document.querySelector('#editor');
+    if (!editorElement) return;
+
+    if (editorElement._editor) {
+        editorElement._editor.destroy();
+        editorElement._editor = null;
+    }
+
+    editorElement.innerHTML = '';
+    editorElement.classList.remove('tiptap');
+
+    ['image-fullscreen-modal', 'link-modal'].forEach((id) => {
+        const modal = document.getElementById(id);
+        if (modal) modal.remove();
+    });
+
+    if (typeof activeImageWrapper !== 'undefined') activeImageWrapper = null;
+    if (typeof linkModalCallback !== 'undefined') linkModalCallback = null;
+}
+
 export function initCreateNoteEditor() {
     const editorElement = document.querySelector('#editor');
-    if (!editorElement) return null;
-    if (editorElement.querySelector('.tiptap')) {
-        console.warn('TipTap уже инициализирован');
+
+    if (!editorElement) {
         return null;
+    }
+
+    if (editorElement._editor || editorElement.querySelector('.ProseMirror')) {
+        destroyCreateNoteEditor();
     }
 
     editorElement.innerHTML = '';
@@ -964,5 +988,13 @@ export function initCreateNoteEditor() {
 document.addEventListener('livewire:init', () => {
     Livewire.on('getEditorContent', () => {
         sendContentToLivewire();
+    });
+    Livewire.on('destroyEditor', () => {
+        console.log('🧹 destroyEditor event received');
+        setTimeout(() => {
+            if (typeof destroyCreateNoteEditor === 'function') {
+                destroyCreateNoteEditor();
+            }
+        }, 10);
     });
 });

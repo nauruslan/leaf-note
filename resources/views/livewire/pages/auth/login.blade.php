@@ -25,7 +25,12 @@ new #[Layout('layouts.guest')] class extends Component {
 
         Session::regenerate();
 
-        $this->redirectIntended(default: route('app', absolute: false), navigate: true);
+        $this->dispatch('navigateTo', section: 'dashboard');
+        $this->redirectIntended(default: route('app', absolute: false));
+    }
+    public function loginAsDemo(): void
+    {
+        //    Логика демо-логина
     }
 }; ?>
 

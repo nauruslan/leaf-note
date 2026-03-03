@@ -11,7 +11,7 @@ class AppState extends Component
     public ?int $folderId = null;
     public string $search = '';
 
-    protected $listeners = [
+       protected $listeners = [
         'navigateTo'    => 'handleNavigateTo',
         'searchUpdated' => 'handleSearchUpdated',
         'updateState'   => 'updateState',
@@ -33,7 +33,6 @@ class AppState extends Component
         StateManager::set('section', $this->section);
         StateManager::set('folderId', $this->folderId);
 
-        // Устанавливаем флаг развернутого сайдбара
         Session::put('sidebar_expanded', true);
 
         $this->dispatch('stateUpdated',
@@ -41,6 +40,7 @@ class AppState extends Component
             folderId: $this->folderId,
             search: $this->search
         );
+
     }
 
     public function handleSearchUpdated(string $search): void

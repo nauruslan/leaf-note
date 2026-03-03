@@ -210,68 +210,45 @@
         let collapseTimer = null;
         const sidebar = document.getElementById('navigation-sidebar');
 
-        // Управление сворачиванием
-        sidebar.addEventListener('mouseenter', () => {
+        sidebar?.addEventListener('mouseenter', () => {
             if (collapseTimer) clearTimeout(collapseTimer);
         });
-
-        sidebar.addEventListener('mouseleave', () => {
+        sidebar?.addEventListener('mouseleave', () => {
             if (collapseTimer) clearTimeout(collapseTimer);
             collapseTimer = setTimeout(() => {
                 $wire.clearSidebarFlag();
             }, 300);
         });
 
-        // Сохранение скролла при прокрутке
         let scrollTimeout;
+        const STORAGE_KEY = 'sidebar_scroll';
 
         function handleScroll() {
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
                 const nav = document.getElementById('sidebar-nav');
                 if (nav) {
-                    $wire.handleSidebarScrolled(nav.scrollTop);
+                    localStorage.setItem(STORAGE_KEY, nav.scrollTop);
                 }
             }, 100);
         }
 
-        // Слушатель скролла (переживает ререндеры)
-        function setupScrollListener() {
+        function setupScrollListenerAndRestore() {
             const nav = document.getElementById('sidebar-nav');
-            if (nav) {
-                nav.removeEventListener('scroll', handleScroll);
-                nav.addEventListener('scroll', handleScroll);
+            if (!nav) {
+                setTimeout(setupScrollListenerAndRestore, 50);
+                return;
             }
-        }
-
-        setupScrollListener();
-
-        // MutationObserver — на случай, если nav пересоздаётся
-        const observer = new MutationObserver(setupScrollListener);
-        observer.observe(sidebar, {
-            childList: true,
-            subtree: true
-        });
-
-        // Восстановление скролла после клика — значение приходит из события
-        $wire.on('restoreScroll', (event) => {
-            const scrollPos = event.scrollPosition;
-            const nav = document.getElementById('sidebar-nav');
-            if (nav && scrollPos > 0) {
+            const savedScroll = localStorage.getItem(STORAGE_KEY);
+            if (savedScroll !== null) {
                 requestAnimationFrame(() => {
-                    nav.scrollTop = scrollPos;
+                    nav.scrollTop = parseInt(savedScroll, 10);
                 });
             }
-        });
+            nav.removeEventListener('scroll', handleScroll);
+            nav.addEventListener('scroll', handleScroll);
+        }
 
-        // Восстановление при инициализации (если свойство уже есть)
-        $wire.$watch('scrollPosition', (value) => {
-            if (value > 0) {
-                const nav = document.getElementById('sidebar-nav');
-                if (nav) {
-                    nav.scrollTop = value;
-                }
-            }
-        });
+        setupScrollListenerAndRestore();
     </script>
 @endscript
