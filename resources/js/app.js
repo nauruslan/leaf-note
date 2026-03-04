@@ -6,12 +6,12 @@ import { createIcons, icons } from 'lucide';
 import { initCreateNoteEditor } from './editor/create-note-editor';
 
 // Для разработки
-Livewire.hook('element.init', ({ component }) => {
-    console.log('🔍 component object:', {
-        name: component.name,
-        id: component.id,
-    });
-});
+// Livewire.hook('element.init', ({ component }) => {
+//     console.log('🔍 component object:', {
+//         name: component.name,
+//         id: component.id,
+//     });
+// });
 
 function initLucide(root = document) {
     const iconsToReplace = root.querySelectorAll('i[data-lucide]');

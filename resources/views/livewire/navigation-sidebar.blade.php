@@ -48,8 +48,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('favorites')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'favorites' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
+                        <a href="#" wire:click.prevent="navigateTo('favorite')"
+                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'favorite' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="star" class="w-6 h-6 flex-shrink-0"></i>
                             <span
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Избранное</span>

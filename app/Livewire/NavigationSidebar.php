@@ -60,17 +60,21 @@ class NavigationSidebar extends Component
 
     public function logout()
     {
+        // Очищаем LocalStorage через JavaScript
+        $this->js('localStorage.clear()');
+        // $this->js("localStorage.removeItem('sidebar_scroll');
+
         app(Logout::class)();
         return redirect()->route('login');
     }
 
     public function render()
     {
-    logger()->debug('Rendering navigation-sidebar', [
-        'id' => $this->getId(),
-        'section' => $this->section,
-        'folderId' => $this->folderId
-    ]);
+        logger()->debug('Rendering navigation-sidebar', [
+            'id' => $this->getId(),
+            'section' => $this->section,
+            'folderId' => $this->folderId
+        ]);
         return view('livewire.navigation-sidebar');
     }
 }
