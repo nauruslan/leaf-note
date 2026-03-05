@@ -128,27 +128,6 @@
     line-height: 1.25;
 }
 
-.tiptap pre {
-    @apply my-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-gray-100;
-    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
-    font-size: 0.875rem;
-    line-height: 1.6;
-    position: relative;
-}
-.tiptap pre::before {
-    @apply absolute right-3 top-2 text-xs text-gray-500;
-    content: attr(data-language);
-    pointer-events: none;
-}
-.tiptap pre code {
-    @apply text-gray-100;
-    background: none;
-    font-family: inherit;
-    font-size: inherit;
-    padding: 0;
-    color: inherit;
-}
-
 .tiptap .has-color {
     @apply inline;
 }

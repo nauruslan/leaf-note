@@ -186,11 +186,6 @@
                         title="Изображение">
                         <i data-lucide="image" class="w-4 h-4"></i>
                     </button>
-                    <button type="button" data-editor-action="code"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
-                        title="Код">
-                        <i data-lucide="code" class="w-4 h-4"></i>
-                    </button>
                     <div class="w-px h-6 bg-gray-300 mx-2"></div>
                     <button type="button" data-editor-action="table"
                         class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
