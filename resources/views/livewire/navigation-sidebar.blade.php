@@ -30,7 +30,7 @@
                                 доска</span>
                             <span
                                 class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                18
+                                {{-- {{$folder->notes()->count()}} --}} 11
                             </span>
                         </a>
                     </li>
@@ -157,7 +157,7 @@
                                 </span>
                                 <span
                                     class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                    {{ $folder->notes()->count() }}
+                                    {{ $folder->notes_count }}
                                 </span>
 
                             </a>

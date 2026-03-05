@@ -1,55 +1,78 @@
 <?php
-
 namespace App\Livewire;
 
+use App\Models\Folder;
 use App\Services\StateManager;
 use Livewire\Component;
-use App\Models\Folder;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Collection;
 
+/**
+ * @property-read ?Folder $folder   // только для IDE, не публично
+ */
 class FolderView extends Component
 {
     public string $section = 'folder';
     public string $search = '';
     public ?int $folderId = null;
+    public $folders = [];
 
-    public ?Folder $folder = null;
+    protected ?Folder $folder = null;
 
     protected $listeners = [
-        'stateUpdated' => 'updateState'
+        'noteAdded'   => 'refreshCurrentFolder',
+        'noteDeleted' => 'refreshCurrentFolder',
     ];
 
     public function mount(): void
     {
-        $this->section = StateManager::get('section', 'folder');
-        $this->search = StateManager::get('search', '');
+        $this->section  = StateManager::get('section', 'folder');
+        $this->search   = StateManager::get('search', '');
         $this->folderId = StateManager::get('folderId');
-        $this->loadFolder();
+
+        $this->loadAllFolders();
+        $this->loadCurrentFolder();
     }
 
     #[On('stateUpdated')]
-    public function updateState($section, $folderId, $search)
+    public function updateState(string $section, ?int $folderId, string $search): void
     {
-        $this->section = $section;
+        $this->section  = $section;
         $this->folderId = $folderId;
-        $this->search = $search;
-        $this->loadFolder();
+        $this->search   = $search;
+
+        $this->loadCurrentFolder();
     }
 
-    public function loadFolder()
+    private function loadAllFolders(): void
     {
-        if ($this->folderId) {
-            $this->folder = Folder::where('user_id', Auth::id())
-                ->where('id', $this->folderId)
-                ->first();
+        $query = Folder::where('user_id', Auth::id())
+            ->orderBy('title');
+
+        if ($this->search) {
+            $query->where('title', 'like', "%{$this->search}%");
         }
+
+        $this->folders = $query->get();
     }
 
+    private function loadCurrentFolder(): void
+    {
+        $this->folder = $this->folderId
+            ? Folder::where('user_id', Auth::id())->find($this->folderId)
+            : null;
+    }
+
+    public function refreshCurrentFolder(): void
+    {
+        $this->loadCurrentFolder();
+    }
 
     public function render()
     {
-        return view('livewire.folder');
+        return view('livewire.folder', [
+            'folder' => $this->folder,
+        ]);
     }
-
 }

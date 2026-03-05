@@ -8,6 +8,7 @@ use App\Models\Note;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Folder extends Model
 {
@@ -21,6 +22,7 @@ class Folder extends Model
     protected $casts = [
         'moved_to_trash_at' => 'datetime',
     ];
+
 
     protected static function booted(): void
     {
@@ -36,17 +38,37 @@ class Folder extends Model
             }
         });
 
+        // Удаляем только обычные заметки (не защищённые контейнерами)
         static::deleting(function (Folder $folder) {
-            // Удаляем только обычные заметки (не защищённые контейнерами)
             Note::where('folder_id', $folder->id)
                 ->whereNull('trash_id')
                 ->whereNull('archive_id')
                 ->whereNull('safe_id')
                 ->delete();
         });
+
+        // Очистка кэша при удалении папки
+        static::deleted(function (Folder $folder) {
+            Cache::forget("folder.{$folder->id}.notes_count");
+        });
     }
 
-    // ОТНОШЕНИЯ
+    // Получить кэшированное количество заметок в папке.
+    public function getNotesCountAttribute(): int
+    {
+        return Cache::remember(
+            "folder.{$this->id}.notes_count",
+            now()->addHours(24),
+            fn() => $this->notes()->count()
+        );
+    }
+
+    // Очистить кэш количества заметок.
+    public function clearNotesCountCache(): void
+    {
+        Cache::forget("folder.{$this->id}.notes_count");
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -76,7 +98,6 @@ class Folder extends Model
             ->whereNotNull('trash_id');
     }
 
-    // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
     public function isInTrash(): bool
     {
         return !is_null($this->trash_id);
@@ -143,7 +164,6 @@ class Folder extends Model
         return $this->isActive();
     }
 
-    // SCOPES
     public function scopeActive($query)
     {
         return $query->whereNull('trash_id');

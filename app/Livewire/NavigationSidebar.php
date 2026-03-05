@@ -6,17 +6,20 @@ use App\Models\Folder;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 class NavigationSidebar extends Component
 {
     public string $section = 'dashboard';
     public ?int $folderId = null;
     public bool $isExpanded = false;
+
+    /** @var Collection<int, Folder> */
     public $folders = [];
 
     protected $listeners = [
-        'stateUpdated' => 'updateState',
         'sidebarScrolled' => 'handleSidebarScrolled',
     ];
 
@@ -27,18 +30,27 @@ class NavigationSidebar extends Component
         $this->folderId = StateManager::get('folderId');
         $this->isExpanded = Session::get('sidebar_expanded', false);
 
+        $this->loadFolders();
+    }
+
+    #[On('stateUpdated')]
+    public function updateState(string $section, ?int $folderId): void
+    {
+        $this->section  = $section;
+        $this->folderId = $folderId;
+    }
+
+    private function loadFolders(): void
+    {
         $userId = Auth::id();
         if (!$userId) {
             $this->folders = collect();
             return;
         }
-        $this->folders = Folder::where('user_id', $userId)->orderBy('title')->get();
-    }
 
-    public function updateState($section, $folderId)
-    {
-        $this->section  = $section;
-        $this->folderId = $folderId;
+        $this->folders = Folder::where('user_id', $userId)
+            ->orderBy('title')
+            ->get();
     }
 
     public function navigateTo(string $section, ?int $folderId = null): void
