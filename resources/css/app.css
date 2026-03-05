@@ -170,8 +170,15 @@
 [data-color-palette] button {
     @apply transition-transform;
 }
-[data-color-palette] button:hover {
+
+[data-color-palette] button:hover,
+[data-highlight-palette] button:hover {
     @apply scale-110;
+}
+
+[data-highlight-palette] button:last-child:hover,
+[data-color-palette] button:last-child:hover {
+    @apply border-red-600 bg-red-100 text-red-600;
 }
 
 .tiptap-toolbar,

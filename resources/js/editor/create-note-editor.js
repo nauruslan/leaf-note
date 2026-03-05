@@ -26,6 +26,8 @@ const COLOR_PALETTE = [
     { name: 'Белый', value: '#ffffff' },
 ];
 
+let lastHighlightColor = null;
+
 function getContrastColor(hex) {
     if (!hex) return '#374151';
     hex = hex.replace('#', '');
@@ -74,6 +76,7 @@ function createPalette(editor, button, type) {
                 editor.chain().focus().setColor(color.value).run();
             } else {
                 editor.chain().focus().setHighlight({ color: color.value }).run();
+                lastHighlightColor = color.value;
             }
             hideAllPalettes();
             updateToolbarButtons(editor);
@@ -94,13 +97,17 @@ function createPalette(editor, button, type) {
   `;
     closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+
         if (type === 'color') {
+            hideAllPalettes();
             editor.chain().focus().unsetColor().run();
+            updateToolbarButtons(editor);
         } else {
+            hideAllPalettes();
             editor.chain().focus().unsetHighlight().run();
+            lastHighlightColor = null;
+            updateToolbarButtons(editor);
         }
-        hideAllPalettes();
-        updateToolbarButtons(editor);
     });
     palette.appendChild(closeBtn);
 
@@ -138,44 +145,37 @@ function updateToolbarButtons(editor) {
         { action: 'alignCenter', check: () => editor.isActive({ textAlign: 'center' }) },
         { action: 'alignRight', check: () => editor.isActive({ textAlign: 'right' }) },
         { action: 'highlight', check: () => editor.isActive('highlight') },
+        {
+            action: 'color',
+            check: () => {
+                const color = editor.getAttributes('textStyle');
+                return !!(color && color.color);
+            },
+        },
     ];
     buttons.forEach(({ action, check }) => {
         const btn = document.querySelector(`[data-editor-action="${action}"]`);
         if (btn) {
-            if (action === 'highlight') {
-                if (check()) {
-                    btn.classList.add('text-white');
-                    btn.classList.remove(
-                        'text-gray-600',
-                        'hover:text-gray-900',
-                        'hover:bg-gray-200',
-                    );
-                } else {
-                    btn.classList.remove('text-white');
-                    btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
-                }
+            if (action === 'color' || action === 'highlight') {
+                return;
+            }
+
+            if (check()) {
+                btn.classList.add(
+                    'bg-gradient-to-r',
+                    'from-indigo-600',
+                    'to-purple-600',
+                    'text-white',
+                );
+                btn.classList.remove('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
             } else {
-                if (check()) {
-                    btn.classList.add(
-                        'bg-gradient-to-r',
-                        'from-indigo-600',
-                        'to-purple-600',
-                        'text-white',
-                    );
-                    btn.classList.remove(
-                        'text-gray-600',
-                        'hover:text-gray-900',
-                        'hover:bg-gray-200',
-                    );
-                } else {
-                    btn.classList.remove(
-                        'bg-gradient-to-r',
-                        'from-indigo-600',
-                        'to-purple-600',
-                        'text-white',
-                    );
-                    btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
-                }
+                btn.classList.remove(
+                    'bg-gradient-to-r',
+                    'from-indigo-600',
+                    'to-purple-600',
+                    'text-white',
+                );
+                btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
             }
         }
     });
@@ -198,7 +198,7 @@ function updateToolbarButtons(editor) {
 
     const highlightBtn = document.querySelector('[data-editor-action="highlight"]');
     if (highlightBtn) {
-        const highlightColor = editor.getAttributes('highlight').color;
+        const highlightColor = lastHighlightColor;
 
         if (highlightColor) {
             highlightBtn.style.backgroundColor = highlightColor;

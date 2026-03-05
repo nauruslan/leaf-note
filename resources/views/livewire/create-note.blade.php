@@ -416,7 +416,7 @@
                     </button>
                     <!-- Highlight Button (новый) -->
                     <button type="button" data-editor-action="highlight"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors relative"
                         title="Выделить текст (маркер)">
                         <i data-lucide="highlighter" class="w-4 h-4"></i>
                     </button>
@@ -545,7 +545,7 @@
             <!-- TipTap Editor Content Area (ignored) -->
             <div wire:ignore>
                 <div class="flex-grow p-6">
-                    <div id="editor" wire:ignore.self
+                    <div id="editor"
                         class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
                     </div>
                 </div>
