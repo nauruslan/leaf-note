@@ -429,3 +429,13 @@
     @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white;
     @apply focus:ring-indigo-500;
 }
+
+/* Scroll */
+#sidebar-nav {
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+#sidebar-nav::-webkit-scrollbar {
+    display: none;
+}
