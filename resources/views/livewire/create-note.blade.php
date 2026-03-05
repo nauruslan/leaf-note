@@ -489,7 +489,7 @@
                         title="Таблица">
                         <i data-lucide="table" class="w-4 h-4"></i>
                     </button>
-                    <!-- Table Controls (скрыты по умолчанию) -->
+                    <!-- Table Controls -->
                     <div class="flex items-center gap-1 hidden table-controls">
                         <button type="button" data-editor-action="addRow"
                             class="p-1.5 rounded hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors opacity-50 cursor-not-allowed"

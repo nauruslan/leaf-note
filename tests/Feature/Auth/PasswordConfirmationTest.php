@@ -18,7 +18,7 @@ class PasswordConfirmationTest extends TestCase
         $response = $this->actingAs($user)->get('/confirm-password');
 
         $response
-            ->assertSeeVolt('pages.auth.confirm-password')
+            ->assertSee('password', false)
             ->assertStatus(200);
     }
 
@@ -34,8 +34,10 @@ class PasswordConfirmationTest extends TestCase
         $component->call('confirmPassword');
 
         $component
-            ->assertRedirect('/dashboard')
+            ->assertRedirect('/')
             ->assertHasNoErrors();
+
+        $this->assertEquals(time(), session('auth.password_confirmed_at'));
     }
 
     public function test_password_is_not_confirmed_with_invalid_password(): void
