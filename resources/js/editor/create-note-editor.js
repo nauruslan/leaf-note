@@ -168,6 +168,20 @@ function updateToolbarButtons(editor) {
                     'text-white',
                 );
                 btn.classList.remove('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
+
+                if (action === 'heading1' || action === 'heading2') {
+                    const textSpan = btn.querySelector('span');
+                    if (textSpan) {
+                        textSpan.classList.add(
+                            'bg-gradient-to-r',
+                            'from-indigo-600',
+                            'to-purple-600',
+                            'bg-clip-text',
+                            'text-white',
+                        );
+                        textSpan.classList.remove('text-gray-600');
+                    }
+                }
             } else {
                 btn.classList.remove(
                     'bg-gradient-to-r',
@@ -176,6 +190,20 @@ function updateToolbarButtons(editor) {
                     'text-white',
                 );
                 btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-200');
+
+                if (action === 'heading1' || action === 'heading2') {
+                    const textSpan = btn.querySelector('span');
+                    if (textSpan) {
+                        textSpan.classList.remove(
+                            'bg-gradient-to-r',
+                            'from-indigo-600',
+                            'to-purple-600',
+                            'bg-clip-text',
+                            'text-white',
+                        );
+                        textSpan.classList.add('text-gray-600');
+                    }
+                }
             }
         }
     });
@@ -695,8 +723,8 @@ function initToolbarButtons(editor) {
         italic: () => editor.chain().focus().toggleItalic().run(),
         underline: () => editor.chain().focus().toggleUnderline().run(),
         strike: () => editor.chain().focus().toggleStrike().run(),
-        heading1: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
-        heading2: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+        heading1: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+        heading2: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
         bulletList: () => editor.chain().focus().toggleBulletList().run(),
         orderedList: () => editor.chain().focus().toggleOrderedList().run(),
         taskList: () => editor.chain().focus().toggleTaskList().run(),

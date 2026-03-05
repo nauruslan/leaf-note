@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.bg-clip-text {
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
 #editor {
     width: 100%;
     max-width: 1335px;
@@ -108,12 +113,12 @@
     @apply border-indigo-700 bg-indigo-700;
 }
 
-.tiptap h1 {
+.tiptap h2 {
     @apply mb-4 mt-6 text-2xl;
     font-size: 2em;
     line-height: 1.25;
 }
-.tiptap h2 {
+.tiptap h3 {
     @apply mb-3 mt-5 text-xl;
     font-size: 1.5em;
     line-height: 1.25;
