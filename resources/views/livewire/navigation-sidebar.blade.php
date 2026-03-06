@@ -30,7 +30,7 @@
                                 доска</span>
                             <span
                                 class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                {{-- {{$folder->notes()->count()}} --}} 11
+                                {{ $this->dashboardCount }}
                             </span>
                         </a>
                     </li>
@@ -43,7 +43,7 @@
                                 задач</span>
                             <span
                                 class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                4
+                                {{ $this->checklistCount }}
                             </span>
                         </a>
                     </li>
@@ -55,7 +55,7 @@
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Избранное</span>
                             <span
                                 class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                3
+                                {{ $this->favoriteCount }}
                             </span>
                         </a>
                     </li>
@@ -67,7 +67,7 @@
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Сейф</span>
                             <span
                                 class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                7
+                                {{ $this->safeCount }}
                             </span>
                         </a>
                     </li>
@@ -79,7 +79,7 @@
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Архив</span>
                             <span
                                 class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                5
+                                {{ $this->archiveCount }}
                             </span>
                         </a>
                     </li>
@@ -91,7 +91,7 @@
                                 class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Корзина</span>
                             <span
                                 class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                11
+                                {{ $this->trashCount }}
                             </span>
                         </a>
                     </li>

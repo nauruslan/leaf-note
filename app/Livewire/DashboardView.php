@@ -1,42 +1,73 @@
 <?php
-
 namespace App\Livewire;
 
-use App\Services\StateManager;
+use App\Models\Note;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class DashboardView extends Component
 {
     public string $search = '';
 
+    protected $notes;
+
     protected $listeners = [
-        'stateUpdated' => 'updateState'
+        'stateUpdated' => 'updateState',
+        'noteCreated' => 'loadNotes',
+        'noteDeleted' => 'loadNotes',
     ];
 
     public function mount(): void
     {
-        $this->search = StateManager::get('search', '');
+        $this->loadNotes();
     }
 
     public function updateState(string $section, ?int $folderId, string $search): void
     {
         $this->search = $search;
+        $this->loadNotes();
+    }
+
+    public function loadNotes(): void
+    {
+        $this->notes = Note::where('user_id', Auth::id())
+            ->where('type', Note::TYPE_NOTE)
+            ->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->with('folder')
+            ->orderBy('updated_at', 'desc')
+            ->get();
     }
 
     public function createNote()
     {
-        // Действие создания заметки
-        $this->dispatch('openModal', 'create-note');
+        $this->dispatch('navigateTo', 'create-note');
     }
 
     public function createChecklist()
     {
-        // Действие создания списка
-        $this->dispatch('openModal', 'create-checklist');
+        $this->dispatch('navigateTo', 'create-checklist');
+    }
+
+    public function toggleFavorite($noteId)
+    {
+        $note = Note::where('user_id', Auth::id())->find($noteId);
+
+        if ($note) {
+            $note->toggleFavorite();
+            $this->loadNotes();
+            $this->dispatch('noteCreated');
+        }
+    }
+
+    public function openNote($noteId)
+    {
+        $this->dispatch('openNote', $noteId);
     }
 
     public function render()
     {
-        return view('livewire.dashboard');
+        return view('livewire.dashboard', ['notes' => $this->notes]);
     }
 }

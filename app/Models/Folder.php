@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Models\Trash;
+use App\Livewire\NavigationSidebar;
 use App\Models\Note;
+use App\Models\Trash;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -36,9 +37,12 @@ class Folder extends Model
             if ($folder->isDirty('trash_id') && is_null($folder->trash_id) && $folder->getOriginal('trash_id')) {
                 $folder->moved_to_trash_at = null;
             }
+
+             if ($folder->isDirty('trash_id')) {
+                NavigationSidebar::invalidateCountCache('trash');
+            }
         });
 
-        // Удаляем только обычные заметки (не защищённые контейнерами)
         static::deleting(function (Folder $folder) {
             Note::where('folder_id', $folder->id)
                 ->whereNull('trash_id')
@@ -49,11 +53,12 @@ class Folder extends Model
 
         // Очистка кэша при удалении папки
         static::deleted(function (Folder $folder) {
-            Cache::forget("folder.{$folder->id}.notes_count");
+            $folder->clearNotesCountCache();
+            NavigationSidebar::invalidateCountCache('trash');
+            // Cache::forget("folder.{$folder->id}.notes_count");
         });
     }
 
-    // Получить кэшированное количество заметок в папке.
     public function getNotesCountAttribute(): int
     {
         return Cache::remember(
@@ -63,7 +68,6 @@ class Folder extends Model
         );
     }
 
-    // Очистить кэш количества заметок.
     public function clearNotesCountCache(): void
     {
         Cache::forget("folder.{$this->id}.notes_count");

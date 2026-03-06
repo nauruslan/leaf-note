@@ -3,12 +3,14 @@ namespace App\Livewire;
 
 use App\Livewire\Actions\Logout;
 use App\Models\Folder;
+use App\Models\Note;
 use App\Services\StateManager;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
-use Livewire\Attributes\On;
 
 class NavigationSidebar extends Component
 {
@@ -16,41 +18,164 @@ class NavigationSidebar extends Component
     public ?int $folderId = null;
     public bool $isExpanded = false;
 
-    /** @var Collection<int, Folder> */
-    public $folders = [];
-
     protected $listeners = [
         'sidebarScrolled' => 'handleSidebarScrolled',
+        'stateUpdated' => 'updateState',
+        'folderCreated' => 'refreshFolders',
+        'folderDeleted' => 'refreshFolders',
+        'noteCreated' => 'refreshFolders',
+        'noteDeleted' => 'refreshFolders',
     ];
 
     public function mount(): void
     {
-        logger()->debug('navigation-sidebar mount', ['id' => $this->getId()]);
         $this->section = StateManager::get('section', 'dashboard');
         $this->folderId = StateManager::get('folderId');
         $this->isExpanded = Session::get('sidebar_expanded', false);
-
-        $this->loadFolders();
     }
 
-    #[On('stateUpdated')]
     public function updateState(string $section, ?int $folderId): void
     {
         $this->section  = $section;
         $this->folderId = $folderId;
     }
 
-    private function loadFolders(): void
+    public static function invalidateCountCache(?string $section = null): void
     {
         $userId = Auth::id();
+        if (!$userId) return;
+
+        $sections = $section
+            ? [$section]
+            : ['dashboard', 'safe', 'archive', 'checklist', 'favorite', 'trash'];
+
+        foreach ($sections as $key) {
+            Cache::forget("user.{$userId}.counts.{$key}");
+        }
+    }
+
+    #[Computed]
+    public function dashboardCount(): int
+    {
+        $userId = Auth::id();
+        if (!$userId) return 0;
+
+        return Cache::remember(
+            "user.{$userId}.counts.dashboard",
+            now()->addMinutes(30),
+            fn() => Note::where('user_id', $userId)
+                ->whereNull('trash_id')
+                ->whereNull('archive_id')
+                ->whereNull('safe_id')
+                ->count()
+        );
+    }
+
+     #[Computed]
+    public function safeCount(): int
+    {
+        $userId = Auth::id();
+        if (!$userId) return 0;
+
+        return Cache::remember(
+            "user.{$userId}.counts.safe",
+            now()->addMinutes(30),
+            fn() => Note::where('user_id', $userId)
+                ->whereNotNull('safe_id')
+                ->count()
+        );
+    }
+
+    #[Computed]
+    public function archiveCount(): int
+    {
+        $userId = Auth::id();
+        if (!$userId) return 0;
+
+        return Cache::remember(
+            "user.{$userId}.counts.archive",
+            now()->addMinutes(30),
+            fn() => Note::where('user_id', $userId)
+                ->whereNotNull('archive_id')
+                ->count()
+        );
+    }
+
+    #[Computed]
+    public function checklistCount(): int
+    {
+        $userId = Auth::id();
+        if (!$userId) return 0;
+
+        return Cache::remember(
+            "user.{$userId}.counts.checklist",
+            now()->addMinutes(30),
+            fn() => Note::where('user_id', $userId)
+                ->where('type', Note::TYPE_CHECKLIST)
+                ->whereNull('trash_id')
+                ->whereNull('archive_id')
+                ->whereNull('safe_id')
+                ->count()
+        );
+    }
+
+    #[Computed]
+    public function favoriteCount(): int
+    {
+        $userId = Auth::id();
+        if (!$userId) return 0;
+
+        return Cache::remember(
+            "user.{$userId}.counts.favorite",
+            now()->addMinutes(30),
+            fn() => Note::where('user_id', $userId)
+                ->where('is_favorite', true)
+                ->whereNull('trash_id')
+                ->whereNull('archive_id')
+                ->whereNull('safe_id')
+                ->count()
+        );
+    }
+
+    #[Computed]
+    public function trashCount(): int
+    {
+        $userId = Auth::id();
+        if (!$userId) return 0;
+
+        return Cache::remember(
+            "user.{$userId}.counts.trash",
+            now()->addMinutes(30),
+            fn() => Note::where('user_id', $userId)->whereNotNull('trash_id')->count()
+                + Folder::where('user_id', $userId)->whereNotNull('trash_id')->count()
+        );
+    }
+
+    #[Computed]
+    public function folders(): Collection
+    {
+        $userId = Auth::id();
+
         if (!$userId) {
-            $this->folders = collect();
-            return;
+            return collect();
         }
 
-        $this->folders = Folder::where('user_id', $userId)
-            ->orderBy('title')
-            ->get();
+        return Cache::remember(
+            "user.{$userId}.folders.active",
+            now()->addMinutes(30),
+            fn() => Folder::where('user_id', $userId)
+                ->active()
+                ->orderBy('title')
+                ->get()
+        );
+    }
+
+    public function refreshFolders(): void
+    {
+        $userId = Auth::id();
+        if ($userId) {
+            Cache::forget("user.{$userId}.folders.active");
+        }
     }
 
     public function navigateTo(string $section, ?int $folderId = null): void
@@ -82,11 +207,8 @@ class NavigationSidebar extends Component
 
     public function render()
     {
-        logger()->debug('Rendering navigation-sidebar', [
-            'id' => $this->getId(),
-            'section' => $this->section,
-            'folderId' => $this->folderId
+        return view('livewire.navigation-sidebar', [
+            'folders' => $this->folders,
         ]);
-        return view('livewire.navigation-sidebar');
     }
 }

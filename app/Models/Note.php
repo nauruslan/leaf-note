@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Models\Folder;
-use App\Models\Trash;
+use App\Livewire\NavigationSidebar;
 use App\Models\Archive;
+use App\Models\Folder;
 use App\Models\Safe;
+use App\Models\Trash;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Cache;
@@ -41,15 +42,26 @@ class Note extends Model
             if ($note->folder_id) {
                 $note->folder?->clearNotesCountCache();
             }
+            // Если создана сразу в "корне" (активная)
+            if (!$note->isInTrash() && !$note->isInArchive() && !$note->isInSafe()) {
+                NavigationSidebar::invalidateCountCache('dashboard');
+                if ($note->isChecklist()) {
+                    NavigationSidebar::invalidateCountCache('checklist');
+                }
+                if ($note->isFavorite()) {
+                    NavigationSidebar::invalidateCountCache('favorite');
+                }
+            }
         });
 
         static::updating(function (Note $note) {
-            // Перемещение В корзину: обнуляем ВСЁ кроме trash_id
+            // Перемещение В корзину
             if (
                 $note->isDirty('trash_id') &&
                 $note->trash_id &&
                 is_null($note->getOriginal('trash_id'))
             ) {
+
                 $note->moved_to_trash_at = now();
 
                 // Инвалидация кэша старой папки
@@ -86,6 +98,56 @@ class Note extends Model
                     Cache::forget("folder.{$note->folder_id}.notes_count");
                 }
             }
+
+            // 1. Инвалидация кэша папки при смене
+            if ($note->isDirty('folder_id')) {
+                $old = $note->getOriginal('folder_id');
+                if ($old) Cache::forget("folder.{$old}.notes_count");
+                if ($note->folder_id) Cache::forget("folder.{$note->folder_id}.notes_count");
+            }
+
+            // 2. Логика перемещения в корзину
+            if ($note->isDirty('trash_id') && $note->trash_id && is_null($note->getOriginal('trash_id'))) {
+                // Заметка уходит из активных разделов
+                NavigationSidebar::invalidateCountCache('dashboard');
+                if ($note->isChecklist()) NavigationSidebar::invalidateCountCache('checklist');
+                if ($note->isFavorite()) NavigationSidebar::invalidateCountCache('favorite');
+                // Появляется в треше
+                NavigationSidebar::invalidateCountCache('trash');
+            }
+
+            // 3. Логика восстановления из корзины
+            if ($note->isDirty('trash_id') && is_null($note->trash_id) && $note->getOriginal('trash_id')) {
+                NavigationSidebar::invalidateCountCache('trash');
+                // Если восстанавливается в архив
+                if ($note->archive_id) {
+                    NavigationSidebar::invalidateCountCache('archive');
+                }
+            }
+
+            // 4. Перемещение в АРХИВ (из активного состояния)
+            if ($note->isDirty('archive_id') && $note->archive_id && is_null($note->getOriginal('archive_id'))) {
+                 NavigationSidebar::invalidateCountCache('dashboard');
+                 if ($note->isChecklist()) NavigationSidebar::invalidateCountCache('checklist');
+                 if ($note->isFavorite()) NavigationSidebar::invalidateCountCache('favorite');
+                 NavigationSidebar::invalidateCountCache('archive');
+            }
+
+            // 5. Перемещение в СЕЙФ
+            if ($note->isDirty('safe_id') && $note->safe_id && is_null($note->getOriginal('safe_id'))) {
+                 NavigationSidebar::invalidateCountCache('dashboard');
+                 if ($note->isChecklist()) NavigationSidebar::invalidateCountCache('checklist');
+                 if ($note->isFavorite()) NavigationSidebar::invalidateCountCache('favorite');
+                 NavigationSidebar::invalidateCountCache('safe');
+            }
+
+            // 6. Изменение избранного
+            if ($note->isDirty('is_favorite')) {
+                // Валидно только для активных заметок
+                if (!$note->isInTrash() && !$note->isInArchive() && !$note->isInSafe()) {
+                    NavigationSidebar::invalidateCountCache('favorite');
+                }
+            }
         });
 
         // Инвалидация кэша при удалении заметки
@@ -93,6 +155,7 @@ class Note extends Model
             if ($note->folder_id) {
                 $note->folder?->clearNotesCountCache();
             }
+            NavigationSidebar::invalidateCountCache();
         });
     }
 
@@ -253,60 +316,6 @@ class Note extends Model
         return $this->is_favorite;
     }
 
-
-    public function getTextAttribute(): ?string
-    {
-        if ($this->isNote()) {
-            // Поддерживаем оба формата: строка и массив
-            if (is_string($this->payload)) {
-                return $this->payload;
-            }
-            return $this->payload['text'] ?? null;
-        }
-        return null;
-    }
-
-
-    public function setTextAttribute(string $text): void
-    {
-        $this->payload = ['text' => $text];
-    }
-
-
-    public function getChecklistItemsAttribute(): array
-    {
-        if (!$this->isChecklist()) {
-            return [];
-        }
-
-        return $this->payload['items'] ?? [];
-    }
-
-
-    public function setChecklistItemsAttribute(array $items): void
-    {
-        $this->payload = ['items' => $items];
-    }
-
-    public function getCompletionPercentageAttribute(): int
-    {
-        if (!$this->isChecklist()) {
-            return 0;
-        }
-
-        $items = $this->checklist_items;
-        $total = count($items);
-        if ($total === 0) {
-            return 0;
-        }
-
-        $completed = collect($items)
-            ->where('completed', true)
-            ->count();
-
-        return round(($completed / $total) * 100);
-    }
-
     public function getLocationAttribute(): string
     {
         if ($this->isInTrash()) return 'trash';
@@ -319,5 +328,96 @@ class Note extends Model
     public function getIconAttribute(): string
     {
         return $this->isChecklist() ? 'checklist' : 'note';
+    }
+
+    public function getPreviewAttribute(): string
+    {
+        if (empty($this->payload)) {
+            return '';
+        }
+
+        $text = $this->extractTextFromPayload();
+
+        return \Illuminate\Support\Str::limit($text, 100);
+    }
+
+    private function extractTextFromPayload(): string
+    {
+        if (is_string($this->payload)) {
+            $data = json_decode($this->payload, true);
+        } else {
+            $data = $this->payload;
+        }
+
+        if (!is_array($data) || !isset($data['content'])) {
+            return '';
+        }
+
+        return $this->collectTextFromContent($data['content']);
+    }
+
+
+    private function collectTextFromContent(array $content): string
+    {
+        $texts = [];
+
+        foreach ($content as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+
+            if (isset($node['type']) && $node['type'] === 'text' && isset($node['text'])) {
+                $texts[] = $node['text'];
+            }
+
+            if (isset($node['content']) && is_array($node['content'])) {
+                $texts[] = $this->collectTextFromContent($node['content']);
+            }
+        }
+
+        return trim(implode(' ', $texts));
+    }
+
+    public function getColorClassAttribute(): string
+    {
+        $colorMap = [
+            'black' => 'bg-gray-900',
+            'gray' => 'bg-gray-500',
+            'red' => 'bg-red-500',
+            'orange' => 'bg-orange-500',
+            'yellow' => 'bg-yellow-500',
+            'green' => 'bg-green-500',
+            'blue' => 'bg-blue-500',
+            'indigo' => 'bg-indigo-500',
+            'purple' => 'bg-purple-500',
+            'pink' => 'bg-pink-500',
+            'white' => 'bg-white',
+            'default' => 'bg-white',
+        ];
+
+        return $colorMap[$this->color] ?? 'bg-white';
+    }
+
+    public function getIconColorClassAttribute(): string
+    {
+        return match($this->color) {
+            'red' => 'fill-red-500',
+            'orange' => 'fill-orange-500',
+            'yellow' => 'fill-yellow-500',
+            'green' => 'fill-green-500',
+            'blue' => 'fill-blue-500',
+            'indigo' => 'fill-indigo-500',
+            'purple' => 'fill-purple-500',
+            'pink' => 'fill-pink-500',
+            'gray' => 'fill-gray-500',
+            'black' => 'fill-gray-900',
+            'white', 'default' => 'fill-black-500',
+            default => 'fill-black-500',
+        };
+    }
+
+    public function getTypeIconAttribute(): string
+    {
+        return $this->isChecklist() ? 'list' : 'file-text';
     }
 }
