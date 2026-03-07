@@ -63,11 +63,12 @@ class DashboardView extends Component
 
     public function openNote($noteId)
     {
-        $this->dispatch('openNote', $noteId);
+        $this->dispatch('navigateTo', section: 'note', folderId: $noteId);
     }
 
     public function render()
     {
+        $this->loadNotes();
         return view('livewire.dashboard', ['notes' => $this->notes]);
     }
 }

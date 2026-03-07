@@ -1,5 +1,4 @@
 <div>
-    <!-- Unified CreateNote Component (Header + ControlPanel + Content) -->
     <!-- Header Section -->
     <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
         <div class="bg-white rounded-b-xl shadow-md p-5">
@@ -7,9 +6,9 @@
                 <div>
                     <h1
                         class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        Создать заметку
+                        Редактирование заметки
                     </h1>
-                    <p class="text-sm text-gray-500 mt-0.5">Создание новой заметки</p>
+                    <p class="text-sm text-gray-500 mt-0.5">Редактирование заметки</p>
                 </div>
 
                 <div class="relative">
@@ -37,7 +36,7 @@
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
                         <div class="relative">
-                            <select wire:model.live="folderId"
+                            <select wire:model.live="folderId" wire:key="folder-{{ $folderId }}"
                                 class="appearance-none bg-gray-50 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[150px] hover:bg-gray-100 transition-colors">
                                 <option value="">Выберите папку</option>
                                 @foreach ($folders as $folder)
@@ -56,7 +55,8 @@
                         <div class="flex items-center gap-1.5">
                             @foreach ($this->colors as $key => $color)
                                 <button type="button" wire:click="$set('color', '{{ $key }}')"
-                                    wire:key="{{ $key }}"
+                                    wire:loading.attr="disabled"
+                                    wire:key="color-{{ $key }}-{{ $this->color }}"
                                     class="relative w-8 h-8 rounded-full {{ $color['bg'] }} border-2 {{ $key === $this->color ? 'border-white ring-2 ring-offset-2 ' . $color['ring'] : $color['border'] }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $color['ring'] }}"
                                     title="{{ $color['label'] }}" aria-label="{{ $color['label'] }}">
                                     <!-- Leaf Component -->
@@ -88,15 +88,14 @@
         </div>
     </div>
 
-
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
             <!-- TipTap Toolbar (ignored) -->
             <div wire:ignore>
                 <!-- Скрытый input для загрузки изображений -->
-                <input type="file" id="create-note-image-upload-input" accept="image/*" style="display:none">
-                
+                <input type="file" id="note-view-image-upload-input" accept="image/*" style="display:none">
+
                 <div class="px-6 py-3 border-b border-gray-200 bg-gray-50/50 flex flex-wrap items-center gap-1">
                     <!-- Text Formatting -->
                     <button type="button" data-editor-action="bold"
@@ -243,7 +242,7 @@
                     </button>
                 </div>
             </div>
-            <!-- Note Title Input (without ignore, because it uses wire:model) -->
+            <!-- Note Title Input -->
             <div class="px-6 pt-6 pb-2 border-b border-gray-100">
                 <input type="text" wire:model="title" placeholder="Название заметки"
                     class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
@@ -251,7 +250,7 @@
             <!-- TipTap Editor Content Area (ignored) -->
             <div wire:ignore>
                 <div class="flex-grow p-6">
-                    <div id="create-note-editor"
+                    <div id="note-view-editor"
                         class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
                     </div>
                 </div>
@@ -262,7 +261,9 @@
                 <div
                     class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
                     <div class="flex items-center gap-4">
-                        <span>Создано: только что</span>
+                        <span>Создано: {{ $note?->created_at?->format('d F Y') }}</span>
+                        <span>•</span>
+                        <span>Изменено: {{ $note?->updated_at?->format('d F Y') }}</span>
                         <span>•</span>
                         <span data-word-count>0 слов</span>
                     </div>
@@ -295,3 +296,56 @@
     </div>
 
 </div>
+
+@script
+    <script>
+        let noteViewEditor = null;
+
+        function initNoteViewEditorWithContent(content) {
+            const editorElement = document.querySelector('#note-view-editor');
+            if (!editorElement) return;
+
+            if (typeof window.initNoteViewEditor === 'function') {
+                noteViewEditor = window.initNoteViewEditor(content || '');
+                editorElement._editor = noteViewEditor;
+            }
+        }
+
+        // Получаем контент из редактора и отправляем в Livewire
+        function getEditorContent() {
+            if (noteViewEditor) {
+                const content = noteViewEditor.getJSON();
+                $wire.dispatch('editorContent', content);
+            }
+        }
+
+        // Слушаем запрос контента из редактора
+        $wire.on('getEditorContent', () => {
+            getEditorContent();
+        });
+
+        // Слушаем событие загрузки заметки с данными
+        $wire.on('noteLoaded', (data) => {
+            // Livewire оборачивает в {content: ...}, извлекаем сам документ
+            let parsedContent = data?.content || data;
+            if (typeof parsedContent === 'string') {
+                parsedContent = JSON.parse(parsedContent);
+            }
+            setTimeout(() => {
+                initNoteViewEditorWithContent(parsedContent);
+            }, 50);
+        });
+
+        // Очистка при уничтожении компонента
+        $wire.$on('destroyEditor', () => {
+            if (noteViewEditor) {
+                noteViewEditor.destroy();
+                noteViewEditor = null;
+            }
+            const editorElement = document.querySelector('#note-view-editor');
+            if (editorElement) {
+                editorElement._editor = null;
+            }
+        });
+    </script>
+@endscript

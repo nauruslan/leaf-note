@@ -36,7 +36,8 @@ class NavigationSidebar extends Component
 
     public function updateState(string $section, ?int $folderId): void
     {
-        $this->section  = $section;
+        // Для note оставляем активную вкладку dashboard
+        $this->section = ($section === 'note') ? 'dashboard' : $section;
         $this->folderId = $folderId;
     }
 

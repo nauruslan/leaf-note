@@ -660,6 +660,59 @@ const CustomImage = Node.create({
                         .deleteRange({ from: pos, to: pos + 1 })
                         .run();
                 }
+            });
+
+            img.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                openImageModal(node.attrs.src, node.attrs.alt);
+            });
+
+            editor.on('selectionUpdate', () => {
+                const { node } = editor.state.selection;
+                if (!node || node.type.name !== 'image') {
+                    overlay.style.opacity = '0';
+                    overlay.style.visibility = 'hidden';
+                    overlay.style.pointerEvents = 'none';
+                    overlay.classList.remove('active');
+                }
+            });
+
+            wrapper.addEventListener('mouseleave', () => {
+                if (activeImageWrapper !== wrapper) {
+                    overlay.style.opacity = '0';
+                    overlay.style.visibility = 'hidden';
+                    overlay.style.pointerEvents = 'none';
+                    overlay.classList.remove('active');
+                }
+            });
+
+            wrapper.addEventListener('mouseenter', (e) => {
+                e.stopPropagation();
+                if (activeImageWrapper && activeImageWrapper !== wrapper) {
+                    const prevOverlay = activeImageWrapper.querySelector('.image-overlay');
+                    if (prevOverlay) {
+                        prevOverlay.style.opacity = '0';
+                        prevOverlay.style.visibility = 'hidden';
+                        prevOverlay.style.pointerEvents = 'none';
+                        prevOverlay.classList.remove('active');
+                    }
+                }
+
+                overlay.style.opacity = '1';
+                overlay.style.visibility = 'visible';
+                overlay.style.pointerEvents = 'auto';
+                overlay.classList.add('active');
+
+                activeImageWrapper = wrapper;
+            });
+
+            document.addEventListener('click', () => {
+                if (activeImageWrapper && activeImageWrapper !== wrapper) {
+                    overlay.style.opacity = '0';
+                    overlay.style.visibility = 'hidden';
+                    overlay.style.pointerEvents = 'none';
+                    overlay.classList.remove('active');
+                }
 
                 activeImageWrapper = null;
             });
@@ -758,8 +811,8 @@ function initToolbarButtons(editor) {
     }
 
     const imageBtn = document.querySelector('[data-editor-action="image"]');
-    if (imageBtn && !imageBtn._createNoteHandlerAttached) {
-        imageBtn._createNoteHandlerAttached = true;
+    if (imageBtn && !imageBtn._noteViewHandlerAttached) {
+        imageBtn._noteViewHandlerAttached = true;
         let isUploading = false;
 
         imageBtn.addEventListener('click', (e) => {
@@ -767,7 +820,7 @@ function initToolbarButtons(editor) {
 
             if (isUploading) return;
 
-            const input = document.getElementById('create-note-image-upload-input');
+            const input = document.getElementById('note-view-image-upload-input');
             if (!input) return;
 
             input.value = '';
@@ -792,7 +845,7 @@ function initToolbarButtons(editor) {
                     return;
                 }
                 try {
-                    const editorElement = document.querySelector('#create-note-editor');
+                    const editorElement = document.querySelector('#note-view-editor');
                     const editor = editorElement?._editor;
                     if (!editor) {
                         throw new Error('Редактор не инициализирован');
@@ -825,7 +878,7 @@ function initToolbarButtons(editor) {
                 } catch (error) {
                     console.error('[Image Upload] Error:', error);
                     alert('Ошибка при загрузке изображения: ' + error.message);
-                    const loadingEl = document.querySelector('#create-note-editor').closest('div')?.querySelector('.absolute.inset-0');
+                    const loadingEl = document.querySelector('#note-view-editor').closest('div')?.querySelector('.absolute.inset-0');
                     if (loadingEl) loadingEl.remove();
                 } finally {
                     isUploading = false;
@@ -895,7 +948,7 @@ function initToolbarButtons(editor) {
 }
 
 function getEditorContent() {
-    const editorElement = document.querySelector('#create-note-editor');
+    const editorElement = document.querySelector('#note-view-editor');
     if (!editorElement || !editorElement._editor) return null;
     return editorElement._editor.getJSON();
 }
@@ -908,8 +961,8 @@ function sendContentToLivewire() {
     }
 }
 
-export function destroyCreateNoteEditor() {
-    const editorElement = document.querySelector('#create-note-editor');
+export function destroyNoteViewEditor() {
+    const editorElement = document.querySelector('#note-view-editor');
     if (!editorElement) return;
 
     if (editorElement._editor) {
@@ -920,10 +973,9 @@ export function destroyCreateNoteEditor() {
     // Сбрасываем флаг обработчика изображения
     const imageBtn = document.querySelector('[data-editor-action="image"]');
     if (imageBtn) {
-        imageBtn._createNoteHandlerAttached = false;
+        imageBtn._noteViewHandlerAttached = false;
     }
 
-    editorElement.innerHTML = '';
     editorElement.classList.remove('tiptap');
 
     ['image-fullscreen-modal', 'link-modal'].forEach((id) => {
@@ -935,18 +987,23 @@ export function destroyCreateNoteEditor() {
     if (typeof linkModalCallback !== 'undefined') linkModalCallback = null;
 }
 
-export function initCreateNoteEditor() {
-    const editorElement = document.querySelector('#create-note-editor');
+export function initNoteViewEditor(initialContent = '') {
+    const editorElement = document.querySelector('#note-view-editor');
 
     if (!editorElement) {
         return null;
     }
 
-    if (editorElement._editor || editorElement.querySelector('.ProseMirror')) {
-        destroyCreateNoteEditor();
+    // Сначала уничтожаем существующий редактор
+    if (editorElement._editor) {
+        editorElement._editor.destroy();
+        editorElement._editor = null;
     }
 
-    editorElement.innerHTML = '';
+    // Очищаем только если есть ProseMirror
+    if (editorElement.querySelector('.ProseMirror')) {
+        editorElement.innerHTML = '';
+    }
 
     initImageModal();
     initLinkModal();
@@ -997,7 +1054,7 @@ export function initCreateNoteEditor() {
                 multicolor: true,
             }),
         ],
-        content: '',
+        content: initialContent,
         editorProps: {
             attributes: {
                 class: 'prose prose-indigo max-w-none focus:outline-none text-gray-700 min-h-[400px]',
@@ -1042,11 +1099,11 @@ export function initCreateNoteEditor() {
 }
 
 // Флаг для предотвращения двойной инициализации
-let isCreateNoteEditorInitialized = false;
+let isNoteViewEditorInitialized = false;
 
 document.addEventListener('livewire:init', () => {
-    if (isCreateNoteEditorInitialized) return;
-    isCreateNoteEditorInitialized = true;
+    if (isNoteViewEditorInitialized) return;
+    isNoteViewEditorInitialized = true;
     
     Livewire.on('getEditorContent', () => {
         sendContentToLivewire();
@@ -1054,13 +1111,13 @@ document.addEventListener('livewire:init', () => {
     Livewire.on('destroyEditor', () => {
         console.log('🧹 destroyEditor event received');
         setTimeout(() => {
-            if (typeof destroyCreateNoteEditor === 'function') {
-                destroyCreateNoteEditor();
+            if (typeof destroyNoteViewEditor === 'function') {
+                destroyNoteViewEditor();
             }
         }, 10);
     });
 });
 
 // Делаем функции доступными глобально для использования в blade-шаблонах
-window.initCreateNoteEditor = initCreateNoteEditor;
-window.destroyCreateNoteEditor = destroyCreateNoteEditor;
+window.initNoteViewEditor = initNoteViewEditor;
+window.destroyNoteViewEditor = destroyNoteViewEditor;
