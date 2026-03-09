@@ -40,10 +40,8 @@ class NoteImageController extends Controller
         ]);
 
         try {
-            // Нормализуем путь (убираем возможные попытки path traversal)
             $path = str_replace('..', '', $request->path);
-            
-            // Проверяем, что путь начинается с ожидаемой директории
+
             if (!str_starts_with($path, 'notes/')) {
                 return response()->json([
                     'success' => false,
@@ -51,7 +49,6 @@ class NoteImageController extends Controller
                 ], 403);
             }
 
-            // Удаляем файл из хранилища
             if (Storage::disk('public')->exists($path)) {
                 Storage::disk('public')->delete($path);
 

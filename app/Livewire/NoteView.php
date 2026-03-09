@@ -18,7 +18,6 @@ class NoteView extends Component
     public ?Note $note = null;
     public bool $isLoaded = false;
 
-    // Временные свойства для сохранения
     public ?int $pendingFolderId = null;
     public ?string $pendingColor = null;
 
