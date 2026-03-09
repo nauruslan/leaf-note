@@ -447,6 +447,9 @@ const CustomImage = Node.create({
             title: {
                 default: null,
             },
+            path: {
+                default: null,
+            },
         };
     },
 
@@ -649,19 +652,75 @@ const CustomImage = Node.create({
                 </svg>
             `;
 
-            deleteBtn.addEventListener('click', (e) => {
+            deleteBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 e.preventDefault();
-                if (typeof getPos === 'function') {
-                    const pos = getPos();
-                    editor
-                        .chain()
-                        .focus()
-                        .deleteRange({ from: pos, to: pos + 1 })
-                        .run();
+
+                const imagePath = node.attrs.path;
+                if (!imagePath) {
+                    if (typeof getPos === 'function') {
+                        const pos = getPos();
+                        editor
+                            .chain()
+                            .focus()
+                            .deleteRange({ from: pos, to: pos + 1 })
+                            .run();
+                    }
+                    activeImageWrapper = null;
+                    return;
                 }
 
-                activeImageWrapper = null;
+                // Показываем индикатор загрузки
+                deleteBtn.style.opacity = '0.6';
+                deleteBtn.style.pointerEvents = 'none';
+                deleteBtn.innerHTML = `
+                    <svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                    </svg>
+                `;
+
+                try {
+                    const response = await fetch('/notes/delete-image', {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN':
+                                document.querySelector('meta[name="csrf-token"]')?.content,
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ path: imagePath }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Ошибка удаления');
+                    }
+
+                    if (typeof getPos === 'function') {
+                        const pos = getPos();
+                        editor
+                            .chain()
+                            .focus()
+                            .deleteRange({ from: pos, to: pos + 1 })
+                            .run();
+                    }
+                    activeImageWrapper = null;
+                } catch (error) {
+                    console.error('[Image Delete] Error:', error);
+                    alert('Ошибка при удалении изображения: ' + error.message);
+                    // Восстанавливаем кнопку при ошибке
+                    deleteBtn.style.opacity = '1';
+                    deleteBtn.style.pointerEvents = 'auto';
+                    deleteBtn.innerHTML = `
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    `;
+                }
             });
 
             img.addEventListener('click', (e) => {
@@ -820,7 +879,7 @@ function initToolbarButtons(editor) {
                     loadingEl.remove();
                     if (!response.ok) throw new Error('Ошибка загрузки');
                     const data = await response.json();
-                    editor.chain().focus().setImage({ src: data.url }).run();
+                    editor.chain().focus().setImage({ src: data.url, path: data.path }).run();
                     updateToolbarButtons(editor);
                 } catch (error) {
                     console.error('[Image Upload] Error:', error);
@@ -1041,26 +1100,56 @@ export function initCreateNoteEditor() {
     return editor;
 }
 
-// Флаг для предотвращения двойной инициализации
-let isCreateNoteEditorInitialized = false;
+// Авто-инициализация при обнаружении элемента в DOM
+function autoInitCreateNoteEditor() {
+    const editorElement = document.querySelector('#create-note-editor');
+    if (editorElement && !editorElement._editor) {
+        initCreateNoteEditor();
+    }
+}
 
-document.addEventListener('livewire:init', () => {
-    if (isCreateNoteEditorInitialized) return;
-    isCreateNoteEditorInitialized = true;
-    
+// Наблюдаем за добавлением элемента редактора в DOM
+const createNoteObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+            if (node.nodeType === 1) {
+                if (node.id === 'create-note-editor' || node.querySelector?.('#create-note-editor')) {
+                    setTimeout(autoInitCreateNoteEditor, 50);
+                    return;
+                }
+            }
+        }
+    }
+});
+
+// Запускаем наблюдение после загрузки DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        createNoteObserver.observe(document.body, { childList: true, subtree: true });
+        autoInitCreateNoteEditor();
+    });
+} else {
+    createNoteObserver.observe(document.body, { childList: true, subtree: true });
+    autoInitCreateNoteEditor();
+}
+
+// Обработчики событий Livewire
+if (window.Livewire) {
     Livewire.on('getEditorContent', () => {
         sendContentToLivewire();
     });
-    Livewire.on('destroyEditor', () => {
-        console.log('🧹 destroyEditor event received');
-        setTimeout(() => {
-            if (typeof destroyCreateNoteEditor === 'function') {
-                destroyCreateNoteEditor();
-            }
-        }, 10);
-    });
-});
 
-// Делаем функции доступными глобально для использования в blade-шаблонах
-window.initCreateNoteEditor = initCreateNoteEditor;
-window.destroyCreateNoteEditor = destroyCreateNoteEditor;
+    Livewire.on('destroyEditor', () => {
+        destroyCreateNoteEditor();
+    });
+} else {
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('getEditorContent', () => {
+            sendContentToLivewire();
+        });
+
+        Livewire.on('destroyEditor', () => {
+            destroyCreateNoteEditor();
+        });
+    });
+}

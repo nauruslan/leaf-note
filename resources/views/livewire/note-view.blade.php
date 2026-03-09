@@ -251,6 +251,7 @@
             <div wire:ignore>
                 <div class="flex-grow p-6">
                     <div id="note-view-editor"
+                        data-content="{{ json_encode($content) }}"
                         class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
                     </div>
                 </div>
@@ -296,56 +297,3 @@
     </div>
 
 </div>
-
-@script
-    <script>
-        let noteViewEditor = null;
-
-        function initNoteViewEditorWithContent(content) {
-            const editorElement = document.querySelector('#note-view-editor');
-            if (!editorElement) return;
-
-            if (typeof window.initNoteViewEditor === 'function') {
-                noteViewEditor = window.initNoteViewEditor(content || '');
-                editorElement._editor = noteViewEditor;
-            }
-        }
-
-        // Получаем контент из редактора и отправляем в Livewire
-        function getEditorContent() {
-            if (noteViewEditor) {
-                const content = noteViewEditor.getJSON();
-                $wire.dispatch('editorContent', content);
-            }
-        }
-
-        // Слушаем запрос контента из редактора
-        $wire.on('getEditorContent', () => {
-            getEditorContent();
-        });
-
-        // Слушаем событие загрузки заметки с данными
-        $wire.on('noteLoaded', (data) => {
-            // Livewire оборачивает в {content: ...}, извлекаем сам документ
-            let parsedContent = data?.content || data;
-            if (typeof parsedContent === 'string') {
-                parsedContent = JSON.parse(parsedContent);
-            }
-            setTimeout(() => {
-                initNoteViewEditorWithContent(parsedContent);
-            }, 50);
-        });
-
-        // Очистка при уничтожении компонента
-        $wire.$on('destroyEditor', () => {
-            if (noteViewEditor) {
-                noteViewEditor.destroy();
-                noteViewEditor = null;
-            }
-            const editorElement = document.querySelector('#note-view-editor');
-            if (editorElement) {
-                editorElement._editor = null;
-            }
-        });
-    </script>
-@endscript

@@ -33,19 +33,27 @@ class NoteImageController extends Controller
         }
     }
 
-    /**
-     * Удаление изображения (опционально)
-     */
     public function delete(Request $request)
     {
         $request->validate([
-            'path' => 'required|string'
+            'path' => 'required|string|max:500'
         ]);
 
         try {
+            // Нормализуем путь (убираем возможные попытки path traversal)
+            $path = str_replace('..', '', $request->path);
+            
+            // Проверяем, что путь начинается с ожидаемой директории
+            if (!str_starts_with($path, 'notes/')) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Неверный путь к файлу'
+                ], 403);
+            }
+
             // Удаляем файл из хранилища
-            if (Storage::disk('public')->exists($request->path)) {
-                Storage::disk('public')->delete($request->path);
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
 
                 return response()->json([
                     'success' => true,

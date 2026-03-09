@@ -1,6 +1,6 @@
 <!-- Боковое меню NavigationSidebar -->
 <aside id="navigation-sidebar"
-    class="group fixed left-0 top-0 h-full z-50 flex flex-col bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out {{ $isExpanded ? 'w-64' : 'hover:w-64 w-[72px]' }} overflow-hidden"
+    class="group fixed left-0 top-0 h-full z-[9999] flex flex-col bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out {{ $isExpanded ? 'w-64' : 'hover:w-64 w-[72px]' }} overflow-hidden"
     role="navigation" aria-label="Основное меню">
     <!-- Логотип -->
     <div class="flex items-center h-16 border-b border-gray-200 px-4 shrink-0">

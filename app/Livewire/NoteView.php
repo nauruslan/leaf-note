@@ -43,21 +43,12 @@ class NoteView extends Component
         'editorContent' => 'setContent',
         'openNote' => 'openNote',
         'navigateTo' => 'handleNavigateTo',
-        'initEditor' => 'initEditor',
         'noteLoaded' => 'handleNoteLoaded',
     ];
 
     public function handleNoteLoaded(): void
     {
         // Пустой метод для обработки события noteLoaded
-    }
-
-    public function initEditor(): array
-    {
-        return [
-            'content' => $this->content,
-            'isLoaded' => $this->isLoaded,
-        ];
     }
 
     public function mount(?int $noteId = null, ?int $folderId = null): void
