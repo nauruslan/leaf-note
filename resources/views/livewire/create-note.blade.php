@@ -1,5 +1,4 @@
 <div>
-    <!-- Unified CreateNote Component (Header + ControlPanel + Content) -->
     <!-- Header Section -->
     <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
         <div class="bg-white rounded-b-xl shadow-md p-5">
@@ -96,7 +95,7 @@
             <div wire:ignore>
                 <!-- Скрытый input для загрузки изображений -->
                 <input type="file" id="create-note-image-upload-input" accept="image/*" style="display:none">
-                
+
                 <div class="px-6 py-3 border-b border-gray-200 bg-gray-50/50 flex flex-wrap items-center gap-1">
                     <!-- Text Formatting -->
                     <button type="button" data-editor-action="bold"
@@ -294,4 +293,11 @@
         </div>
     </div>
 
+    @script
+        <script>
+            Livewire.on('deleteUploadedImages', () => {
+                document.dispatchEvent(new CustomEvent('delete-uploaded-images'));
+            });
+        </script>
+    @endscript
 </div>

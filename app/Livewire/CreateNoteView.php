@@ -68,6 +68,7 @@ class CreateNoteView extends Component
     public function cancel()
     {
         $this->js('localStorage.clear()');
+        $this->dispatch('deleteUploadedImages');
         $this->dispatch('navigateTo', 'dashboard');
     }
 

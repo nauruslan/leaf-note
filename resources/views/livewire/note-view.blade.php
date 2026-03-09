@@ -250,8 +250,7 @@
             <!-- TipTap Editor Content Area (ignored) -->
             <div wire:ignore>
                 <div class="flex-grow p-6">
-                    <div id="note-view-editor"
-                        data-content="{{ json_encode($content) }}"
+                    <div id="note-view-editor" data-content="{{ json_encode($content) }}"
                         class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
                     </div>
                 </div>
@@ -295,5 +294,4 @@
             </div>
         </div>
     </div>
-
 </div>

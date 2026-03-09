@@ -12,13 +12,12 @@
     max-width: 1335px;
     margin: 0 auto;
     overflow: hidden !important;
-    cursor: default !important;
 }
-#editor p {
-    cursor: text !important;
-}
+
 #editor button,
-#editor label {
+#editor label,
+#editor [data-editor-action],
+#editor input[type='checkbox'] {
     cursor: pointer !important;
 }
 
@@ -181,13 +180,11 @@
     width: 100%;
     min-width: 200px;
     max-width: 100%;
-    cursor: default !important;
 }
 
 .tiptap table td,
 .tiptap table th {
     @apply border border-gray-300 px-4 py-4 text-left !important;
-    cursor: text !important;
     color: #1f2937 !important;
     background-color: white !important;
     word-break: break-word;
@@ -310,7 +307,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -380,8 +378,8 @@
 }
 
 .link-modal {
-    @apply fixed inset-0 z-[1000] hidden items-center justify-center;
-    background-color: rgba(0, 0, 0, 0.5);
+    @apply fixed inset-0 z-[10000] hidden items-center justify-center;
+    background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(2px);
 }
 
@@ -430,7 +428,6 @@
     @apply focus:ring-indigo-500;
 }
 
-/* Scroll */
 #sidebar-nav {
     overflow-y: auto;
     scrollbar-width: none;

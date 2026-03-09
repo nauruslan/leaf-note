@@ -75,7 +75,7 @@ const DEFAULT_CONFIG = {
     ],
     editorProps: {
         attributes: {
-            class: 'prose prose-indigo max-w-none focus:outline-none text-gray-700 min-h-[400px]',
+            class: 'prose prose-indigo max-w-none focus:outline-none min-h-[400px]',
         },
     },
 };
@@ -88,6 +88,7 @@ const DEFAULT_CONFIG = {
  * @param {string} [options.placeholder='Начните вводить текст заметки...'] - Placeholder
  * @param {Function} [options.onUpdate] - Callback при обновлении контента
  * @param {Function} [options.onSelectionUpdate] - Callback при изменении выделения
+ * @param {Function} [options.onImageUploaded] - Callback при загрузке изображения
  * @param {string} [options.type='note'] - Тип редактора ('create-note' | 'note-view')
  * @returns {Editor|null}
  */
@@ -98,6 +99,7 @@ export function initNoteEditor(options) {
         placeholder = 'Начните вводить текст заметки...',
         onUpdate,
         onSelectionUpdate,
+        onImageUploaded,
         type = 'note',
     } = options;
 
@@ -136,7 +138,6 @@ export function initNoteEditor(options) {
         return ext;
     });
 
-    // Добавляем callbacks
     config.onUpdate = ({ editor }) => {
         const wordCount = editor.state.doc.textContent
             .split(/\s+/)
@@ -172,7 +173,7 @@ export function initNoteEditor(options) {
 
     // Инициализируем тулбар
     setTimeout(() => {
-        initToolbarButtons(editor);
+        initToolbarButtons(editor, onImageUploaded);
         updateToolbarButtons(editor);
     }, 0);
 
@@ -212,7 +213,7 @@ export function sendContentToLivewire(elementId) {
     }
 }
 
-function initToolbarButtons(editor) {
+function initToolbarButtons(editor, onImageUploaded) {
     const buttonActions = {
         bold: () => editor.chain().focus().toggleBold().run(),
         italic: () => editor.chain().focus().toggleItalic().run(),
@@ -282,6 +283,10 @@ function initToolbarButtons(editor) {
                     const data = await response.json();
                     editor.chain().focus().setImage({ src: data.url, path: data.path }).run();
                     updateToolbarButtons(editor);
+
+                    if (onImageUploaded && typeof onImageUploaded === 'function') {
+                        onImageUploaded(data.path);
+                    }
                 } catch (error) {
                     console.error('[Image Upload] Error:', error);
                     alert('Ошибка при загрузке изображения: ' + error.message);

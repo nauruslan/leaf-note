@@ -5,17 +5,29 @@ import {
     sendContentToLivewire,
 } from './note-editor';
 
+let uploadedImages = [];
+
 export function initCreateNoteEditor() {
-    return initNoteEditor({
+    uploadedImages = [];
+
+    const editor = initNoteEditor({
         elementId: 'create-note-editor',
         content: '',
         placeholder: 'Начните вводить текст заметки...',
         type: 'create-note',
+        onImageUploaded: (imagePath) => {
+            if (imagePath && !uploadedImages.includes(imagePath)) {
+                uploadedImages.push(imagePath);
+            }
+        },
     });
+
+    return editor;
 }
 
 export function destroyCreateNoteEditor() {
     destroyNoteEditor('create-note-editor');
+    uploadedImages = [];
 }
 
 export function getCreateNoteEditorContent() {
@@ -24,6 +36,42 @@ export function getCreateNoteEditorContent() {
 
 export function sendCreateNoteContentToLivewire() {
     sendContentToLivewire('create-note-editor');
+}
+
+export function deleteAllUploadedImages() {
+    if (uploadedImages.length === 0) {
+        return Promise.resolve();
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    const deletePromises = uploadedImages.map((path) => {
+        return fetch('/notes/delete-image', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ path }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    console.error(
+                        `[CreateNoteEditor] Ошибка удаления изображения ${path}:`,
+                        response.statusText,
+                    );
+                }
+                return response.json();
+            })
+            .catch((error) => {
+                console.error(`[CreateNoteEditor] Ошибка удаления изображения ${path}:`, error);
+            });
+    });
+
+    return Promise.all(deletePromises).then(() => {
+        uploadedImages = [];
+    });
 }
 
 function autoInitCreateNoteEditor() {
@@ -58,6 +106,10 @@ if (document.readyState === 'loading') {
     createNoteObserver.observe(document.body, { childList: true, subtree: true });
     autoInitCreateNoteEditor();
 }
+
+document.addEventListener('delete-uploaded-images', () => {
+    deleteAllUploadedImages();
+});
 
 Livewire.on('getEditorContent', () => {
     sendCreateNoteContentToLivewire();

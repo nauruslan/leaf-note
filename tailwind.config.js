@@ -7,6 +7,7 @@ export default {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
     ],
+
     safelist: [
         'bg-black',
         'bg-gray-500',
