@@ -188,6 +188,8 @@ class NavigationSidebar extends Component
         Session::put('sidebar_expanded', true);
 
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
+
+        $this->js('window.scrollTo(0, 0)');
     }
 
     public function clearSidebarFlag(): void
