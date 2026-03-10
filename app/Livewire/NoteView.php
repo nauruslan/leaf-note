@@ -165,6 +165,30 @@ class NoteView extends Component
         $this->dispatch('navigateTo', 'dashboard');
     }
 
+    public function confirmDelete(): void
+    {
+        if (!$this->note) {
+            $this->dispatch('showError', 'Заметка не найдена');
+            return;
+        }
+
+        if ($this->note->is_favorite) {
+            $this->note->update(['is_favorite' => false]);
+        }
+
+        if ($this->note->moveToTrash()) {
+            $this->dispatch('noteUpdated');
+            $this->dispatch('navigateTo', 'dashboard');
+        } else {
+            $this->dispatch('showError', 'Не удалось удалить заметку');
+        }
+    }
+
+    public function openDeleteModal(): void
+    {
+        $this->js('document.getElementById("delete-modal").classList.add("active")');
+    }
+
     public function getColorsProperty(): array
     {
         return self::COLORS;
