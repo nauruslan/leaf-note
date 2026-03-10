@@ -17,6 +17,7 @@ class NoteView extends Component
     public $folders = [];
     public ?Note $note = null;
     public bool $isLoaded = false;
+    public array $originalImagePaths = [];
 
     public ?int $pendingFolderId = null;
     public ?string $pendingColor = null;
@@ -91,9 +92,49 @@ class NoteView extends Component
             $this->folderId = $this->note->folder_id;
             $this->color = $this->note->color ?? 'white';
             $this->content = $this->note->payload;
+            $this->originalImagePaths = $this->extractImagePathsFromPayload($this->note->payload);
             $this->isLoaded = true;
 
-            $this->dispatch('noteLoaded', content: $this->content);
+            $this->dispatch('noteLoaded',
+                content: $this->content,
+                originalImagePaths: $this->originalImagePaths
+            );
+        }
+    }
+
+    private function extractImagePathsFromPayload($payload): array
+    {
+        if (is_string($payload)) {
+            $payload = json_decode($payload, true);
+        }
+
+        if (!is_array($payload) || !isset($payload['content'])) {
+            return [];
+        }
+
+        $paths = [];
+        $this->traverseContent($payload['content'], $paths);
+        return array_values(array_unique($paths));
+    }
+
+    private function traverseContent($nodes, &$paths): void
+    {
+        if (!is_array($nodes)) {
+            return;
+        }
+
+        foreach ($nodes as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+
+            if (($node['type'] ?? null) === 'image' && isset($node['attrs']['path'])) {
+                $paths[] = $node['attrs']['path'];
+            }
+
+            if (isset($node['content']) && is_array($node['content'])) {
+                $this->traverseContent($node['content'], $paths);
+            }
         }
     }
 
@@ -120,6 +161,7 @@ class NoteView extends Component
     public function cancel(): void
     {
         $this->js('localStorage.clear()');
+        $this->dispatch('restoreNoteOriginalState');
         $this->dispatch('navigateTo', 'dashboard');
     }
 
@@ -154,6 +196,12 @@ class NoteView extends Component
                 return;
             }
 
+            $currentImagePaths = $this->extractImagePathsFromPayload($this->content);
+
+            $removedImagePaths = array_diff($this->originalImagePaths, $currentImagePaths);
+
+            $this->deleteImagesFromStorage($removedImagePaths);
+
             $this->note->title = $this->title;
             $this->note->payload = $this->content;
             $this->note->color = $this->pendingColor ?? $this->note->color;
@@ -164,6 +212,7 @@ class NoteView extends Component
 
             $this->note->save();
 
+            $this->originalImagePaths = $currentImagePaths;
 
             $this->dispatch('noteUpdated');
             $this->dispatch('navigateTo', 'dashboard');
@@ -171,6 +220,22 @@ class NoteView extends Component
         } catch (\Throwable $e) {
             report($e);
             $this->dispatch('showError', 'Не удалось сохранить заметку');
+        }
+    }
+
+    private function deleteImagesFromStorage(array $paths): void
+    {
+        foreach ($paths as $path) {
+            try {
+                $cleanPath = str_replace('..', '', $path);
+
+                if (str_starts_with($cleanPath, 'notes/') &&
+                    Storage::disk('public')->exists($cleanPath)) {
+                    Storage::disk('public')->delete($cleanPath);
+                }
+            } catch (\Exception $e) {
+                report($e);
+            }
         }
     }
 

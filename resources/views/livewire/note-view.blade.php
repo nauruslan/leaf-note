@@ -294,4 +294,12 @@
             </div>
         </div>
     </div>
+
+    @script
+        <script>
+            Livewire.on('restoreNoteOriginalState', () => {
+                document.dispatchEvent(new CustomEvent('restore-note-original-state'));
+            });
+        </script>
+    @endscript
 </div>

@@ -625,69 +625,17 @@ function createImageDeleteButton(node, getPos, editor) {
         </svg>
     `;
 
-    deleteBtn.addEventListener('click', async (e) => {
+    deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
 
-        const imagePath = node.attrs.path;
-        if (!imagePath) {
-            if (typeof getPos === 'function') {
-                const pos = getPos();
-                editor
-                    .chain()
-                    .focus()
-                    .deleteRange({ from: pos, to: pos + 1 })
-                    .run();
-            }
-            return;
-        }
-
-        deleteBtn.style.opacity = '0.6';
-        deleteBtn.style.pointerEvents = 'none';
-        deleteBtn.innerHTML = `
-            <svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
-                <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
-            </svg>
-        `;
-
-        try {
-            const response = await fetch('/notes/delete-image', {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ path: imagePath }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Ошибка удаления');
-            }
-
-            if (typeof getPos === 'function') {
-                const pos = getPos();
-                editor
-                    .chain()
-                    .focus()
-                    .deleteRange({ from: pos, to: pos + 1 })
-                    .run();
-            }
-        } catch (error) {
-            console.error('[Image Delete] Error:', error);
-            alert('Ошибка при удалении изображения: ' + error.message);
-            deleteBtn.style.opacity = '1';
-            deleteBtn.style.pointerEvents = 'auto';
-            deleteBtn.innerHTML = `
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-            `;
+        if (typeof getPos === 'function') {
+            const pos = getPos();
+            editor
+                .chain()
+                .focus()
+                .deleteRange({ from: pos, to: pos + 1 })
+                .run();
         }
     });
 

@@ -1,12 +1,92 @@
-import { initNoteEditor, sendContentToLivewire } from './note-editor';
+import { initNoteEditor, sendContentToLivewire, getEditorContent } from './note-editor';
+
+let originalImagePaths = [];
+let newImagePaths = [];
+let originalContent = null;
 
 export function initNoteViewEditor(content = '') {
-    return initNoteEditor({
+    originalImagePaths = [];
+    newImagePaths = [];
+    originalContent = content;
+    
+    const editor = initNoteEditor({
         elementId: 'note-view-editor',
         content: content,
         placeholder: 'Начните вводить текст заметки...',
         type: 'note-view',
+        onImageUploaded: (imagePath) => {
+            if (imagePath && !newImagePaths.includes(imagePath)) {
+                newImagePaths.push(imagePath);
+            }
+        },
     });
+    
+    return editor;
+}
+
+export function setOriginalContent(content, imagePaths) {
+    originalContent = content;
+    originalImagePaths = imagePaths || [];
+    newImagePaths = [];
+    
+    const editorElement = document.querySelector('#note-view-editor');
+    if (editorElement && editorElement._editor) {
+        editorElement._editor.commands.setContent(content);
+    }
+}
+
+export function getOriginalImagePaths() {
+    return originalImagePaths;
+}
+
+export function getNewImagePaths() {
+    return newImagePaths;
+}
+
+export function restoreOriginalState() {
+    const editorElement = document.querySelector('#note-view-editor');
+    if (!editorElement || !editorElement._editor || !originalContent) {
+        return Promise.resolve();
+    }
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    
+    const deletePromises = newImagePaths.map((path) => {
+        return fetch('/notes/delete-image', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ path }),
+        }).catch((error) => {
+            console.error('[NoteViewEditor] Ошибка удаления нового изображения:', path, error);
+        });
+    });
+    
+    return Promise.all(deletePromises).then(() => {
+        editorElement._editor.commands.setContent(originalContent);
+        newImagePaths = [];
+    });
+}
+
+export function extractImagePathsFromContent(content) {
+    const paths = [];
+    if (!content || !content.content) return paths;
+    
+    function traverse(node) {
+        if (!node) return;
+        if (node.type === 'image' && node.attrs?.path) {
+            paths.push(node.attrs.path);
+        }
+        if (node.content) {
+            node.content.forEach(traverse);
+        }
+    }
+    
+    traverse(content);
+    return paths;
 }
 
 function autoInitNoteViewEditor() {
@@ -16,6 +96,8 @@ function autoInitNoteViewEditor() {
         if (content) {
             try {
                 content = JSON.parse(content);
+                originalContent = content;
+                originalImagePaths = extractImagePathsFromContent(content);
             } catch (e) {
                 content = '';
             }
@@ -62,8 +144,17 @@ Livewire.on('noteLoaded', (data) => {
             parsedContent = '';
         }
     }
+    
+    originalContent = parsedContent;
+    originalImagePaths = extractImagePathsFromContent(parsedContent);
+    newImagePaths = [];
+    
     const editorElement = document.querySelector('#note-view-editor');
     if (editorElement && editorElement._editor) {
         editorElement._editor.commands.setContent(parsedContent);
     }
+});
+
+document.addEventListener('restore-note-original-state', () => {
+    restoreOriginalState();
 });

@@ -79,7 +79,6 @@ class CreateNoteView extends Component
 
     public function saveNote()
     {
-        // Действие сохранения заметки
         $this->dispatch('noteCreated');
     }
 
@@ -123,15 +122,15 @@ class CreateNoteView extends Component
             $this->pendingFolderId = null;
             $this->pendingColor = 'default';
 
-            $this->dispatch('noteSaved');
+            $this->js('localStorage.clear()');
 
+            $this->dispatch('noteSaved');
             $this->dispatch('navigateTo', 'dashboard');
 
         } catch (\Throwable $e) {
             report($e);
             $this->dispatch('showError', 'Не удалось сохранить заметку');
         }
-        $this->dispatch('navigateTo', section: 'dashboard');
     }
 
     public function render()
