@@ -186,6 +186,7 @@ class NavigationSidebar extends Component
         }
 
         Session::put('sidebar_expanded', true);
+        $this->isExpanded = true;
 
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
 

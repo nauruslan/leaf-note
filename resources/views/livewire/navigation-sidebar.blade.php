@@ -209,15 +209,43 @@
     <script>
         let collapseTimer = null;
         const sidebar = document.getElementById('navigation-sidebar');
+        let isHovered = false;
+
+        function updateExpandedAttribute() {
+            if (sidebar) {
+                const hasFullWidth = sidebar.classList.contains('w-64');
+                const shouldShowScrollbar = hasFullWidth || isHovered;
+                sidebar.setAttribute('data-expanded', shouldShowScrollbar ? 'true' : 'false');
+            }
+        }
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    updateExpandedAttribute();
+                }
+            });
+        });
+
+        if (sidebar) {
+            observer.observe(sidebar, {
+                attributes: true
+            });
+            updateExpandedAttribute();
+        }
 
         sidebar?.addEventListener('mouseenter', () => {
+            isHovered = true;
             if (collapseTimer) clearTimeout(collapseTimer);
+            updateExpandedAttribute();
         });
         sidebar?.addEventListener('mouseleave', () => {
+            isHovered = false;
             if (collapseTimer) clearTimeout(collapseTimer);
+            updateExpandedAttribute();
             collapseTimer = setTimeout(() => {
                 $wire.clearSidebarFlag();
-            }, 300);
+            }, 150);
         });
 
         let scrollTimeout;
