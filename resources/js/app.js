@@ -2,6 +2,7 @@
 import './bootstrap';
 import './editor/create-note-editor';
 import './editor/note-view-editor';
+import './editor/checklist-editor';
 
 import { createIcons, icons } from 'lucide';
 

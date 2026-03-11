@@ -1,5 +1,4 @@
 <div>
-    <!-- Unified CreateChecklist Component (Header + ControlPanel + Content) -->
     <!-- Header Section -->
     <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
         <div class="bg-white rounded-b-xl shadow-md p-5">
@@ -28,107 +27,180 @@
 
     <!-- ControlPanel Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="bg-white rounded-xl shadow-md p-5">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <!-- Left Block: Actions -->
+        <div class="bg-white rounded-xl shadow-md p-5 border border-gray-100">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+
+                <!-- Left Block: Main Settings -->
                 <div class="flex flex-wrap items-center gap-3">
-                    <button wire:click="saveChecklist"
+                    <!-- Folder Selection -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
+                        <div class="relative">
+                            <select wire:model.live="folderId"
+                                class="appearance-none bg-gray-50 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[150px] hover:bg-gray-100 transition-colors">
+                                <option value="">Выберите папку</option>
+                                @foreach ($folders as $folder)
+                                    <option value="{{ $folder->id }}">{{ $folder->title }}</option>
+                                @endforeach
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Color Picker -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Цвет:</span>
+                        <div class="flex items-center gap-1.5">
+                            @foreach ($this->colors as $key => $color)
+                                <button type="button" wire:click="$set('color', '{{ $key }}')"
+                                    wire:key="{{ $key }}"
+                                    class="relative w-8 h-8 rounded-full {{ $color['bg'] }} border-2 {{ $key === $this->color ? 'border-white ring-2 ring-offset-2 ' . $color['ring'] : $color['border'] }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $color['ring'] }}"
+                                    title="{{ $color['label'] }}" aria-label="{{ $color['label'] }}">
+                                    <!-- Leaf Component -->
+                                    <x-leaf class="w-5 h-5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                                        :fill="$key === 'white' ? '#000000' : '#ffffff'" />
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Block: Actions -->
+                <div class="flex flex-wrap items-center gap-3 justify-end">
+                    <!-- Save Button -->
+                    <button type="button" wire:click.prevent="save" wire:loading.attr="disabled"
                         class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
                         <i data-lucide="save" class="w-4 h-4"></i>
-                        Сохранить список
+                        Сохранить
                     </button>
-                    <button wire:click="cancel"
-                        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
+
+                    <!-- Cancel Button -->
+                    <button type="button" wire:click.prevent="cancel" wire:loading.attr="disabled"
+                        class="bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
                         <i data-lucide="x" class="w-4 h-4"></i>
                         Отмена
                     </button>
-                </div>
-
-                <!-- Right Block: Options -->
-                <div class="flex flex-wrap items-center gap-4 justify-end">
-                    <!-- Тип списка -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Тип:</span>
-                        <div class="relative">
-                            <select wire:model="type"
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[120px]">
-                                <option value="simple">Простой</option>
-                                <option value="priority">С приоритетами</option>
-                                <option value="timed">С временными метками</option>
-                                <option value="shared">Общий</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Категория -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Категория:</span>
-                        <div class="relative">
-                            <select wire:model="category"
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[120px]">
-                                <option value="work">Работа</option>
-                                <option value="personal">Личное</option>
-                                <option value="shopping">Покупки</option>
-                                <option value="health">Здоровье</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Content Section -->
-    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-xl font-bold mb-4">Форма создания списка</h3>
-            <div class="space-y-6">
-                <!-- Название списка -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Название списка</label>
-                    <input type="text" wire:model="title"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="Введите название списка">
+    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
+            <!-- TipTap Toolbar (ignored) -->
+            <div wire:ignore>
+                <div class="px-6 py-3 border-b border-gray-200 bg-gray-50/50 flex flex-wrap items-center gap-1">
+                    <!-- Add Task Button -->
+                    <button type="button" id="add-checklist-task-btn"
+                        class="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all shadow-sm hover:shadow"
+                        title="Добавить задачу">
+                        <i data-lucide="square-plus" class="w-4 h-4"></i>
+                        Добавить задачу
+                    </button>
+                    <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                    <!-- Text Formatting -->
+                    <button type="button" data-editor-action="bold"
+                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+                        title="Жирный">
+                        <i data-lucide="bold" class="w-4 h-4"></i>
+                    </button>
+                    <button type="button" data-editor-action="italic"
+                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+                        title="Курсив">
+                        <i data-lucide="italic" class="w-4 h-4"></i>
+                    </button>
+                    <!-- Color Picker Button -->
+                    <button type="button" data-editor-action="color"
+                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors relative"
+                        title="Цвет текста">
+                        <i data-lucide="palette" class="w-4 h-4"></i>
+                    </button>
+                    <!-- Highlight Button -->
+                    <button type="button" data-editor-action="highlight"
+                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors relative"
+                        title="Выделить текст (маркер)">
+                        <i data-lucide="highlighter" class="w-4 h-4"></i>
+                    </button>
+                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
+                    <!-- Link -->
+                    <button type="button" data-editor-action="link"
+                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+                        title="Ссылка">
+                        <i data-lucide="link" class="w-4 h-4"></i>
+                    </button>
+                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
+                    <!-- Undo/Redo -->
+                    <button type="button" data-editor-action="undo"
+                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+                        title="Отменить">
+                        <i data-lucide="undo" class="w-4 h-4"></i>
+                    </button>
+                    <button type="button" data-editor-action="redo"
+                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+                        title="Повторить">
+                        <i data-lucide="redo" class="w-4 h-4"></i>
+                    </button>
                 </div>
-                <!-- Описание -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Описание</label>
-                    <textarea rows="4" wire:model="description"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="Введите описание списка..."></textarea>
+            </div>
+            <!-- Note Title Input -->
+            <div class="px-6 pt-6 pb-2 border-b border-gray-100">
+                <input type="text" wire:model="title" placeholder="Название списка"
+                    class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
+            </div>
+            <!-- TipTap Editor Content Area (ignored) -->
+            <div wire:ignore>
+                <div class="flex-grow p-6">
+                    <div id="checklist-editor"
+                        class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
+                    </div>
                 </div>
-                <!-- Элементы списка -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Элементы списка</label>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-2">
-                            <input type="text" wire:model="item1"
-                                class="flex-1 border border-gray-300 rounded-lg px-4 py-2" placeholder="Элемент 1">
-                            <button class="text-red-500 hover:text-red-700">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="text" wire:model="item2"
-                                class="flex-1 border border-gray-300 rounded-lg px-4 py-2" placeholder="Элемент 2">
-                            <button class="text-red-500 hover:text-red-700">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        <button wire:click="addItem"
-                            class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            Добавить элемент
+            </div>
+
+            <!-- Footer Info (ignored) -->
+            <div wire:ignore>
+                <div
+                    class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
+                    <div class="flex items-center gap-4">
+                        <span>Создано: только что</span>
+                        <span>•</span>
+                        <span data-task-count>0 задач</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="cloud" class="w-3 h-3"></i>
+                        <span>Автосохранение включено</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Link Modal (ignored) -->
+        <div wire:ignore>
+            <div id="link-modal" class="link-modal">
+                <div class="link-modal-content">
+                    <h3 class="link-modal-title">Введите ссылку</h3>
+                    <input type="url" id="link-input" class="link-modal-input" placeholder="https://example.com"
+                        autocomplete="off">
+                    <div class="link-modal-buttons">
+                        <button type="button" class="link-modal-btn link-modal-btn-ok" data-link-action="ok">
+                            ОК
+                        </button>
+                        <button type="button" class="link-modal-btn link-modal-btn-cancel"
+                            data-link-action="cancel">
+                            Отменить
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    @script
+        <script>
+            Livewire.on('deleteUploadedImages', () => {
+                document.dispatchEvent(new CustomEvent('delete-uploaded-images'));
+            });
+        </script>
+    @endscript
 </div>

@@ -8,4 +8,8 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    esbuild: {
+        loader: 'js',
+        include: /\.js$/,
+    },
 });
