@@ -62,6 +62,11 @@ export default {
         'fill-indigo-500',
         'fill-purple-500',
         'fill-pink-500',
+        'stroke-gray-200',
+        'stroke-indigo-600',
+        'checklist-progress-svg',
+        'checklist-progress-bg',
+        'checklist-progress-fg',
     ],
 
     theme: {

@@ -147,6 +147,16 @@
                 <input type="text" wire:model="title" placeholder="Название списка"
                     class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
             </div>
+
+
+            <!-- Progress -->
+            <div wire:ignore>
+                <div id="checklist-progress-bar" class="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex justify-center">
+                    <!-- Progress bar will be initialized by JS -->
+                </div>
+            </div>
+
+
             <!-- TipTap Editor Content Area (ignored) -->
             <div wire:ignore>
                 <div class="flex-grow p-6">

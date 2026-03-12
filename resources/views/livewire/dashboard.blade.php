@@ -129,8 +129,8 @@
                             <div class="flex items-center gap-4 justify-center">
                                 <!-- Progress Circle Container -->
                                 <div class="relative w-[100px] h-[100px]">
-                                    <svg viewBox="0 0 100 100" class="absolute top-0 left-0 w-full h-full"
-                                        style="transform: rotate(-90deg);">
+                                    <svg viewBox="0 0 100 100" class="w-full h-full"
+                                        style="transform: rotate(-90deg); display: block;">
                                         <!-- Background Circle -->
                                         <circle cx="50" cy="50" r="45" class="fill-none stroke-gray-200"
                                             stroke-width="8" stroke-linecap="round" />
