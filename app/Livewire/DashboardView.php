@@ -31,7 +31,6 @@ class DashboardView extends Component
     public function loadNotes(): void
     {
         $this->notes = Note::where('user_id', Auth::id())
-            ->where('type', Note::TYPE_NOTE)
             ->whereNull('trash_id')
             ->whereNull('archive_id')
             ->whereNull('safe_id')
@@ -64,6 +63,11 @@ class DashboardView extends Component
     public function openNote($noteId)
     {
         $this->dispatch('navigateTo', section: 'note', folderId: $noteId);
+    }
+
+    public function openChecklist($noteId)
+    {
+        $this->dispatch('navigateTo', section: 'checklist', folderId: $noteId);
     }
 
     public function render()

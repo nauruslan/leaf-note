@@ -144,11 +144,11 @@ Livewire.on('noteLoaded', (data) => {
             parsedContent = '';
         }
     }
-    
+
     originalContent = parsedContent;
     originalImagePaths = extractImagePathsFromContent(parsedContent);
     newImagePaths = [];
-    
+
     const editorElement = document.querySelector('#note-view-editor');
     if (editorElement && editorElement._editor) {
         editorElement._editor.commands.setContent(parsedContent);

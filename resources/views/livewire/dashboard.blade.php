@@ -114,7 +114,11 @@
                 </div>
 
                 <div class="flex-grow flex">
-                    <p class="text-gray-700">{{ $note->preview }}</p>
+                    @if ($note->isChecklist())
+                        <p class="text-gray-700">ЭТО СПИСОК</p>
+                    @else
+                        <p class="text-gray-700">{{ $note->preview }}</p>
+                    @endif
                 </div>
 
                 <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
@@ -123,11 +127,19 @@
                         <i data-lucide="{{ $note->type_icon }}" class="w-4 h-4"></i>
                         <span>{{ $note->folder ? $note->folder->title : 'Без папки' }}</span>
                     </div>
-                    <button wire:click="openNote({{ $note->id }})"
-                        class="text-indigo-600 hover:text-indigo-800 font-bold text-md flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
-                        <span>Открыть</span>
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </button>
+                    @if ($note->isChecklist())
+                        <button wire:click="openChecklist({{ $note->id }})"
+                            class="text-indigo-600 hover:text-indigo-800 font-bold text-md flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
+                            <span>Открыть</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    @else
+                        <button wire:click="openNote({{ $note->id }})"
+                            class="text-indigo-600 hover:text-indigo-800 font-bold text-md flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
+                            <span>Открыть</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    @endif
                 </div>
             </div>
         @empty

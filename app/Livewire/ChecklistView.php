@@ -2,7 +2,8 @@
 
 namespace App\Livewire;
 
-use App\Services\StateManager;
+use App\Models\Note;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class ChecklistView extends Component
@@ -15,30 +16,12 @@ class ChecklistView extends Component
 
     public function mount(): void
     {
-        $this->search = StateManager::get('search', '');
+        // Инициализация для раздела списков
     }
 
     public function updateState(string $section, ?int $folderId, string $search): void
     {
         $this->search = $search;
-    }
-
-    public function saveChecklist()
-    {
-        // Логика сохранения списка
-        $this->dispatch('notify', ['message' => 'Список сохранён', 'type' => 'success']);
-    }
-
-    public function deleteChecklist($id)
-    {
-        // Логика удаления списка
-        $this->dispatch('notify', ['message' => 'Список удалён', 'type' => 'warning']);
-    }
-
-    public function toggleComplete($id)
-    {
-        // Логика переключения выполнения
-        $this->dispatch('notify', ['message' => 'Статус обновлён', 'type' => 'info']);
     }
 
     public function render()

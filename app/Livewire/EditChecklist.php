@@ -7,15 +7,19 @@ use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
-class CreateChecklistView extends Component
+class EditChecklist extends Component
 {
+    public ?int $checklistId = null;
     public string $title = '';
-    public ?int $pendingFolderId = null;
-    public string $pendingColor = 'default';
     public ?int $folderId = null;
     public string $color = 'white';
     public $content = '';
     public $folders = [];
+    public ?Note $checklist = null;
+    public bool $isLoaded = false;
+
+    public ?int $pendingFolderId = null;
+    public ?string $pendingColor = null;
 
     public const COLORS = [
         'black'   => ['label' => 'Черный',   'bg' => 'bg-black',        'border' => 'border-gray-700', 'ring' => 'focus:ring-gray-700',  'hex' => '#000000'],
@@ -33,25 +37,72 @@ class CreateChecklistView extends Component
 
     protected $listeners = [
         'updateFolderId' => 'setFolderId',
-        'checklistSaved' => 'onChecklistSaved',
+        'checklistUpdated' => 'onChecklistUpdated',
         'saveChecklist' => 'triggerSave',
         'editorContent' => 'setContent',
+        'openChecklist' => 'openChecklist',
+        'navigateTo' => 'handleNavigateTo',
+        'checklistLoaded' => 'handleChecklistLoaded',
     ];
 
-    public function mount()
+    public function handleChecklistLoaded(): void
     {
+        // Пустой метод для обработки события checklistLoaded
+    }
+
+    public function mount(?int $checklistId = null, ?int $folderId = null): void
+    {
+        // Для edit-checklist folderId используется как checklistId
+        $this->checklistId = $checklistId ?? $folderId;
         $this->folders = Folder::forUser(Auth::user())
             ->active()
             ->orderBy('title')
             ->get();
+
+        if ($this->checklistId) {
+            $this->loadChecklist();
+        }
     }
 
-    public function setFolderId($id)
+    public function handleNavigateTo(string $section, ?int $folderId = null): void
+    {
+        if ($section === 'checklist' && $folderId) {
+            $this->openChecklist($folderId);
+        }
+    }
+
+    public function openChecklist($checklistId): void
+    {
+        $this->checklistId = $checklistId;
+        $this->loadChecklist();
+    }
+
+    public function loadChecklist(): void
+    {
+        if (!$this->checklistId) {
+            return;
+        }
+
+        $this->checklist = Note::where('user_id', Auth::id())
+            ->find($this->checklistId);
+
+        if ($this->checklist) {
+            $this->title = $this->checklist->title;
+            $this->folderId = $this->checklist->folder_id;
+            $this->color = $this->checklist->color ?? 'white';
+            $this->content = $this->checklist->payload;
+            $this->isLoaded = true;
+
+            $this->dispatch('checklistLoaded', content: $this->content);
+        }
+    }
+
+    public function setFolderId($id): void
     {
         $this->folderId = $id;
     }
 
-    public function save()
+    public function save(): void
     {
         $this->js('localStorage.clear()');
 
@@ -61,27 +112,50 @@ class CreateChecklistView extends Component
         );
     }
 
-    public function onChecklistSaved()
+    public function onChecklistUpdated(): void
     {
         $this->dispatch('navigateTo', 'dashboard');
     }
 
-    public function cancel()
+    public function cancel(): void
     {
         $this->js('localStorage.clear()');
-        $this->dispatch('deleteUploadedImages');
         $this->dispatch('navigateTo', 'dashboard');
     }
 
-    public function getColorsProperty()
+    public function confirmDelete(): void
+    {
+        if (!$this->checklist) {
+            $this->dispatch('showError', 'Список не найден');
+            return;
+        }
+
+        if ($this->checklist->is_favorite) {
+            $this->checklist->update(['is_favorite' => false]);
+        }
+
+        if ($this->checklist->moveToTrash()) {
+            $this->dispatch('checklistUpdated');
+            $this->dispatch('navigateTo', 'dashboard');
+        } else {
+            $this->dispatch('showError', 'Не удалось удалить список');
+        }
+    }
+
+    public function openDeleteModal(): void
+    {
+        $this->js('document.getElementById("delete-modal").classList.add("active")');
+    }
+
+    public function getColorsProperty(): array
     {
         return self::COLORS;
     }
 
-    public function triggerSave($folderId = null, $color = 'default'): void
+    public function triggerSave($folderId = null, $color = null): void
     {
-        $this->pendingFolderId = $folderId;
-        $this->pendingColor = $color;
+        $this->pendingFolderId = $folderId ?? $this->folderId;
+        $this->pendingColor = $color ?? $this->color;
         $this->dispatch('getEditorContent');
     }
 
@@ -99,29 +173,22 @@ class CreateChecklistView extends Component
                 'content' => 'required',
             ]);
 
-            $note = new Note();
-            $note->title = $this->title;
-            $note->type = Note::TYPE_CHECKLIST;
-            $note->payload = $this->content;
-            $note->color = $this->pendingColor ?? 'default';
-            $note->user_id = Auth::id();
-
-            if ($this->pendingFolderId) {
-                $note->folder_id = $this->pendingFolderId;
-            } else {
-                $note->archive_id = Auth::user()->archive->id;
+            if (!$this->checklist) {
+                $this->dispatch('showError', 'Список не найден');
+                return;
             }
 
-            $note->save();
+            $this->checklist->title = $this->title;
+            $this->checklist->payload = $this->content;
+            $this->checklist->color = $this->pendingColor ?? $this->checklist->color;
 
-            $this->reset(['title', 'content']);
-            $this->pendingFolderId = null;
-            $this->pendingColor = 'default';
+            if ($this->pendingFolderId !== null) {
+                $this->checklist->folder_id = $this->pendingFolderId;
+            }
 
-            $this->js('localStorage.clear()');
+            $this->checklist->save();
 
-            $this->dispatch('checklistCreated');
-            $this->dispatch('checklistSaved');
+            $this->dispatch('checklistUpdated');
             $this->dispatch('navigateTo', 'dashboard');
 
         } catch (\Throwable $e) {
@@ -132,6 +199,6 @@ class CreateChecklistView extends Component
 
     public function render()
     {
-        return view('livewire.create-checklist');
+        return view('livewire.edit-checklist');
     }
 }

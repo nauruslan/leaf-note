@@ -251,121 +251,61 @@ function initToolbarButtons(editor) {
     }
 }
 
-function autoInitChecklistEditor() {
-    const editorElement = document.querySelector('#checklist-editor');
-    if (editorElement && !editorElement._editor) {
-        initChecklistEditor({
-            elementId: 'checklist-editor',
-            content: '',
-            placeholder: 'Нажмите "Добавить задачу", чтобы создать список...',
-        });
-    }
-
+export function initAddTaskButtonHandler(editorElement) {
     const addTaskBtn = document.getElementById('add-checklist-task-btn');
-    if (addTaskBtn && !addTaskBtn._checklistHandlerAttached) {
-        addTaskBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const editorElement = document.querySelector('#checklist-editor');
-            if (!editorElement || !editorElement._editor) {
-                console.error('[ChecklistEditor] Editor not initialized');
-                return;
-            }
-
-            const editor = editorElement._editor;
-            const { state } = editor;
-
-            const hasChecklist = state.doc.firstChild?.type.name === 'checklist';
-
-            if (!hasChecklist) {
-                // Создаём новый чеклист и устанавливаем курсор в первый пункт
-                editor.commands.insertChecklist();
-                setTimeout(() => {
-                    editor.commands.focus();
-                    const { state } = editor;
-                    let firstItemPos = null;
-                    state.doc.descendants((node, pos) => {
-                        if (node.type.name === 'checklistItem') {
-                            firstItemPos = pos + 1;
-                            return false;
-                        }
-                    });
-                    if (firstItemPos !== null) {
-                        editor.commands.setTextSelection(firstItemPos);
-                    }
-                }, 50);
-            } else {
-                // Добавляем новый пункт в существующий чеклист
-                editor.commands.appendChecklistItem();
-                // Дополнительно фокусируем редактор и устанавливаем выделение в конец
-                setTimeout(() => {
-                    editor.commands.focus();
-                    const { state } = editor;
-                    let lastItemPos = null;
-                    // Находим последний checklistItem
-                    state.doc.descendants((node, pos) => {
-                        if (node.type.name === 'checklistItem') {
-                            lastItemPos = pos + node.nodeSize - 2; // перед закрывающим тегом, внутри параграфа
-                        }
-                    });
-                    if (lastItemPos !== null) {
-                        editor.commands.setTextSelection(lastItemPos);
-                    }
-                }, 50);
-            }
-        });
-
-        addTaskBtn._checklistHandlerAttached = true;
+    if (!addTaskBtn || addTaskBtn._checklistHandlerAttached) {
+        return;
     }
-}
 
-const checklistObserver = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-            if (node.nodeType === 1) {
-                if (node.id === 'checklist-editor' || node.querySelector?.('#checklist-editor')) {
-                    setTimeout(autoInitChecklistEditor, 50);
-                    return;
+    addTaskBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const editor = editorElement._editor;
+        if (!editor) {
+            console.error('[ChecklistEditor] Editor not initialized');
+            return;
+        }
+
+        const { state } = editor;
+        const hasChecklist = state.doc.firstChild?.type.name === 'checklist';
+
+        if (!hasChecklist) {
+            editor.commands.insertChecklist();
+            setTimeout(() => {
+                editor.commands.focus();
+                const { state } = editor;
+                let firstItemPos = null;
+                state.doc.descendants((node, pos) => {
+                    if (node.type.name === 'checklistItem') {
+                        firstItemPos = pos + 1;
+                        return false;
+                    }
+                });
+                if (firstItemPos !== null) {
+                    editor.commands.setTextSelection(firstItemPos);
                 }
-            }
+            }, 50);
+        } else {
+            editor.commands.appendChecklistItem();
+            setTimeout(() => {
+                editor.commands.focus();
+                const { state } = editor;
+                let lastItemPos = null;
+                state.doc.descendants((node, pos) => {
+                    if (node.type.name === 'checklistItem') {
+                        lastItemPos = pos + node.nodeSize - 2;
+                    }
+                });
+                if (lastItemPos !== null) {
+                    editor.commands.setTextSelection(lastItemPos);
+                }
+            }, 50);
         }
-    }
-});
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        checklistObserver.observe(document.body, { childList: true, subtree: true });
-        autoInitChecklistEditor();
     });
-} else {
-    checklistObserver.observe(document.body, { childList: true, subtree: true });
-    autoInitChecklistEditor();
+
+    addTaskBtn._checklistHandlerAttached = true;
 }
-
-document.addEventListener('delete-uploaded-images', () => {
-    deleteAllUploadedImages();
-});
-
-Livewire.on('getEditorContent', () => {
-    sendChecklistContentToLivewire('checklist-editor');
-});
-
-Livewire.on('checklistLoaded', (data) => {
-    let parsedContent = data?.content || data;
-    if (typeof parsedContent === 'string') {
-        try {
-            parsedContent = JSON.parse(parsedContent);
-        } catch (e) {
-            parsedContent = '';
-        }
-    }
-
-    const editorElement = document.querySelector('#checklist-editor');
-    if (editorElement && editorElement._editor) {
-        editorElement._editor.commands.setContent(parsedContent);
-    }
-});
 
 export {
     closeLinkModal,

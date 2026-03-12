@@ -24,6 +24,7 @@ class NavigationSidebar extends Component
         'folderCreated' => 'refreshFolders',
         'folderDeleted' => 'refreshFolders',
         'noteCreated' => 'refreshFolders',
+        'checklistCreated' => 'refreshFolders',
         'noteDeleted' => 'refreshFolders',
     ];
 
