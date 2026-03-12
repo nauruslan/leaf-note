@@ -1,6 +1,41 @@
 import { Extension, mergeAttributes, Node } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 
+// Расширение для кнопки добавления первого чеклиста в пустом редакторе
+export const AddChecklistButton = Extension.create({
+    name: 'addChecklistButton',
+
+    addOptions() {
+        return {
+            buttonLabel: 'Добавить задачу',
+        };
+    },
+
+    addProseMirrorPlugins() {
+        const { buttonLabel } = this.options;
+
+        return [
+            new Plugin({
+                key: new PluginKey('addChecklistButton'),
+                props: {
+                    decorations: (state) => {
+                        const { doc } = state;
+                        const decorations = [];
+
+                        // Если документ пустой или содержит только чеклист без элементов
+                        if (doc.childCount === 0 || (doc.childCount === 1 && doc.firstChild?.type.name === 'checklist' && doc.firstChild.childCount === 0)) {
+                            // Кнопка будет добавлена через node view чеклиста
+                            return null;
+                        }
+
+                        return decorations.length > 0 ? decorations : null;
+                    },
+                },
+            }),
+        ];
+    },
+});
+
 export const ChecklistNavigation = Extension.create({
     name: 'checklistNavigation',
     priority: 1000,
@@ -164,7 +199,7 @@ export const ChecklistNavigation = Extension.create({
 export const Checklist = Node.create({
     name: 'checklist',
     group: 'block',
-    content: 'checklistItem+',
+    content: 'checklistItem*',
     draggable: true,
 
     parseHTML() {
@@ -189,13 +224,7 @@ export const Checklist = Node.create({
                 ({ commands }) =>
                     commands.insertContent({
                         type: this.name,
-                        content: [
-                            {
-                                type: 'checklistItem',
-                                attrs: { checked: false },
-                                content: [{ type: 'paragraph', content: [] }],
-                            },
-                        ],
+                        content: [],
                     }),
             appendChecklistItem:
                 () =>
@@ -212,9 +241,11 @@ export const Checklist = Node.create({
                         return commands.insertChecklist();
                     }
                     const checklistNode = state.doc.nodeAt(checklistPos);
-                    // Вставляем новый элемент в конец чеклиста (перед закрывающим тегом)
-                    const lastItemPos = checklistPos + checklistNode.nodeSize - 1;
-                    return commands.insertContentAt(lastItemPos, {
+                    // Вставляем новый элемент в конец чеклиста
+                    // Для пустого чеклиста nodeSize = 2 (открывающий + закрывающий тег)
+                    // Вставляем после открывающего тега (pos + 1) или перед закрывающим (pos + nodeSize - 1)
+                    const insertPos = checklistPos + checklistNode.nodeSize - 1;
+                    return commands.insertContentAt(insertPos, {
                         type: 'checklistItem',
                         attrs: { checked: false },
                         content: [{ type: 'paragraph', content: [] }],
@@ -224,12 +255,50 @@ export const Checklist = Node.create({
     },
 
     addNodeView() {
-        return () => {
+        return ({ editor }) => {
+            const wrapper = document.createElement('div');
+            wrapper.setAttribute('data-type', 'checklist');
+            wrapper.className = 'checklist-container-wrapper';
+            wrapper.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem;';
+
             const container = document.createElement('div');
             container.setAttribute('data-type', 'checklist');
             container.className = 'checklist-container';
-            container.style.cssText = 'display: flex; flex-direction: column; gap: 0.25rem;';
-            return { dom: container, contentDOM: container };
+            container.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem;';
+
+            // Кнопка "Добавить задачу" внутри редактора (в конце)
+            const addTaskBtn = document.createElement('button');
+            addTaskBtn.type = 'button';
+            addTaskBtn.className = 'add-checklist-task-btn-inline';
+            addTaskBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events: none;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>Добавить задачу</span>
+            `;
+            addTaskBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editor.commands.appendChecklistItem();
+                setTimeout(() => {
+                    editor.commands.focus();
+                    const { state } = editor;
+                    let lastItemPos = null;
+                    state.doc.descendants((node, pos) => {
+                        if (node.type.name === 'checklistItem') {
+                            lastItemPos = pos + node.nodeSize - 2;
+                        }
+                    });
+                    if (lastItemPos !== null) {
+                        editor.commands.setTextSelection(lastItemPos);
+                    }
+                }, 50);
+            });
+
+            wrapper.appendChild(container);
+            wrapper.appendChild(addTaskBtn);
+
+            return { dom: wrapper, contentDOM: container };
         };
     },
 });

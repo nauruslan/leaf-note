@@ -1,6 +1,5 @@
 import {
     initChecklistEditor,
-    initAddTaskButtonHandler,
     sendChecklistContentToLivewire,
     getChecklistEditorContent,
 } from './checklist-editor';
@@ -23,10 +22,6 @@ export function initCreateChecklistEditor() {
         content: '',
         placeholder: 'Нажмите "Добавить задачу", чтобы создать список...',
     });
-
-    if (editor) {
-        initAddTaskButtonHandler(editorElement);
-    }
 
     return editor;
 }

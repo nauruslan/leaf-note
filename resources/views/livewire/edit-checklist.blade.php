@@ -90,14 +90,6 @@
             <!-- TipTap Toolbar (ignored) -->
             <div wire:ignore>
                 <div class="px-6 py-3 border-b border-gray-200 bg-gray-50/50 flex flex-wrap items-center gap-1">
-                    <!-- Add Task Button -->
-                    <button type="button" id="add-checklist-task-btn"
-                        class="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all shadow-sm hover:shadow"
-                        title="Добавить задачу">
-                        <i data-lucide="square-plus" class="w-4 h-4"></i>
-                        Добавить задачу
-                    </button>
-                    <div class="w-px h-6 bg-gray-300 mx-1"></div>
                     <!-- Text Formatting -->
                     <button type="button" data-editor-action="bold"
                         class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"

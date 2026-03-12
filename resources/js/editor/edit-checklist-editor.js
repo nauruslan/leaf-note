@@ -1,8 +1,6 @@
 import {
     initChecklistEditor,
-    initAddTaskButtonHandler,
     sendChecklistContentToLivewire,
-    getChecklistEditorContent,
 } from './checklist-editor';
 import { initChecklistProgressBar } from './checklist-progress';
 
@@ -32,9 +30,6 @@ export function initEditChecklistEditor(content = '') {
     });
 
     if (editor) {
-        initAddTaskButtonHandler(editorElement);
-        
-        // Инициализируем прогресс-бар
         progressBar = initChecklistProgressBar(editor, 'checklist-progress-bar');
     }
 
@@ -73,7 +68,10 @@ const editChecklistObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
             if (node.nodeType === 1) {
-                if (node.id === 'edit-checklist-editor' || node.querySelector?.('#edit-checklist-editor')) {
+                if (
+                    node.id === 'edit-checklist-editor' ||
+                    node.querySelector?.('#edit-checklist-editor')
+                ) {
                     setTimeout(autoInitEditChecklistEditor, 50);
                     return;
                 }
@@ -112,9 +110,7 @@ Livewire.on('checklistLoaded', (data) => {
     const editorElement = document.querySelector('#edit-checklist-editor');
     if (editorElement && editorElement._editor) {
         editorElement._editor.commands.setContent(parsedContent);
-        // Прогресс-бар обновится автоматически через событие transaction
     } else if (editorElement) {
-        // Если редактор ещё не инициализирован, инициализируем его с контентом
         initEditChecklistEditor(parsedContent);
     }
 });

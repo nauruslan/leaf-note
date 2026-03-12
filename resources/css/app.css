@@ -7,7 +7,6 @@
     background-clip: text;
 }
 
-/* Checklist Progress Bar Styles */
 .checklist-progress-svg {
     display: block;
     width: 100%;
@@ -692,4 +691,58 @@
 
 .ProseMirror-gapcursor {
     display: none !important;
+}
+
+.add-checklist-task-btn-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-top: 0.5rem;
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-checklist-task-btn-inline:hover {
+    border-color: #6366f1;
+    background: #f5f3ff;
+    color: #6366f1;
+}
+
+.add-checklist-task-btn-inline svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.checklist-container-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+/* Стили для кнопки внутри пустого чеклиста */
+.checklist-container-wrapper:has(.checklist-item) .add-checklist-task-btn-inline {
+    margin-top: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+}
+
+.checklist-container-wrapper .add-checklist-task-btn-inline:hover {
+    border-color: #6366f1;
+    background: #f5f3ff;
+    color: #6366f1;
+    transform: translateY(-1px);
+}
+
+.checklist-container-wrapper .add-checklist-task-btn-inline:active {
+    transform: translateY(0);
 }

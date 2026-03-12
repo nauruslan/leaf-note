@@ -7,7 +7,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { TextStyle } from '@tiptap/extension-text-style';
 import StarterKit from '@tiptap/starter-kit';
 
-import { Checklist, ChecklistItem, ChecklistNavigation } from './checklist-extension';
+import { Checklist, ChecklistItem, ChecklistNavigation, AddChecklistButton } from './checklist-extension';
 import {
     closeLinkModal,
     COLOR_PALETTE,
@@ -50,6 +50,7 @@ const DEFAULT_CONFIG = {
         ChecklistNavigation,
         Checklist,
         ChecklistItem,
+        AddChecklistButton,
     ],
     editorProps: {
         attributes: {
@@ -107,25 +108,10 @@ export function initChecklistEditor(options) {
     const editor = new Editor(config);
     editorElement._editor = editor;
 
-    // Если документ пуст, вставляем чеклист с одним пунктом
+    // Если документ пуст, вставляем пустой чеклист (без элементов)
+    // Кнопка "Добавить задачу" будет отображаться внутри
     if (!content || (typeof content === 'string' && content.trim() === '')) {
         editor.commands.insertChecklist();
-        // Устанавливаем фокус и курсор в первый пункт через TipTap
-        setTimeout(() => {
-            const { state } = editor;
-            let firstItemPos = null;
-            state.doc.descendants((node, pos) => {
-                if (node.type.name === 'checklistItem') {
-                    firstItemPos = pos + 1; // Позиция внутри paragraph
-                    return false;
-                }
-            });
-            if (firstItemPos !== null) {
-                // Используем TipTap focus() для правильной установки фокуса
-                editor.commands.focus(firstItemPos, { scrollIntoView: false });
-                editor.commands.setTextSelection(firstItemPos);
-            }
-        }, 100);
     }
 
     const preventRootFocus = () => {
@@ -144,6 +130,10 @@ export function initChecklistEditor(options) {
             if (target.closest('.checklist-checkbox, [data-action="toggle-check"]')) {
                 return; // Пропускаем клик по чекбоксу
             }
+            // Разрешаем клик по кнопке добавления задачи
+            if (target.closest('.add-checklist-task-btn-inline')) {
+                return;
+            }
             const isInsideChecklistItem = target.closest(
                 '.checklist-item, [data-type="checklist-item"], .checklist-item-content',
             );
@@ -154,10 +144,22 @@ export function initChecklistEditor(options) {
                 if (firstItem) {
                     firstItem.focus();
                 } else {
-                    const addBtn = document.getElementById('add-checklist-task-btn');
-                    if (addBtn) {
-                        addBtn.click();
-                    }
+                    // Если нет элементов, создаем первый checklistItem
+                    editor.commands.appendChecklistItem();
+                    setTimeout(() => {
+                        editor.commands.focus();
+                        const { state } = editor;
+                        let firstItemPos = null;
+                        state.doc.descendants((node, pos) => {
+                            if (node.type.name === 'checklistItem') {
+                                firstItemPos = pos + 1;
+                                return false;
+                            }
+                        });
+                        if (firstItemPos !== null) {
+                            editor.commands.setTextSelection(firstItemPos);
+                        }
+                    }, 50);
                 }
             }
         };
@@ -249,62 +251,6 @@ function initToolbarButtons(editor) {
             createPalette(editor, highlightBtn, 'highlight', COLOR_PALETTE);
         });
     }
-}
-
-export function initAddTaskButtonHandler(editorElement) {
-    const addTaskBtn = document.getElementById('add-checklist-task-btn');
-    if (!addTaskBtn || addTaskBtn._checklistHandlerAttached) {
-        return;
-    }
-
-    addTaskBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const editor = editorElement._editor;
-        if (!editor) {
-            console.error('[ChecklistEditor] Editor not initialized');
-            return;
-        }
-
-        const { state } = editor;
-        const hasChecklist = state.doc.firstChild?.type.name === 'checklist';
-
-        if (!hasChecklist) {
-            editor.commands.insertChecklist();
-            setTimeout(() => {
-                editor.commands.focus();
-                const { state } = editor;
-                let firstItemPos = null;
-                state.doc.descendants((node, pos) => {
-                    if (node.type.name === 'checklistItem') {
-                        firstItemPos = pos + 1;
-                        return false;
-                    }
-                });
-                if (firstItemPos !== null) {
-                    editor.commands.setTextSelection(firstItemPos);
-                }
-            }, 50);
-        } else {
-            editor.commands.appendChecklistItem();
-            setTimeout(() => {
-                editor.commands.focus();
-                const { state } = editor;
-                let lastItemPos = null;
-                state.doc.descendants((node, pos) => {
-                    if (node.type.name === 'checklistItem') {
-                        lastItemPos = pos + node.nodeSize - 2;
-                    }
-                });
-                if (lastItemPos !== null) {
-                    editor.commands.setTextSelection(lastItemPos);
-                }
-            }, 50);
-        }
-    });
-
-    addTaskBtn._checklistHandlerAttached = true;
 }
 
 export {

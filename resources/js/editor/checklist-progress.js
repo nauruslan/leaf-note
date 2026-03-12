@@ -1,17 +1,11 @@
-/**
- * Checklist Progress Bar
- * Отображает прогресс выполнения задач в реальном времени
- */
-
 export function initChecklistProgressBar(editor, progressElementId = 'checklist-progress-bar') {
     const progressElement = document.getElementById(progressElementId);
-    
+
     if (!progressElement) {
         console.warn('[ChecklistProgressBar] Element not found:', progressElementId);
         return null;
     }
 
-    // Создаем структуру прогресс-бара если она еще не создана
     if (!progressElement.querySelector('.progress-circle')) {
         progressElement.innerHTML = `
             <div class="flex flex-col items-center justify-center gap-3">
@@ -32,7 +26,6 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
         `;
     }
 
-    // Функция подсчета элементов чеклиста
     function countChecklistItems(content) {
         let completed = 0;
         let total = 0;
@@ -62,17 +55,15 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
         return { completed, total };
     }
 
-    // Функция получения цвета прогресса
     function getProgressColor(percentage) {
-        if (percentage <= 10) return '#FF4C4C';      // ярко-красный
-        if (percentage <= 30) return '#FF8A4C';      // оранжево-красный
-        if (percentage <= 50) return '#FFC04C';      // оранжевый
-        if (percentage <= 70) return '#B4D84C';      // зелёно-желтый
-        if (percentage <= 90) return '#6ED84C';      // ярко-зелёный
-        return '#2ABF2A';                             // тёмно-зелёный
+        if (percentage <= 10) return '#FF4C4C';
+        if (percentage <= 30) return '#FF8A4C';
+        if (percentage <= 50) return '#FFC04C';
+        if (percentage <= 70) return '#B4D84C';
+        if (percentage <= 90) return '#6ED84C';
+        return '#2ABF2A';
     }
 
-    // Функция обновления прогресс-бара
     function updateProgress() {
         if (!editor) {
             console.warn('[ChecklistProgressBar] Editor not available');
@@ -81,16 +72,13 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
 
         const content = editor.getJSON()?.content || [];
         const stats = countChecklistItems(content);
-        
-        const percentage = stats.total > 0 
-            ? Math.round((stats.completed / stats.total) * 100) 
-            : 0;
-        
+
+        const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+
         const circumference = 283; // 2 * π * 45
         const offset = circumference - (percentage / 100) * circumference;
         const color = getProgressColor(percentage);
 
-        // Обновляем DOM элементы
         const progressCircle = progressElement.querySelector('.progress-circle');
         const percentageText = progressElement.querySelector('.progress-percentage');
         const progressText = progressElement.querySelector('.progress-text');
@@ -125,7 +113,7 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
     return {
         update: updateProgress,
         destroy: () => {
-            // Очистка если нужна
-        }
+            // Очистка
+        },
     };
 }
