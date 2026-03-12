@@ -70,6 +70,21 @@ class DashboardView extends Component
         $this->dispatch('navigateTo', section: 'checklist', folderId: $noteId);
     }
 
+    public function getChecklistProgress($noteId): array
+    {
+        $note = Note::where('user_id', Auth::id())->find($noteId);
+
+        if (!$note || !$note->isChecklist()) {
+            return [
+                'completed' => 0,
+                'total' => 0,
+                'percentage' => 0,
+            ];
+        }
+
+        return $note->getChecklistProgress();
+    }
+
     public function render()
     {
         $this->loadNotes();

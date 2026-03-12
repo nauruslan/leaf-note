@@ -420,4 +420,66 @@ class Note extends Model
     {
         return $this->isChecklist() ? 'list' : 'file-text';
     }
+
+    public function getChecklistProgress(): array
+    {
+        if (!$this->isChecklist() || empty($this->payload)) {
+            return [
+                'completed' => 0,
+                'total' => 0,
+                'percentage' => 0,
+            ];
+        }
+
+        $data = is_string($this->payload)
+            ? json_decode($this->payload, true)
+            : $this->payload;
+
+        if (!is_array($data) || !isset($data['content'])) {
+            return [
+                'completed' => 0,
+                'total' => 0,
+                'percentage' => 0,
+            ];
+        }
+
+        $stats = $this->countChecklistItems($data['content']);
+
+        $percentage = $stats['total'] > 0
+            ? (int) round(($stats['completed'] / $stats['total']) * 100)
+            : 0;
+
+        return [
+            'completed' => $stats['completed'],
+            'total' => $stats['total'],
+            'percentage' => $percentage,
+        ];
+    }
+
+    private function countChecklistItems(array $content): array
+    {
+        $completed = 0;
+        $total = 0;
+
+        foreach ($content as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+
+            if (isset($node['type']) && $node['type'] === 'checklistItem') {
+                $total++;
+                if (isset($node['attrs']['checked']) && $node['attrs']['checked'] === true) {
+                    $completed++;
+                }
+            }
+
+            if (isset($node['content']) && is_array($node['content'])) {
+                $nested = $this->countChecklistItems($node['content']);
+                $completed += $nested['completed'];
+                $total += $nested['total'];
+            }
+        }
+
+        return ['completed' => $completed, 'total' => $total];
+    }
 }
