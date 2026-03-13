@@ -1,7 +1,4 @@
-import {
-    initChecklistEditor,
-    sendChecklistContentToLivewire,
-} from './checklist-editor';
+import { initChecklistEditor, sendChecklistContentToLivewire } from './checklist-editor';
 import { initChecklistProgressBar } from './checklist-progress';
 
 let originalContent = null;
@@ -17,7 +14,6 @@ export function initEditChecklistEditor(content = '') {
         return null;
     }
 
-    // Уничтожаем существующий редактор перед повторной инициализацией
     if (editorElement._editor) {
         editorElement._editor.destroy();
         editorElement._editor = null;

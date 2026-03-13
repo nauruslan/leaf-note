@@ -521,22 +521,42 @@
 }
 
 .checklist-item.checked .checklist-item-content {
-    text-decoration: line-through;
     color: #9ca3af;
 }
 
 .checklist-item-content {
-    flex: 1;
-    min-width: 0;
-    transition: all 0.2s ease;
+    display: inline-block;
+    max-width: 100%;
     position: relative;
     caret-color: #1f2937 !important;
 }
 
+/* Линия зачёркивания только на абзаце (по ширине текста) */
 .checklist-item-content p {
     margin: 0;
     line-height: 1.5;
     caret-color: #1f2937 !important;
+    position: relative;
+    display: inline-block; /* чтобы ширина была по содержимому */
+    max-width: 100%;
+}
+
+.checklist-item-content p::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 2px;
+    background: linear-gradient(to right, #6366f1, #8b5cf6);
+    width: 0%;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    border-radius: 1px;
+    transform: translateY(-50%);
+}
+
+.checklist-item.checked .checklist-item-content p::after {
+    width: 100%;
 }
 
 .checklist-item-content a {
@@ -575,7 +595,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .checklist-checkbox.checked {
@@ -604,22 +624,6 @@
     }
 }
 
-.strike-overlay {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    height: 2px;
-    background: linear-gradient(to right, #ef4444, #dc2626);
-    width: 0%;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: none;
-    border-radius: 1px;
-}
-
-.checklist-item-content.checked .strike-overlay {
-    width: 100%;
-}
-
 .checklist-delete-btn {
     flex-shrink: 0;
     width: 1.75rem;
@@ -638,6 +642,7 @@
     align-items: center;
     justify-content: center;
     z-index: 10;
+    margin-left: auto;
 }
 
 .checklist-delete-btn[data-visible='true'] {
@@ -729,7 +734,6 @@
     width: 100%;
 }
 
-/* Стили для кнопки внутри пустого чеклиста */
 .checklist-container-wrapper:has(.checklist-item) .add-checklist-task-btn-inline {
     margin-top: 0.5rem;
     padding: 0.625rem 1rem;

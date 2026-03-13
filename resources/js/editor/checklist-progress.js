@@ -98,7 +98,6 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
     // Подписываемся на изменения редактора
     if (editor) {
         editor.on('transaction', ({ editor: ed }) => {
-            // Небольшая задержка чтобы получить актуальное состояние после транзакции
             setTimeout(() => {
                 updateProgress();
             }, 10);

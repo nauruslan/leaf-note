@@ -7,7 +7,12 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { TextStyle } from '@tiptap/extension-text-style';
 import StarterKit from '@tiptap/starter-kit';
 
-import { Checklist, ChecklistItem, ChecklistNavigation, AddChecklistButton } from './checklist-extension';
+import {
+    AddChecklistButton,
+    Checklist,
+    ChecklistItem,
+    ChecklistNavigation,
+} from './checklist-extension';
 import {
     closeLinkModal,
     COLOR_PALETTE,
@@ -108,8 +113,8 @@ export function initChecklistEditor(options) {
     const editor = new Editor(config);
     editorElement._editor = editor;
 
-    // Если документ пуст, вставляем пустой чеклист (без элементов)
-    // Кнопка "Добавить задачу" будет отображаться внутри
+    // Если документ пуст, вставляем пустой чеклист
+    // Кнопка "Добавить" будет отображаться внутри
     if (!content || (typeof content === 'string' && content.trim() === '')) {
         editor.commands.insertChecklist();
     }
@@ -125,10 +130,10 @@ export function initChecklistEditor(options) {
             }
             // Разрешаем клик по кнопке удаления и чекбоксу
             if (target.closest('.checklist-delete-btn, [data-action="delete-item"]')) {
-                return; // Пропускаем клик по кнопке удаления
+                return;
             }
             if (target.closest('.checklist-checkbox, [data-action="toggle-check"]')) {
-                return; // Пропускаем клик по чекбоксу
+                return;
             }
             // Разрешаем клик по кнопке добавления задачи
             if (target.closest('.add-checklist-task-btn-inline')) {
