@@ -430,6 +430,24 @@ export const ChecklistItem = Node.create({
             contentContainer.style.cssText =
                 'display: inline-block; max-width: 100%; outline: none; cursor: text; transition: color 0.3s ease; caret-color: auto; position: relative;';
 
+            // Функция обновления placeholder
+            const updatePlaceholder = () => {
+                const paragraph = contentContainer.querySelector('p');
+                if (!paragraph) return;
+
+                const isEmpty = paragraph.childNodes.length === 0 ||
+                    (paragraph.childNodes.length === 1 && paragraph.firstChild.nodeName === 'BR') ||
+                    (paragraph.childNodes.length === 1 && 
+                     paragraph.firstChild.nodeType === Node.TEXT_NODE && 
+                     paragraph.firstChild.textContent.trim() === '');
+
+                if (isEmpty) {
+                    contentContainer.setAttribute('data-is-empty', 'true');
+                } else {
+                    contentContainer.removeAttribute('data-is-empty');
+                }
+            };
+
             // Функция обновления состояния
             const setCheckedState = (checked) => {
                 const existingSvg = checkbox.querySelector('svg');
@@ -469,9 +487,12 @@ export const ChecklistItem = Node.create({
                     wrapper.classList.remove('checked');
                     wrapper.setAttribute('data-checked', 'false');
                 }
+
+                updatePlaceholder();
             };
 
             setCheckedState(isChecked);
+            updatePlaceholder();
 
             // Delete button
             const deleteBtn = document.createElement('button');
@@ -547,6 +568,7 @@ export const ChecklistItem = Node.create({
                 'focus',
                 () => {
                     updateBackground(true);
+                    updatePlaceholder();
                 },
                 true,
             );
@@ -558,14 +580,24 @@ export const ChecklistItem = Node.create({
                         if (!stillHasFocus) {
                             updateBackground(false);
                         }
+                        updatePlaceholder();
                     }, 50);
                 },
                 true,
             );
 
+            // Отслеживание изменений контента через input event
+            contentContainer.addEventListener('input', () => {
+                updatePlaceholder();
+                // Сбрасываем ошибку при начале ввода
+                contentContainer.removeAttribute('data-is-empty-error');
+                wrapper.removeAttribute('data-has-empty-error');
+            });
+
             const selectionHandler = ({ editor: ed }) => {
                 const hasFocus = isFocusInThisNode();
                 updateBackground(hasFocus);
+                updatePlaceholder();
             };
             editor.on('selectionUpdate', selectionHandler);
 
@@ -577,6 +609,29 @@ export const ChecklistItem = Node.create({
                     const pos = getPos();
                     const nodeAtPos = editor.state.doc.nodeAt(pos);
                     if (!nodeAtPos) return;
+                    
+                    // Проверяем, пустой ли параграф
+                    const paragraph = contentContainer.querySelector('p');
+                    const isEmpty = !paragraph || 
+                        paragraph.childNodes.length === 0 ||
+                        (paragraph.childNodes.length === 1 && paragraph.firstChild.nodeName === 'BR') ||
+                        (paragraph.childNodes.length === 1 && 
+                         paragraph.firstChild.nodeType === Node.TEXT_NODE && 
+                         paragraph.firstChild.textContent.trim() === '');
+                    
+                    // Блокируем установку галочки для пустой задачи
+                    if (isEmpty) {
+                        // Добавляем класс для красного placeholder
+                        contentContainer.setAttribute('data-is-empty-error', 'true');
+                        wrapper.setAttribute('data-has-empty-error', 'true');
+                        // Убираем класс через небольшую задержку (анимация ошибки)
+                        setTimeout(() => {
+                            contentContainer.removeAttribute('data-is-empty-error');
+                            wrapper.removeAttribute('data-has-empty-error');
+                        }, 1500);
+                        return;
+                    }
+                    
                     const currentChecked = nodeAtPos.attrs.checked;
                     const newChecked = !currentChecked;
                     editor.commands.command(({ tr }) => {
@@ -638,6 +693,7 @@ export const ChecklistItem = Node.create({
                     const newChecked = updatedNode.attrs.checked;
                     setCheckedState(newChecked);
                     setDeleteButtonVisible(isFocusInThisNode());
+                    updatePlaceholder();
                     return true;
                 },
             };

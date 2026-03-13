@@ -524,6 +524,14 @@
     color: #9ca3af;
 }
 
+.checklist-item.checked .checklist-item-content p {
+    text-decoration: line-through;
+}
+
+.checklist-item.checked .checklist-item-content p::after {
+    width: 100%;
+}
+
 .checklist-item-content {
     display: inline-block;
     max-width: 100%;
@@ -538,6 +546,64 @@
     position: relative;
     display: inline-block;
     max-width: 100%;
+    min-height: 1.5em;
+    z-index: 2;
+}
+
+.checklist-item-content p:empty::before,
+.checklist-item-content p:has(br:only-child)::before {
+    content: 'Введите задачу';
+    color: #9ca3af;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+    white-space: nowrap;
+}
+
+.checklist-item-content[data-is-empty='true'] p::before {
+    content: 'Введите задачу';
+    color: #9ca3af;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+    white-space: nowrap;
+}
+
+/* Красный placeholder при попытке отметить пустую задачу */
+.checklist-item-content[data-is-empty-error='true'] p::before {
+    content: 'Введите задачу';
+    color: #ef4444;
+    animation: placeholderError 0.3s ease-in-out;
+}
+
+.checklist-item[data-has-empty-error='true'] .checklist-checkbox {
+    border-color: #ef4444 !important;
+    animation: checkboxError 0.3s ease-in-out;
+}
+
+@keyframes placeholderError {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-4px);
+    }
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+@keyframes checkboxError {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
 }
 
 .checklist-item-content p::after {
@@ -552,10 +618,18 @@
     pointer-events: none;
     border-radius: 1px;
     transform: translateY(-50%);
+    z-index: 1;
 }
 
 .checklist-item.checked .checklist-item-content p::after {
     width: 100%;
+}
+
+.checklist-item.checked .checklist-item-content[data-is-empty='true'] p::before,
+.checklist-item.checked .checklist-item-content p:empty::before,
+.checklist-item.checked .checklist-item-content p:has(br:only-child)::before,
+.checklist-item.checked .checklist-item-content[data-is-empty-error='true'] p::before {
+    content: none;
 }
 
 .checklist-item-content a {

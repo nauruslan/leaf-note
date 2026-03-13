@@ -39,9 +39,15 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
                 if (!node || typeof node !== 'object') continue;
 
                 if (node.type === 'checklistItem') {
-                    total++;
-                    if (node.attrs?.checked === true) {
-                        completed++;
+                    // Проверяем, не пустая ли задача
+                    const isEmpty = isChecklistItemEmpty(node);
+                    
+                    // Считаем только задачи с контентом
+                    if (!isEmpty) {
+                        total++;
+                        if (node.attrs?.checked === true) {
+                            completed++;
+                        }
                     }
                 }
 
@@ -53,6 +59,35 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
 
         traverse(content);
         return { completed, total };
+    }
+
+    function isChecklistItemEmpty(node) {
+        if (!node.content || !Array.isArray(node.content)) {
+            return true;
+        }
+
+        for (const child of node.content) {
+            if (child.type === 'paragraph') {
+                if (!child.content || child.content.length === 0) {
+                    return true;
+                }
+
+                // Проверяем, содержит ли параграф текст
+                for (const paragraphChild of child.content) {
+                    if (paragraphChild.type === 'text' && paragraphChild.text && paragraphChild.text.trim() !== '') {
+                        return false;
+                    }
+                    if (paragraphChild.type === 'image' || paragraphChild.type === 'link') {
+                        return false;
+                    }
+                }
+
+                // Если дошли сюда, значит параграф пустой (только br или пустой текст)
+                return true;
+            }
+        }
+
+        return true;
     }
 
     function getProgressColor(percentage) {
