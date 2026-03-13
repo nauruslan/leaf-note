@@ -119,6 +119,23 @@ export function initChecklistEditor(options) {
         editor.commands.insertChecklist();
     }
 
+    // Устанавливаем фокус на первый checklist-item при инициализации
+    const setInitialFocus = () => {
+        setTimeout(() => {
+            const firstItem = editorElement.querySelector('.checklist-item-content');
+            if (firstItem) {
+                // Проверяем, есть ли уже фокус в редакторе
+                const activeEl = document.activeElement;
+                const hasFocusInEditor =
+                    activeEl === firstItem || editorElement.contains(activeEl);
+
+                if (!hasFocusInEditor) {
+                    firstItem.focus();
+                }
+            }
+        }, 100);
+    };
+
     const preventRootFocus = () => {
         const proseMirror = editorElement.querySelector('.ProseMirror');
         if (!proseMirror) return;
@@ -180,6 +197,7 @@ export function initChecklistEditor(options) {
         initToolbarButtons(editor);
         updateToolbarButtons(editor);
         preventRootFocus();
+        setInitialFocus();
     }, 50);
 
     return editor;

@@ -531,13 +531,12 @@
     caret-color: #1f2937 !important;
 }
 
-/* Линия зачёркивания только на абзаце (по ширине текста) */
 .checklist-item-content p {
     margin: 0;
     line-height: 1.5;
     caret-color: #1f2937 !important;
     position: relative;
-    display: inline-block; /* чтобы ширина была по содержимому */
+    display: inline-block;
     max-width: 100%;
 }
 

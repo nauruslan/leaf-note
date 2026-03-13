@@ -143,7 +143,7 @@
 
             <!-- Progress -->
             <div wire:ignore>
-                <div id="checklist-progress-bar" class="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex justify-center">
+                <div id="checklist-progress-bar" class="px-6 py-4 border-b border-gray-200 flex justify-center">
                     <!-- Progress bar will be initialized by JS -->
                 </div>
             </div>
