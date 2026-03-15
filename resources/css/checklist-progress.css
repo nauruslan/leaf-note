@@ -1,0 +1,13 @@
+.checklist-progress-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.checklist-progress-bg {
+    stroke: #e5e7eb !important;
+}
+
+.checklist-progress-fg {
+    stroke: #6366f1 !important;
+}

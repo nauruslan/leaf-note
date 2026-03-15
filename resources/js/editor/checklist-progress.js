@@ -1,4 +1,7 @@
-export function initChecklistProgressBar(editor, progressElementId = 'checklist-progress-bar') {
+export function initChecklistProgressBar(
+    editorInstance,
+    progressElementId = 'checklist-progress-bar',
+) {
     const progressElement = document.getElementById(progressElementId);
 
     if (!progressElement) {
@@ -26,68 +29,22 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
         `;
     }
 
-    function countChecklistItems(content) {
+    function countChecklistItems(data) {
         let completed = 0;
         let total = 0;
 
-        if (!content || !Array.isArray(content)) {
+        if (!data || !Array.isArray(data)) {
             return { completed: 0, total: 0 };
         }
 
-        function traverse(nodes) {
-            for (const node of nodes) {
-                if (!node || typeof node !== 'object') continue;
-
-                if (node.type === 'checklistItem') {
-                    // Проверяем, не пустая ли задача
-                    const isEmpty = isChecklistItemEmpty(node);
-                    
-                    // Считаем только задачи с контентом
-                    if (!isEmpty) {
-                        total++;
-                        if (node.attrs?.checked === true) {
-                            completed++;
-                        }
-                    }
-                }
-
-                if (node.content && Array.isArray(node.content)) {
-                    traverse(node.content);
-                }
+        for (const item of data) {
+            total++;
+            if (item.checked === true) {
+                completed++;
             }
         }
 
-        traverse(content);
         return { completed, total };
-    }
-
-    function isChecklistItemEmpty(node) {
-        if (!node.content || !Array.isArray(node.content)) {
-            return true;
-        }
-
-        for (const child of node.content) {
-            if (child.type === 'paragraph') {
-                if (!child.content || child.content.length === 0) {
-                    return true;
-                }
-
-                // Проверяем, содержит ли параграф текст
-                for (const paragraphChild of child.content) {
-                    if (paragraphChild.type === 'text' && paragraphChild.text && paragraphChild.text.trim() !== '') {
-                        return false;
-                    }
-                    if (paragraphChild.type === 'image' || paragraphChild.type === 'link') {
-                        return false;
-                    }
-                }
-
-                // Если дошли сюда, значит параграф пустой (только br или пустой текст)
-                return true;
-            }
-        }
-
-        return true;
     }
 
     function getProgressColor(percentage) {
@@ -100,13 +57,14 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
     }
 
     function updateProgress() {
-        if (!editor) {
-            console.warn('[ChecklistProgressBar] Editor not available');
+        if (!editorInstance) {
+            console.warn('[ChecklistProgressBar] Editor instance not available');
             return;
         }
 
-        const content = editor.getJSON()?.content || [];
-        const stats = countChecklistItems(content);
+        // ChecklistEditor возвращает массив задач через getData()
+        const data = editorInstance.getData() || [];
+        const stats = countChecklistItems(data);
 
         const percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
@@ -128,15 +86,6 @@ export function initChecklistProgressBar(editor, progressElementId = 'checklist-
         if (progressText) {
             progressText.textContent = `${stats.completed} из ${stats.total} задач выполнено`;
         }
-    }
-
-    // Подписываемся на изменения редактора
-    if (editor) {
-        editor.on('transaction', ({ editor: ed }) => {
-            setTimeout(() => {
-                updateProgress();
-            }, 10);
-        });
     }
 
     // Первоначальное обновление

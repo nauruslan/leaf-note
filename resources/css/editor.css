@@ -1,0 +1,69 @@
+#editor {
+    width: 100%;
+    max-width: 1335px;
+    margin: 0 auto;
+    overflow: hidden !important;
+}
+
+#editor button,
+#editor label,
+#editor [data-editor-action],
+#editor input[type='checkbox'] {
+    cursor: pointer !important;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #9ca3af;
+    pointer-events: none;
+    height: 0;
+    font-size: 1rem;
+}
+
+.tiptap p.is-editor-empty:first-child:has(br)::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #9ca3af;
+    pointer-events: none;
+    height: 0;
+    font-size: 1rem;
+}
+
+.tiptap ul {
+    @apply list-disc space-y-1 pl-5;
+}
+.tiptap ol {
+    @apply list-decimal space-y-1 pl-5;
+}
+.tiptap li {
+    @apply my-0.5;
+}
+.tiptap li p {
+    @apply my-0;
+}
+
+.tiptap h2 {
+    @apply mb-4 mt-6 text-2xl;
+    font-size: 2em;
+    line-height: 1.25;
+}
+.tiptap h3 {
+    @apply mb-3 mt-5 text-xl;
+    font-size: 1.5em;
+    line-height: 1.25;
+}
+.tiptap p {
+    @apply mb-4;
+    line-height: 1.25;
+}
+
+.tiptap-toolbar,
+.tiptap-toolbar > div {
+    overflow: visible !important;
+}
+
+.ProseMirror {
+    overflow-x: visible !important;
+    max-width: 100% !important;
+}

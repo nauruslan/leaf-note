@@ -1,8 +1,8 @@
 import './bootstrap';
 import './editor/create-note-editor';
 import './editor/note-view-editor';
-import './editor/create-checklist-editor';
-import './editor/edit-checklist-editor';
+import './editor/checklist-create';
+import './editor/checklist-edit';
 
 import { createIcons, icons } from 'lucide';
 

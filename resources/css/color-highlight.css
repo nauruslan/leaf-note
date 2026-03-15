@@ -1,0 +1,36 @@
+.tiptap .has-color {
+    @apply inline;
+}
+.tiptap ul li .has-color,
+.tiptap ol li .has-color {
+    @apply inline;
+}
+.tiptap .has-color[color='#ffffff'] {
+    @apply rounded bg-gray-800 px-0.5;
+}
+
+@media (max-width: 768px) {
+    [data-color-palette] {
+        @apply grid grid-cols-5 gap-1 p-1;
+    }
+    [data-color-palette] button {
+        @apply h-5 w-5;
+    }
+}
+
+[data-color-palette] {
+    @apply border border-gray-200 shadow-lg;
+}
+[data-color-palette] button {
+    @apply transition-transform;
+}
+
+[data-color-palette] button:hover,
+[data-highlight-palette] button:hover {
+    @apply scale-110;
+}
+
+[data-highlight-palette] button:last-child:hover,
+[data-color-palette] button:last-child:hover {
+    @apply border-red-600 bg-red-100 text-red-600;
+}

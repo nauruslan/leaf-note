@@ -10,12 +10,11 @@ use Livewire\Component;
 class CreateChecklistView extends Component
 {
     public string $title = '';
-    public ?int $pendingFolderId = null;
-    public string $pendingColor = 'default';
     public ?int $folderId = null;
     public string $color = 'white';
     public $content = '';
     public $folders = [];
+    private bool $isSaving = false;
 
     public const COLORS = [
         'black'   => ['label' => 'Черный',   'bg' => 'bg-black',        'border' => 'border-gray-700', 'ring' => 'focus:ring-gray-700',  'hex' => '#000000'],
@@ -34,9 +33,25 @@ class CreateChecklistView extends Component
     protected $listeners = [
         'updateFolderId' => 'setFolderId',
         'checklistSaved' => 'onChecklistSaved',
-        'saveChecklist' => 'triggerSave',
-        'editorContent' => 'setContent',
+        'checklistLoaded' => 'handleChecklistLoaded',
+        'checklistContentReady' => 'handleContentReady',
     ];
+
+    public function handleChecklistLoaded(): void
+    {
+        // Пустой метод для обработки события checklistLoaded
+    }
+
+    public function handleContentReady($content): void
+    {
+        if ($this->isSaving) {
+            return;
+        }
+        $this->isSaving = true;
+
+        $this->content = $content;
+        $this->performSave();
+    }
 
     public function mount()
     {
@@ -49,16 +64,6 @@ class CreateChecklistView extends Component
     public function setFolderId($id)
     {
         $this->folderId = $id;
-    }
-
-    public function save()
-    {
-        $this->js('localStorage.clear()');
-
-        $this->dispatch('saveChecklist',
-            folderId: $this->folderId,
-            color: $this->color
-        );
     }
 
     public function onChecklistSaved()
@@ -78,20 +83,39 @@ class CreateChecklistView extends Component
         return self::COLORS;
     }
 
-    public function triggerSave($folderId = null, $color = 'default'): void
+    public function prepareAndSave()
     {
-        $this->pendingFolderId = $folderId;
-        $this->pendingColor = $color;
-        $this->dispatch('getEditorContent');
+        $this->js('localStorage.clear()');
+
+        // Запрашиваем контент у JavaScript через событие
+        $this->dispatch('getChecklistContent');
     }
 
-    public function setContent($content): void
+    public function performSave()
     {
-        $this->content = $content;
-        $this->performSave();
+        if (is_array($this->content) && count($this->content) === 1) {
+            $this->content = reset($this->content);
+        }
+
+        if (is_string($this->content) && !empty($this->content)) {
+            try {
+                $decoded = json_decode($this->content, true, 512, JSON_THROW_ON_ERROR);
+                if (is_string($decoded)) {
+                    $decoded = json_decode($decoded, true, 512, JSON_THROW_ON_ERROR);
+                }
+                $this->content = $decoded;
+            } catch (\JsonException $e) {
+                logger()->error('[CreateChecklist] JSON decode error', ['error' => $e->getMessage()]);
+                $this->content = null;
+            }
+        } else {
+            logger()->warning('[CreateChecklist] No content or empty content');
+        }
+
+        $this->saveToDatabase();
     }
 
-    private function performSave(): void
+    private function saveToDatabase(): void
     {
         try {
             $this->validate([
@@ -103,11 +127,11 @@ class CreateChecklistView extends Component
             $note->title = $this->title;
             $note->type = Note::TYPE_CHECKLIST;
             $note->payload = $this->content;
-            $note->color = $this->pendingColor ?? 'default';
+            $note->color = $this->color ?? 'default';
             $note->user_id = Auth::id();
 
-            if ($this->pendingFolderId) {
-                $note->folder_id = $this->pendingFolderId;
+            if ($this->folderId) {
+                $note->folder_id = $this->folderId;
             } else {
                 $note->archive_id = Auth::user()->archive->id;
             }
@@ -115,8 +139,7 @@ class CreateChecklistView extends Component
             $note->save();
 
             $this->reset(['title', 'content']);
-            $this->pendingFolderId = null;
-            $this->pendingColor = 'default';
+            $this->isSaving = false;
 
             $this->js('localStorage.clear()');
 
@@ -127,6 +150,7 @@ class CreateChecklistView extends Component
         } catch (\Throwable $e) {
             report($e);
             $this->dispatch('showError', 'Не удалось сохранить список');
+            $this->isSaving = false;
         }
     }
 

@@ -67,7 +67,7 @@
                     </button>
 
                     <!-- Save Button -->
-                    <button type="button" wire:click.prevent="save" wire:loading.attr="disabled"
+                    <button type="button" wire:click="prepareAndSave" wire:loading.attr="disabled"
                         class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
                         <i data-lucide="save" class="w-4 h-4"></i>
                         Сохранить
@@ -87,53 +87,9 @@
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
-            <!-- TipTap Toolbar (ignored) -->
-            <div wire:ignore>
-                <div class="px-6 py-3 border-b border-gray-200 bg-gray-50/50 flex flex-wrap items-center gap-1">
-                    <!-- Text Formatting -->
-                    <button type="button" data-editor-action="bold"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
-                        title="Жирный">
-                        <i data-lucide="bold" class="w-4 h-4"></i>
-                    </button>
-                    <button type="button" data-editor-action="italic"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
-                        title="Курсив">
-                        <i data-lucide="italic" class="w-4 h-4"></i>
-                    </button>
-                    <!-- Color Picker Button -->
-                    <button type="button" data-editor-action="color"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors relative"
-                        title="Цвет текста">
-                        <i data-lucide="palette" class="w-4 h-4"></i>
-                    </button>
-                    <!-- Highlight Button -->
-                    <button type="button" data-editor-action="highlight"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors relative"
-                        title="Выделить текст (маркер)">
-                        <i data-lucide="highlighter" class="w-4 h-4"></i>
-                    </button>
-                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
-                    <!-- Link -->
-                    <button type="button" data-editor-action="link"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
-                        title="Ссылка">
-                        <i data-lucide="link" class="w-4 h-4"></i>
-                    </button>
-                    <div class="w-px h-6 bg-gray-300 mx-2"></div>
-                    <!-- Undo/Redo -->
-                    <button type="button" data-editor-action="undo"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
-                        title="Отменить">
-                        <i data-lucide="undo" class="w-4 h-4"></i>
-                    </button>
-                    <button type="button" data-editor-action="redo"
-                        class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
-                        title="Повторить">
-                        <i data-lucide="redo" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
+            <!-- Скрытый input для хранения контента -->
+            <input type="hidden" id="edit-checklist-content-input" value="">
+
             <!-- Note Title Input -->
             <div class="px-6 pt-6 pb-2 border-b border-gray-100">
                 <input type="text" wire:model="title" placeholder="Название списка"
@@ -149,11 +105,11 @@
             </div>
 
 
-            <!-- TipTap Editor Content Area (ignored) -->
+            <!-- Checklist Editor -->
             <div wire:ignore>
                 <div class="flex-grow p-6">
                     <div id="edit-checklist-editor"
-                        class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
+                        class="checklist-editor prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
                     </div>
                 </div>
             </div>
@@ -187,8 +143,7 @@
                         <button type="button" class="link-modal-btn link-modal-btn-ok" data-link-action="ok">
                             ОК
                         </button>
-                        <button type="button" class="link-modal-btn link-modal-btn-cancel"
-                            data-link-action="cancel">
+                        <button type="button" class="link-modal-btn link-modal-btn-cancel" data-link-action="cancel">
                             Отменить
                         </button>
                     </div>
@@ -203,8 +158,7 @@
                     <h3 class="link-modal-title">Удалить список?</h3>
                     <p class="text-sm text-gray-600 mt-2">Список будет перемещен в корзину</p>
                     <div class="link-modal-buttons">
-                        <button type="button" class="link-modal-btn link-modal-btn-cancel"
-                            data-delete-action="cancel">
+                        <button type="button" class="link-modal-btn link-modal-btn-cancel" data-delete-action="cancel">
                             Отменить
                         </button>
                         <button type="button" class="link-modal-btn link-modal-btn-ok" data-delete-action="confirm"
@@ -219,16 +173,30 @@
 
     @script
         <script>
+            // Обработчик модального окна удаления
             document.addEventListener('click', function(e) {
                 const deleteModal = document.getElementById('delete-modal');
+                if (!deleteModal) return;
 
                 if (e.target.closest('[data-delete-action="confirm"]')) {
                     deleteModal.classList.remove('active');
-                    @this.confirmDelete();
+                    $wire.confirmDelete();
                 }
 
                 if (e.target.closest('[data-delete-action="cancel"]')) {
                     deleteModal.classList.remove('active');
+                }
+            });
+
+            // Загрузка данных при редактировании
+            Livewire.on('checklistLoaded', (data) => {
+                let parsedContent = data && data.content ? data.content : data;
+                if (typeof parsedContent === 'string') {
+                    try {
+                        parsedContent = JSON.parse(parsedContent);
+                    } catch (e) {
+                        parsedContent = '';
+                    }
                 }
             });
         </script>

@@ -17,9 +17,7 @@ class EditChecklist extends Component
     public $folders = [];
     public ?Note $checklist = null;
     public bool $isLoaded = false;
-
-    public ?int $pendingFolderId = null;
-    public ?string $pendingColor = null;
+    private bool $isSaving = false;
 
     public const COLORS = [
         'black'   => ['label' => 'Черный',   'bg' => 'bg-black',        'border' => 'border-gray-700', 'ring' => 'focus:ring-gray-700',  'hex' => '#000000'],
@@ -38,17 +36,11 @@ class EditChecklist extends Component
     protected $listeners = [
         'updateFolderId' => 'setFolderId',
         'checklistUpdated' => 'onChecklistUpdated',
-        'saveChecklist' => 'triggerSave',
-        'editorContent' => 'setContent',
         'openChecklist' => 'openChecklist',
         'navigateTo' => 'handleNavigateTo',
         'checklistLoaded' => 'handleChecklistLoaded',
+        'checklistContentReady' => 'handleContentReady',
     ];
-
-    public function handleChecklistLoaded(): void
-    {
-        // Пустой метод для обработки события checklistLoaded
-    }
 
     public function mount(?int $checklistId = null, ?int $folderId = null): void
     {
@@ -62,6 +54,22 @@ class EditChecklist extends Component
         if ($this->checklistId) {
             $this->loadChecklist();
         }
+    }
+
+    public function handleChecklistLoaded(): void
+    {
+        // Пустой метод для обработки события checklistLoaded
+    }
+
+    public function handleContentReady($content): void
+    {
+        if ($this->isSaving) {
+            return;
+        }
+        $this->isSaving = true;
+
+        $this->content = $content;
+        $this->performSave();
     }
 
     public function handleNavigateTo(string $section, ?int $folderId = null): void
@@ -102,14 +110,9 @@ class EditChecklist extends Component
         $this->folderId = $id;
     }
 
-    public function save(): void
+    public function setContent($content): void
     {
-        $this->js('localStorage.clear()');
-
-        $this->dispatch('saveChecklist',
-            folderId: $this->folderId,
-            color: $this->color
-        );
+        $this->content = $content;
     }
 
     public function onChecklistUpdated(): void
@@ -152,20 +155,38 @@ class EditChecklist extends Component
         return self::COLORS;
     }
 
-    public function triggerSave($folderId = null, $color = null): void
+    public function prepareAndSave()
     {
-        $this->pendingFolderId = $folderId ?? $this->folderId;
-        $this->pendingColor = $color ?? $this->color;
-        $this->dispatch('getEditorContent');
+        $this->js('localStorage.clear()');
+
+        $this->dispatch('getChecklistContent');
     }
 
-    public function setContent($content): void
+    public function performSave()
     {
-        $this->content = $content;
-        $this->performSave();
+        if (is_array($this->content) && count($this->content) === 1) {
+            $this->content = reset($this->content);
+        }
+
+        if (is_string($this->content) && !empty($this->content)) {
+            try {
+                $decoded = json_decode($this->content, true, 512, JSON_THROW_ON_ERROR);
+                if (is_string($decoded)) {
+                    $decoded = json_decode($decoded, true, 512, JSON_THROW_ON_ERROR);
+                }
+                $this->content = $decoded;
+            } catch (\JsonException $e) {
+                logger()->error('[EditChecklist] JSON decode error', ['error' => $e->getMessage()]);
+                $this->content = null;
+            }
+        } else {
+            logger()->warning('[EditChecklist] No content or empty content');
+        }
+
+        $this->saveToDatabase();
     }
 
-    private function performSave(): void
+    private function saveToDatabase(): void
     {
         try {
             $this->validate([
@@ -180,13 +201,15 @@ class EditChecklist extends Component
 
             $this->checklist->title = $this->title;
             $this->checklist->payload = $this->content;
-            $this->checklist->color = $this->pendingColor ?? $this->checklist->color;
+            $this->checklist->color = $this->color ?? $this->checklist->color;
 
-            if ($this->pendingFolderId !== null) {
-                $this->checklist->folder_id = $this->pendingFolderId;
+            if ($this->folderId !== null) {
+                $this->checklist->folder_id = $this->folderId;
             }
 
             $this->checklist->save();
+
+            $this->isSaving = false;
 
             $this->dispatch('checklistUpdated');
             $this->dispatch('navigateTo', 'dashboard');
@@ -194,6 +217,7 @@ class EditChecklist extends Component
         } catch (\Throwable $e) {
             report($e);
             $this->dispatch('showError', 'Не удалось сохранить список');
+            $this->isSaving = false;
         }
     }
 

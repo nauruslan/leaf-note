@@ -1,0 +1,29 @@
+.tiptap table {
+    @apply my-4 border-collapse !important;
+    table-layout: fixed !important;
+    width: 100%;
+    min-width: 200px;
+    max-width: 100%;
+}
+
+.tiptap table td,
+.tiptap table th {
+    @apply border border-gray-300 px-4 py-4 text-left !important;
+    color: #1f2937 !important;
+    background-color: white !important;
+    word-break: break-word;
+    min-width: 50px !important;
+}
+.tiptap table td > p,
+.tiptap table th > p {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.tiptap table th {
+    @apply bg-gray-100 font-bold !important;
+}
+
+.tiptap .selectedCell {
+    @apply bg-blue-100 !important;
+}

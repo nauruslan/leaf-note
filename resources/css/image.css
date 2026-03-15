@@ -1,0 +1,160 @@
+.tiptap .image-node-wrapper {
+    position: relative !important;
+    display: inline-block !important;
+    margin: 1rem 0 !important;
+    line-height: 0 !important;
+    width: 100%;
+}
+
+.tiptap .image-node-wrapper img {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    height: auto !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    transition: box-shadow 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.tiptap .image-node-wrapper img:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-radius: 0.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1rem !important;
+    z-index: 100 !important;
+    cursor: pointer !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .image-action-btn {
+    background-color: #ffffff !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 50% !important;
+    width: 48px !important;
+    height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+    padding: 0 !important;
+    color: #374151 !important;
+    transition: all 0.2s ease !important;
+    z-index: 101 !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .image-action-btn.view-btn {
+    border-color: #6366f1 !important;
+    color: #6366f1 !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .image-action-btn.delete-btn {
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .image-action-btn:hover {
+    transform: scale(1.15) !important;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .image-action-btn.view-btn:hover {
+    background-color: #f5f3ff !important;
+    border-color: #4f46e5 !important;
+    color: #4f46e5 !important;
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4) !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .image-action-btn.delete-btn:hover {
+    background-color: #fef2f2 !important;
+    border-color: #dc2626 !important;
+    color: #dc2626 !important;
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4) !important;
+}
+
+.tiptap .image-node-wrapper img.ProseMirror-selectednode {
+    outline: 2px solid #6366f1 !important;
+    outline-offset: 2px !important;
+}
+
+.tiptap .image-node-wrapper .image-overlay .image-action-btn:focus {
+    outline: 3px solid #6366f1 !important;
+    outline-offset: 2px !important;
+}
+
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.image-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.image-modal-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-modal-content img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.image-modal-close {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 8px;
+    transition: all 0.2s ease;
+}
+
+.image-modal-close:hover {
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+.image-modal-caption {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: white;
+    font-size: 0.875rem;
+}

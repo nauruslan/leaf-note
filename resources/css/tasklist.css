@@ -1,0 +1,60 @@
+.tiptap ul[data-type='taskList'] {
+    @apply mb-2 list-none pl-0;
+}
+.tiptap ul[data-type='taskList'] li {
+    @apply flex items-center gap-2 py-1;
+}
+.tiptap ul[data-type='taskList'] li > label {
+    @apply m-0 flex cursor-pointer items-center p-0;
+}
+.tiptap ul[data-type='taskList'] li > label input[type='checkbox'] {
+    @apply m-0 h-4 w-4 flex-shrink-0 cursor-pointer rounded border-gray-300;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: white;
+    transition: all 0.2s ease;
+    position: relative;
+}
+.tiptap ul[data-type='taskList'] li > label input[type='checkbox']:checked {
+    @apply border-indigo-600 bg-indigo-600;
+}
+.tiptap ul[data-type='taskList'] li > label input[type='checkbox']:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.tiptap ul[data-type='taskList'] li > label span {
+    @apply hidden;
+}
+.tiptap ul[data-type='taskList'] li > div {
+    @apply m-0 min-w-0 flex-1 p-0;
+}
+.tiptap ul[data-type='taskList'] li > div p {
+    @apply m-0 leading-relaxed;
+    transition: color 0.2s ease;
+}
+.tiptap ul[data-type='taskList'] li[data-checked='true'] > div p {
+    @apply text-gray-500 line-through;
+}
+.tiptap ul[data-type='taskList'] li[data-checked='true'] > div p * {
+    @apply line-through;
+}
+.tiptap ul[data-type='taskList'] li:hover {
+    @apply rounded bg-gray-50;
+}
+.tiptap ul[data-type='taskList'] ul[data-type='taskList'] {
+    @apply ml-6;
+}
+.tiptap ul[data-type='taskList'] li > label input[type='checkbox']:hover {
+    @apply border-indigo-400;
+}
+.tiptap ul[data-type='taskList'] li[data-checked='true'] > label input[type='checkbox']:hover {
+    @apply border-indigo-700 bg-indigo-700;
+}
