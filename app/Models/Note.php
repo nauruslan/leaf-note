@@ -359,6 +359,42 @@ class Note extends Model
 
     private function collectTextFromContent(array $content): string
     {
+        $blocks = [];
+
+        foreach ($content as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+
+            $blockText = $this->extractTextFromNode($node);
+            if ($blockText !== '') {
+                $blocks[] = $blockText;
+            }
+        }
+
+        return implode("\n", $blocks);
+    }
+
+    private function extractTextFromNode(array $node): string
+    {
+        $texts = [];
+
+        if (isset($node['type']) && $node['type'] === 'text' && isset($node['text'])) {
+            $texts[] = $node['text'];
+        }
+
+        if (isset($node['content']) && is_array($node['content'])) {
+            $nestedText = $this->collectInlineTextFromContent($node['content']);
+            if ($nestedText !== '') {
+                $texts[] = $nestedText;
+            }
+        }
+
+        return implode(' ', $texts);
+    }
+
+    private function collectInlineTextFromContent(array $content): string
+    {
         $texts = [];
 
         foreach ($content as $node) {
@@ -371,7 +407,7 @@ class Note extends Model
             }
 
             if (isset($node['content']) && is_array($node['content'])) {
-                $texts[] = $this->collectTextFromContent($node['content']);
+                $texts[] = $this->collectInlineTextFromContent($node['content']);
             }
         }
 

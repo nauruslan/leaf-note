@@ -86,9 +86,8 @@
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap gap-5">
         @forelse($notes as $note)
-            <!-- Cards без прогресса -->
             <div
-                class="min-w-[320px] basis-[320px] h-[340px] flex grow flex-col p-4 bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all">
+                class="min-w-[320px] basis-[320px] h-[340px] flex grow flex-col py-4 px-5 bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all">
                 <div class="flex items-start justify-between mb-6">
                     <div class="w-8 flex-shrink-0 self-stretch">
                         <!-- Иконка заметки -->
@@ -114,7 +113,7 @@
                     </div>
                 </div>
 
-                <div class="flex-grow flex justify-center">
+                <div class="flex-grow flex h-[170px] {{ $note->isChecklist() ? 'justify-center' : 'justify-start' }}">
                     @if ($note->isChecklist())
                         @php
                             $progress = $this->getChecklistProgress($note->id);
@@ -155,7 +154,7 @@
                             </div>
                         </div>
                     @else
-                        <p class="text-gray-700">{{ $note->preview }}</p>
+                        <p class="text-gray-700 h-[170px] overflow-hidden break-words">{!! nl2br(e($note->preview)) !!}</p>
                     @endif
                 </div>
 
