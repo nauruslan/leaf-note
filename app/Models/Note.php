@@ -421,6 +421,16 @@ class Note extends Model
         return $this->isChecklist() ? 'list' : 'file-text';
     }
 
+    public function getProgressColor(int $percentage): string
+    {
+        if ($percentage <= 10) return '#FF4C4C';
+        if ($percentage <= 30) return '#FF8A4C';
+        if ($percentage <= 50) return '#FFC04C';
+        if ($percentage <= 70) return '#B4D84C';
+        if ($percentage <= 90) return '#6ED84C';
+        return '#2ABF2A';
+    }
+
     public function getChecklistProgress(): array
     {
         if (!$this->isChecklist() || empty($this->payload)) {
@@ -428,6 +438,7 @@ class Note extends Model
                 'completed' => 0,
                 'total' => 0,
                 'percentage' => 0,
+                'color' => '#FF4C4C',
             ];
         }
 
@@ -440,6 +451,7 @@ class Note extends Model
                 'completed' => 0,
                 'total' => 0,
                 'percentage' => 0,
+                'color' => '#FF4C4C',
             ];
         }
 
@@ -449,10 +461,13 @@ class Note extends Model
             ? (int) round(($stats['completed'] / $stats['total']) * 100)
             : 0;
 
+        $color = $this->getProgressColor($percentage);
+
         return [
             'completed' => $stats['completed'],
             'total' => $stats['total'],
             'percentage' => $percentage,
+            'color' => $color,
         ];
     }
 

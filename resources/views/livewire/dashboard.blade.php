@@ -99,7 +99,7 @@
                             flex-1 ml-3 flex-col">
                         <h3 class="font-bold text-lg text-gray-900">{{ $note->title }}</h3>
                         <p class="text-xs text-gray-500">
-                            @if($note->created_at->eq($note->updated_at))
+                            @if ($note->created_at->eq($note->updated_at))
                                 Создано:
                             @else
                                 Обновлено:
@@ -121,6 +121,7 @@
                             $percentage = $progress['percentage'];
                             $completed = $progress['completed'];
                             $total = $progress['total'];
+                            $color = $progress['color'];
                             // Длина окружности: 2 * π * r = 2 * 3.14159 * 45 ≈ 283
                             $circumference = 283;
                             $offset = $circumference - ($percentage / 100) * $circumference;
@@ -137,9 +138,10 @@
                                             stroke-width="8" stroke-linecap="round" />
                                         <!-- Progress Circle -->
                                         <circle cx="50" cy="50" r="45"
-                                            class="fill-none stroke-indigo-600 transition-all duration-500"
-                                            stroke-width="8" stroke-linecap="round" stroke-dasharray="283"
-                                            stroke-dashoffset="{{ number_format($offset, 1, '.', '') }}" />
+                                            class="fill-none transition-all duration-500" stroke-width="8"
+                                            stroke-linecap="round" stroke-dasharray="283"
+                                            stroke-dashoffset="{{ number_format($offset, 1, '.', '') }}"
+                                            stroke="{{ $color }}" />
                                     </svg>
                                     <div
                                         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
