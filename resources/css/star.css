@@ -1,0 +1,33 @@
+.favorite-btn {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.favorite-btn svg {
+    width: 40px;
+    height: 40px;
+}
+
+.star-fill {
+    fill: #ffc400;
+    fill-opacity: 0;
+    transition: fill-opacity 0.35s ease;
+}
+
+.star-stroke {
+    fill: none;
+    stroke: #b0b0b0;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    transition: stroke 0.35s ease;
+}
+
+.favorite-btn.active .star-fill {
+    fill-opacity: 1;
+}
+
+.favorite-btn.active .star-stroke {
+    stroke: #ffc400;
+}

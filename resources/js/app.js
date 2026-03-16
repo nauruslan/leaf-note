@@ -3,6 +3,7 @@ import './editor/create-note-editor';
 import './editor/note-view-editor';
 import './editor/checklist-create';
 import './editor/checklist-edit';
+import './star';
 
 import { createIcons, icons } from 'lucide';
 
