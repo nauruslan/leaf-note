@@ -70,6 +70,22 @@ class DashboardView extends Component
         $this->dispatch('navigateTo', section: 'checklist', folderId: $noteId);
     }
 
+    public function createFolder($noteId)
+    {
+        $note = Note::where('user_id', Auth::id())->find($noteId);
+
+        if (!$note) {
+            return;
+        }
+
+        if ($note->folder) {
+            $this->dispatch('navigateTo', section: 'folder', folderId: $note->folder->id);
+        } else {
+            // Если папки нет, можно перенаправить на создание папки или ничего не делать
+            // Пока просто игнорируем
+        }
+    }
+
     public function getChecklistProgress($noteId): array
     {
         $note = Note::where('user_id', Auth::id())->find($noteId);

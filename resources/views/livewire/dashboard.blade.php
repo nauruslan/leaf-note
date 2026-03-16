@@ -107,9 +107,6 @@
                             aria-label="Добавить в избранное">
                             <i data-lucide="star" class="w-6 h-6"></i>
                         </button>
-                        <button class="text-gray-400 hover:text-gray-600 p-1">
-                            <i data-lucide="more-vertical" class="w-6 h-6"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -157,20 +154,21 @@
                 </div>
 
                 <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
-                    <div
-                        class="px-3 py-1.5 rounded-lg text-md font-bold {{ $note->color === 'default' || $note->color === 'white' ? 'bg-gray-100 text-gray-800' : 'bg-' . $note->color . '-100 text-' . $note->color . '-800' }} flex items-center gap-1.5">
-                        <i data-lucide="{{ $note->type_icon }}" class="w-4 h-4"></i>
-                        <span>{{ $note->folder ? $note->folder->title : 'Без папки' }}</span>
-                    </div>
+                    <button wire:click="createFolder({{ $note->id }})"
+                        class="bg-white border border-gray-300 hover:700 font-medium py-2.5 px-5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
+                        <i data-lucide="{{ $note->folder ? $note->folder->icon : '' }}" class="w-4 h-4"></i>
+                        {{ $note->folder ? $note->folder->title : 'Без папки' }}
+                    </button>
+
                     @if ($note->isChecklist())
                         <button wire:click="openChecklist({{ $note->id }})"
-                            class="text-indigo-600 hover:text-indigo-800 font-bold text-md flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
+                            class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
                             <span>Открыть</span>
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
                     @else
                         <button wire:click="openNote({{ $note->id }})"
-                            class="text-indigo-600 hover:text-indigo-800 font-bold text-md flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
+                            class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
                             <span>Открыть</span>
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
