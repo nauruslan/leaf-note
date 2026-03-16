@@ -1,4 +1,3 @@
-<div>
     <!-- Header Section -->
     <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
         <div class="bg-white rounded-b-xl shadow-md p-5">
@@ -184,4 +183,4 @@
             });
         </script>
     @endscript
-</div>
+    </div>

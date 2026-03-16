@@ -2,8 +2,8 @@
 namespace App\Livewire;
 
 use App\Services\StateManager;
-use Livewire\Component;
 use Illuminate\Support\Facades\Session;
+use Livewire\Component;
 
 class AppState extends Component
 {

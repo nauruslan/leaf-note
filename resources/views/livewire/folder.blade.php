@@ -9,8 +9,8 @@
                         {{ $folder->title }}
                     </h1>
                     <div class="flex items-center gap-3 mt-1">
-                        <button class="text-gray-500 hover:text-indigo-600 focus:outline-none"
-                            title="Редактировать папку">
+                        <button class="text-gray-500 hover:text-indigo-600 focus:outline-none" title="Редактировать папку"
+                            wire:click="openEditFolder({{ $folder->id }})">
                             Редактировать
                         </button>|
                         <button class="text-gray-500 hover:text-red-600 focus:outline-none" title="Удалить папку"
@@ -34,15 +34,6 @@
             </div>
         </div>
     </header>
-
-    <!-- Flash Messages -->
-    @if (session()->has('error'))
-        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {{ session('error') }}
-            </div>
-        </div>
-    @endif
 
     <!-- ControlPanel -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">

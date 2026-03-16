@@ -3,9 +3,8 @@ namespace App\Livewire;
 
 use App\Models\Folder;
 use App\Services\StateManager;
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Livewire\Component;
 
 
 class FolderView extends Component
@@ -28,13 +27,11 @@ class FolderView extends Component
     {
         $this->search   = StateManager::get('search', '');
         $this->folderId = StateManager::get('folderId');
-
-        $this->loadCurrentFolder();
     }
 
     public function updateState(string $section, ?int $folderId, string $search): void
     {
-        // $this->section  = $section;
+        $this->section  = $section;
         $this->folderId = $folderId;
         $this->search   = $search;
 
@@ -67,36 +64,38 @@ class FolderView extends Component
     {
         $folder = $this->folder;
 
-        // Если передан явный ID, загружаем папку
         if ($folderId !== null) {
             $folder = Folder::where('user_id', Auth::id())->find($folderId);
         }
 
-        \Log::info('deleteFolder called', ['folder' => $folder?->id, 'folderId' => $folderId]);
 
         if (!$folder) {
-            \Log::warning('deleteFolder: folder is null');
-            session()->flash('error', 'Папка не найдена.');
             $this->confirmingDeletion = false;
             return;
         }
 
         $success = $folder->moveToTrash();
-        \Log::info('moveToTrash result', ['success' => $success]);
 
         if ($success) {
             // После удаления перенаправить на дашборд
             $this->dispatch('navigateTo', 'dashboard');
             // Уведомить навигацию об удалении папки
             $this->dispatch('folderDeleted');
-            // Закрыть модал
+            // Закрыть модальное окно
             $this->confirmingDeletion = false;
-            \Log::info('Folder moved to trash, navigating to dashboard');
         } else {
             // Ошибка, например, корзина переполнена
-            session()->flash('error', 'Не удалось переместить папку в корзину. Возможно, корзина переполнена.');
-            \Log::warning('moveToTrash failed, possibly trash full');
         }
+    }
+
+    public function openEditFolder($id): void
+    {
+        $this->loadCurrentFolder(); // убедимся, что папка загружена
+        if (!$this->folder) {
+            return;
+        }
+
+        $this->dispatch('navigateTo', section: 'edit-folder', folderId: $id);
     }
 
     public function render()

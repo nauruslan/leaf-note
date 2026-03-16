@@ -7,6 +7,8 @@
             <livewire:edit-checklist :checklist-id="$folderId" :key="'edit-checklist-' . $folderId" />
         @elseif($section === 'note' && $folderId)
             <livewire:note-view :note-id="$folderId" :key="'note-view-' . $folderId" />
+        @elseif($section === 'edit-folder' && $folderId)
+            <livewire:edit-folder :folder-id="$folderId" :key="'edit-folder-' . $folderId" />
         @else
             <livewire:is :component="$section . '-view'" :section="$section" :folder-id="$folderId" :search="$search"
                 key="{{ $section }}-{{ $componentKey }}" />
