@@ -98,7 +98,14 @@
                     <div class="flex
                             flex-1 ml-3 flex-col">
                         <h3 class="font-bold text-lg text-gray-900">{{ $note->title }}</h3>
-                        <p class="text-xs text-gray-500">Обновлено: {{ $note->updated_at->format('d F Y') }}</p>
+                        <p class="text-xs text-gray-500">
+                            @if($note->created_at->eq($note->updated_at))
+                                Создано:
+                            @else
+                                Обновлено:
+                            @endif
+                            {{ $note->updated_at->locale('ru')->isoFormat('D MMMM YYYY') }}
+                        </p>
                     </div>
 
                     <div class="self-stretch flex flex-end items-baseline">
