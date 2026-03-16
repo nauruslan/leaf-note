@@ -56,6 +56,14 @@ class NavigationSidebar extends Component
         }
     }
 
+    public static function invalidateFoldersCache(): void
+    {
+        $userId = Auth::id();
+        if ($userId) {
+            Cache::forget("user.{$userId}.folders.active");
+        }
+    }
+
     #[Computed]
     public function dashboardCount(): int
     {
