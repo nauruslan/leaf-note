@@ -132,24 +132,7 @@
                 </div>
             </div>
         </div>
-        <!-- Link Modal (ignored) -->
-        <div wire:ignore>
-            <div id="link-modal" class="link-modal">
-                <div class="link-modal-content">
-                    <h3 class="link-modal-title">Введите ссылку</h3>
-                    <input type="url" id="link-input" class="link-modal-input" placeholder="https://example.com"
-                        autocomplete="off">
-                    <div class="link-modal-buttons">
-                        <button type="button" class="link-modal-btn link-modal-btn-ok" data-link-action="ok">
-                            ОК
-                        </button>
-                        <button type="button" class="link-modal-btn link-modal-btn-cancel" data-link-action="cancel">
-                            Отменить
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Delete Confirmation Modal (ignored) -->
         <div wire:ignore>
