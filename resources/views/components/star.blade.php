@@ -1,8 +1,15 @@
-@props(['active' => false, 'size' => '40px'])
+@props([
+    'active' => false,
+    'size' => '40px',
+    'wireModel' => null,
+    'wireClick' => null,
+])
 
 <button class="favorite-btn {{ $active ? 'active' : '' }}" type="button"
     {{ $attributes->merge(['aria-label' => 'Добавить в избранное']) }}
-    style="{{ $size !== '40px' ? 'width: ' . $size . '; height: ' . $size . ';' : '' }}">
+    style="{{ $size !== '40px' ? 'width: ' . $size . '; height: ' . $size . ';' : '' }}"
+    @if ($wireModel) wire:model="{{ $wireModel }}" @endif
+    @if ($wireClick) wire:click="{{ $wireClick }}" @endif>
     <svg viewBox="0 0 24 24" style="width: {{ $size }}; height: {{ $size }};">
         <!-- Заливка -->
         <path class="star-fill"

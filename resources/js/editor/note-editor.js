@@ -171,12 +171,10 @@ export function initNoteEditor(options) {
         hideAllImageOverlays();
     };
 
-    // Создаём редактор
     const editor = new Editor(config);
 
     editorElement._editor = editor;
 
-    // Инициализируем тулбар и обновляем счетчики после того как редактор готов
     setTimeout(() => {
         updateCounters(editor);
         initToolbarButtons(editor, onImageUploaded);

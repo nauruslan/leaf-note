@@ -4,6 +4,7 @@ import './editor/note-view-editor';
 import './editor/checklist-create';
 import './editor/checklist-edit';
 import './star';
+import './toggle';
 
 import { createIcons, icons } from 'lucide';
 

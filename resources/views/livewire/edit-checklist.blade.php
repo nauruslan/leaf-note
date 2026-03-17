@@ -59,12 +59,6 @@
 
                 <!-- Right Block: Actions -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
-                    <!-- Delete Button -->
-                    <button type="button" wire:click.prevent="openDeleteModal" wire:loading.attr="disabled"
-                        class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        Удалить
-                    </button>
 
                     <!-- Save Button -->
                     <button type="button" wire:click="prepareAndSave" wire:loading.attr="disabled"
@@ -78,6 +72,12 @@
                         class="bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
                         <i data-lucide="x" class="w-4 h-4"></i>
                         Отменить
+                    </button>
+                    <!-- Delete Button -->
+                    <button type="button" wire:click.prevent="openDeleteModal" wire:loading.attr="disabled"
+                        class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        Удалить
                     </button>
                 </div>
             </div>

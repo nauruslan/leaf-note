@@ -62,9 +62,6 @@
                         </div>
                     </div>
 
-                    {{-- <x-dropdown></x-dropdown>
-                    <x-dropdown-link></x-dropdown-link> --}}
-
                     <!-- Сортировка Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Сортировка:</span>

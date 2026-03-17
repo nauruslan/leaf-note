@@ -8,6 +8,7 @@
 @import './checklist.css';
 @import './navigation.css';
 @import './star.css';
+@import './toggle.css';
 
 @tailwind base;
 @tailwind components;
