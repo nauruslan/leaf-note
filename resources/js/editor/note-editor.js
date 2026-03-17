@@ -138,14 +138,19 @@ export function initNoteEditor(options) {
         return ext;
     });
 
+    function updateCounters(editor) {
+        const charEl = document.querySelector('[data-char-count]');
+        const doc = editor?.state?.doc;
+        if (!doc) return;
+
+        const fullText = doc.textContent || '';
+        const charCount = fullText.length;
+
+        if (charEl) charEl.textContent = `${charCount} символов`;
+    }
+
     config.onUpdate = ({ editor }) => {
-        const wordCount = editor.state.doc.textContent
-            .split(/\s+/)
-            .filter((w) => w.length > 0).length;
-        const wordCountElement = document.querySelector('[data-word-count]');
-        if (wordCountElement) {
-            wordCountElement.textContent = `${wordCount} слов`;
-        }
+        updateCounters(editor);
         updateToolbarButtons(editor);
         hideAllImageOverlays();
         if (onUpdate) onUpdate(editor);
@@ -171,8 +176,9 @@ export function initNoteEditor(options) {
 
     editorElement._editor = editor;
 
-    // Инициализируем тулбар
+    // Инициализируем тулбар и обновляем счетчики после того как редактор готов
     setTimeout(() => {
+        updateCounters(editor);
         initToolbarButtons(editor, onImageUploaded);
         updateToolbarButtons(editor);
     }, 0);

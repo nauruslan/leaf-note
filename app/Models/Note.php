@@ -338,7 +338,7 @@ class Note extends Model
 
         $text = $this->extractTextFromPayload();
 
-        return \Illuminate\Support\Str::limit($text, 100);
+        return \Illuminate\Support\Str::limit($text, 150);
     }
 
     private function extractTextFromPayload(): string

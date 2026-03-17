@@ -119,15 +119,11 @@
                 <div
                     class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
                     <div class="flex items-center gap-4">
-                        <span>Создано: {{ $checklist?->created_at?->format('d F Y') }}</span>
+                        <span>Создано: {{ $checklist?->created_at?->translatedFormat('d F Y') }}</span>
                         <span>•</span>
-                        <span>Изменено: {{ $checklist?->updated_at?->format('d F Y') }}</span>
+                        <span>Изменено: {{ $checklist?->updated_at?->translatedFormat('d F Y') }}</span>
                         <span>•</span>
                         <span data-task-count>0 задач</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="cloud" class="w-3 h-3"></i>
-                        <span>Автосохранение включено</span>
                     </div>
                 </div>
             </div>

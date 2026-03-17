@@ -112,10 +112,6 @@
                             <span>•</span>
                             <span data-task-count>0 задач</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="cloud" class="w-3 h-3"></i>
-                            <span>Автосохранение включено</span>
-                        </div>
                     </div>
                 </div>
             </div>

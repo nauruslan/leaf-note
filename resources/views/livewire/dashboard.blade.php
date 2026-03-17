@@ -62,6 +62,9 @@
                         </div>
                     </div>
 
+                    {{-- <x-dropdown></x-dropdown>
+                    <x-dropdown-link></x-dropdown-link> --}}
+
                     <!-- Сортировка Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Сортировка:</span>
@@ -122,7 +125,9 @@
                             $total = $progress['total'];
                             $color = $progress['color'];
                             // Длина окружности: 2 * π * r = 2 * 3.14159 * 45 ≈ 283
-                            $circumference = 283;
+                            $PI = 3.14159;
+                            $radius = 45;
+                            $circumference = 2 * $PI * $radius;
                             $offset = $circumference - ($percentage / 100) * $circumference;
                         @endphp
                         <div class="text-center">

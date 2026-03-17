@@ -263,11 +263,7 @@
                     <div class="flex items-center gap-4">
                         <span>Создано: только что</span>
                         <span>•</span>
-                        <span data-word-count>0 слов</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="cloud" class="w-3 h-3"></i>
-                        <span>Автосохранение включено</span>
+                        <span data-char-count>0 символов</span>
                     </div>
                 </div>
             </div>
