@@ -1,0 +1,110 @@
+<style>
+    .custom-select {
+        position: relative;
+        width: 200px;
+        font-family: sans-serif;
+    }
+
+    .custom-select-trigger {
+        background: #f9fafb;
+        border: 1px solid #d1d5db;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #374151;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+    }
+
+    .custom-select-trigger:hover {
+        background: #f3f4f6;
+    }
+
+    .custom-select-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        width: 100%;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        display: none;
+        z-index: 20;
+    }
+
+    .custom-select-item {
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .custom-select-item:hover {
+        background: #eef2ff;
+    }
+
+    .custom-select-item.selected {
+        background: #e0e7ff;
+        font-weight: 600;
+        color: #4338ca;
+    }
+</style>
+
+<div class="flex items-center gap-2">
+    <span class="whitespace-nowrap text-sm font-medium text-gray-700">Папка:</span>
+
+    <div class="custom-select" id="mySelect">
+        <div class="custom-select-trigger">
+            <span class="custom-select-label">Выберите папку</span>
+            <span style="font-size: 10px; opacity: 0.6">▼</span>
+        </div>
+
+        <div class="custom-select-dropdown">
+            <div class="custom-select-item" data-value="1">Документы</div>
+            <div class="custom-select-item" data-value="2">Изображения</div>
+            <div class="custom-select-item" data-value="3">Музыка</div>
+            <div class="custom-select-item" data-value="4">Видео</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const select = document.getElementById('mySelect');
+        const trigger = select.querySelector('.custom-select-trigger');
+        const label = select.querySelector('.custom-select-label');
+        const dropdown = select.querySelector('.custom-select-dropdown');
+        const items = select.querySelectorAll('.custom-select-item');
+
+        // Открытие/закрытие
+        trigger.addEventListener('click', () => {
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Выбор элемента
+        items.forEach((item) => {
+            item.addEventListener('click', () => {
+                items.forEach((i) => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                label.textContent = item.textContent;
+                dropdown.style.display = 'none';
+
+                // Значение можно получить так:
+                console.log('Выбрано:', item.dataset.value);
+            });
+        });
+
+        // Клик вне — закрыть
+        document.addEventListener('click', (e) => {
+            if (!select.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    })();
+</script>

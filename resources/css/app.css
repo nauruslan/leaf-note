@@ -9,6 +9,7 @@
 @import './navigation.css';
 @import './star.css';
 @import './toggle.css';
+@import './dropdown.css';
 
 @tailwind base;
 @tailwind components;
