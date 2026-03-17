@@ -38,22 +38,10 @@
                         </div>
                     </div>
 
-                    <!-- Color Picker -->
+                    <!-- Favorite -->
                     <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Цвет:</span>
-                        <div class="flex items-center gap-1.5">
-                            @foreach ($this->colors as $key => $color)
-                                <button type="button" wire:click="$set('color', '{{ $key }}')"
-                                    wire:loading.attr="disabled"
-                                    wire:key="color-{{ $key }}-{{ $this->color }}"
-                                    class="relative w-8 h-8 rounded-full {{ $color['bg'] }} border-2 {{ $key === $this->color ? 'border-white ring-2 ring-offset-2 ' . $color['ring'] : $color['border'] }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $color['ring'] }}"
-                                    title="{{ $color['label'] }}" aria-label="{{ $color['label'] }}">
-                                    <!-- Leaf Component -->
-                                    <x-leaf class="w-5 h-5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                                        :fill="$key === 'white' ? '#000000' : '#ffffff'" />
-                                </button>
-                            @endforeach
-                        </div>
+                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Избранное:</span>
+                        <x-star :active="$is_favorite" wire:click="toggleFavorite" size="30px" />
                     </div>
                 </div>
 

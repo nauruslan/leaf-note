@@ -25,7 +25,6 @@ class Note extends Model
         'title',
         'type',
         'payload',
-        'color',
         'is_favorite',
     ];
 
@@ -328,6 +327,11 @@ class Note extends Model
     public function getIconAttribute(): string
     {
         return $this->isChecklist() ? 'checklist' : 'note';
+    }
+
+    public function getColorAttribute(): string
+    {
+        return $this->folder?->color ?? 'default';
     }
 
     public function getPreviewAttribute(): string
