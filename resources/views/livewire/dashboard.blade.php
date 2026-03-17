@@ -18,7 +18,7 @@
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <input type="text" placeholder="Поиск заметок..."
+                    <input type="text" placeholder="Поиск"
                         class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 transition-all">
                 </div>
             </div>
@@ -45,40 +45,39 @@
 
                 <!-- Right Block: Filters -->
                 <div class="flex flex-wrap items-center gap-4 justify-end">
+                    <!-- Показать Dropdown -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Показать:</span>
+                        <x-dropdown :options="[
+                            ['value' => 12, 'text' => '12'],
+                            ['value' => 24, 'text' => '24'],
+                            ['value' => 36, 'text' => '36'],
+                        ]" selected="{{ $perPage }}" wireModel="perPage" live
+                            width="80px" />
+                    </div>
+
                     <!-- Фильтр Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Фильтр:</span>
-                        <div class="relative">
-                            <select
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[100px]">
-                                <option value="all">Все</option>
-                                <option value="notes">Заметки</option>
-                                <option value="checklists">Списки</option>
-                                <option value="important">Важные</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
+                        <x-dropdown :options="[
+                            ['value' => 'all', 'text' => 'Все'],
+                            ['value' => 'notes', 'text' => 'Заметки'],
+                            ['value' => 'checklists', 'text' => 'Списки'],
+                        ]" selected="{{ $filter }}" wireModel="filter" live
+                            width="100px" />
                     </div>
 
                     <!-- Сортировка Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Сортировка:</span>
-                        <div class="relative">
-                            <select
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[140px]">
-                                <option value="updated">По дате изменения</option>
-                                <option value="created">По дате создания</option>
-                                <option value="title">По названию</option>
-                                <option value="priority">По приоритету</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
+                        <x-dropdown :options="[
+                            ['value' => 'updated', 'text' => 'По дате'],
+                            ['value' => 'title', 'text' => 'По названию'],
+                        ]" selected="{{ $sort }}" wireModel="sort" live
+                            width="140px" />
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -202,4 +201,10 @@
             </div>
         @endforelse
     </div>
+
+    @if ($notes->hasPages())
+        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+            {{ $notes->links('livewire.pagination') }}
+        </div>
+    @endif
 </div>

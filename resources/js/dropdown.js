@@ -1,4 +1,3 @@
-/* global CustomEvent, Event, Livewire, setTimeout, MutationObserver */
 class Dropdown {
     constructor(container) {
         this.container = container;

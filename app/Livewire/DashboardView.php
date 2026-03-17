@@ -4,12 +4,16 @@ namespace App\Livewire;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class DashboardView extends Component
 {
-    public string $search = '';
+    use WithPagination;
 
-    protected $notes;
+    public string $search = '';
+    public string $filter = 'all';
+    public string $sort = 'updated';
+    public int $perPage = 12;
 
     protected $listeners = [
         'stateUpdated' => 'updateState',
@@ -28,15 +32,45 @@ class DashboardView extends Component
         $this->loadNotes();
     }
 
-    public function loadNotes(): void
+    protected function loadNotes()
     {
-        $this->notes = Note::where('user_id', Auth::id())
+        $query = Note::where('user_id', Auth::id())
             ->whereNull('trash_id')
             ->whereNull('archive_id')
             ->whereNull('safe_id')
-            ->with('folder')
-            ->orderBy('updated_at', 'desc')
-            ->get();
+            ->with('folder');
+
+        // Фильтр по типу
+        if ($this->filter === 'notes') {
+            $query->where('type', Note::TYPE_NOTE);
+        } elseif ($this->filter === 'checklists') {
+            $query->where('type', Note::TYPE_CHECKLIST);
+        }
+
+        // Сортировка
+        if ($this->sort === 'updated') {
+            $query->orderBy('updated_at', 'desc');
+        } elseif ($this->sort === 'title') {
+            $query->orderBy('title', 'asc');
+        }
+
+        // Пагинация
+        return $query->paginate($this->perPage);
+    }
+
+    public function updatedFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSort()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage()
+    {
+        $this->resetPage();
     }
 
     public function createNote()
@@ -103,7 +137,7 @@ class DashboardView extends Component
 
     public function render()
     {
-        $this->loadNotes();
-        return view('livewire.dashboard', ['notes' => $this->notes]);
+        $notes = $this->loadNotes();
+        return view('livewire.dashboard', ['notes' => $notes]);
     }
 }

@@ -45,7 +45,6 @@
         </div>
     </div>
 
-    <!-- Hidden input for Livewire binding -->
     @if ($wireModel)
         <input type="hidden" value="{{ $selected }}" wire:model{{ $live ? '.live' : '' }}="{{ $wireModel }}"
             data-dropdown-input>
@@ -53,11 +52,3 @@
         <input type="hidden" value="{{ $selected }}" data-dropdown-input>
     @endif
 </div>
-
-@pushOnce('styles')
-    <link rel="stylesheet" href="{{ asset('css/dropdown.css') }}">
-@endPushOnce
-
-@pushOnce('scripts')
-    <script src="{{ asset('js/dropdown.js') }}" defer></script>
-@endPushOnce
