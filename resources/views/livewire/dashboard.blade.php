@@ -128,11 +128,13 @@
                                         <circle cx="50" cy="50" r="45" class="fill-none stroke-gray-200"
                                             stroke-width="8" stroke-linecap="round" />
                                         <!-- Progress Circle -->
-                                        <circle cx="50" cy="50" r="45"
-                                            class="fill-none transition-all duration-500" stroke-width="8"
-                                            stroke-linecap="round" stroke-dasharray="283"
-                                            stroke-dashoffset="{{ number_format($offset, 1, '.', '') }}"
-                                            stroke="{{ $color }}" />
+                                        @if ($percentage > 0)
+                                            <circle cx="50" cy="50" r="45"
+                                                class="fill-none transition-all duration-500" stroke-width="8"
+                                                stroke-linecap="round" stroke-dasharray="283"
+                                                stroke-dashoffset="{{ number_format($offset, 1, '.', '') }}"
+                                                stroke="{{ $color }}" />
+                                        @endif
                                     </svg>
                                     <div
                                         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">

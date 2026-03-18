@@ -81,6 +81,13 @@ class ChecklistEditor {
             this.itemElements.delete(id);
         }
         this.data = this.data.filter((item) => item.id !== id);
+        // Если задач не осталось, удаляем контейнер checklist
+        if (this.data.length === 0) {
+            const checklist = this.checklistsContainer.querySelector('.checklist');
+            if (checklist) {
+                checklist.remove();
+            }
+        }
         this.triggerUpdate();
     }
 
@@ -178,13 +185,7 @@ class ChecklistEditor {
         this.itemElements.clear();
 
         if (this.data.length === 0) {
-            // Показываем пустой чеклист
-            const checklist = document.createElement('section');
-            checklist.className = 'checklist';
-            const items = document.createElement('div');
-            items.className = 'items';
-            checklist.appendChild(items);
-            this.checklistsContainer.appendChild(checklist);
+            // Не показываем пустой чеклист
             return;
         }
 
