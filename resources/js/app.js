@@ -6,6 +6,7 @@ import './editor/checklist-edit';
 import './star';
 import './dropdown';
 import './toggle';
+import './search';
 
 import { createIcons, icons } from 'lucide';
 
