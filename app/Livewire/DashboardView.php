@@ -32,7 +32,7 @@ class DashboardView extends Component
         // Игнорируем, так как локальный поиск и навигация не влияют на dashboard
     }
 
-    protected function loadNotes()
+    public function loadNotes()
     {
         $query = Note::where('user_id', Auth::id())
             ->whereNull('trash_id')

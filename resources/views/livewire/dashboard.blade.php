@@ -22,16 +22,14 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <!-- Left Block: Create Buttons -->
                 <div class="flex flex-wrap items-center gap-3">
-                    <button wire:click="createNote"
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                    <x-button-create-note wire:click="createNote">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         Новая заметка
-                    </button>
-                    <button wire:click="createChecklist"
-                        class="bg-white border border-gray-300 hover:700 font-medium py-2.5 px-5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
+                    </x-button-create-note>
+                    <x-button-create-checklist wire:click="createChecklist">
                         <i data-lucide="list" class="w-4 h-4"></i>
                         Новый список
-                    </button>
+                    </x-button-create-checklist>
                 </div>
 
                 <!-- Right Block: Filters -->
@@ -76,104 +74,7 @@
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap gap-5">
         @forelse($notes as $note)
-            <div
-                class="min-w-[320px] basis-[320px] h-[340px] flex grow flex-col py-4 px-5 bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all">
-                <div class="flex items-start justify-between mb-6">
-                    <div class="w-8 flex-shrink-0 self-stretch">
-                        <!-- Иконка заметки -->
-                        <x-leaf class="{{ $note->icon_color_class }}" />
-                    </div>
-
-                    <div class="flex
-                            flex-1 ml-3 flex-col">
-                        <h3 class="font-bold text-lg text-gray-900">{{ $note->title }}</h3>
-                        <p class="text-xs text-gray-500">
-                            @if ($note->created_at->eq($note->updated_at))
-                                Создано:
-                            @else
-                                Обновлено:
-                            @endif
-                            {{ $note->updated_at->locale('ru')->isoFormat('D MMMM YYYY') }}
-                        </p>
-                    </div>
-
-                    <div class="self-stretch flex flex-end items-baseline">
-                        <x-star :active="$note->is_favorite" size="30px"
-                            wire:click.debounce.500ms="toggleFavorite({{ $note->id }})" />
-                    </div>
-                </div>
-
-                <div class="flex-grow flex h-[170px] {{ $note->isChecklist() ? 'justify-center' : 'justify-start' }}">
-                    @if ($note->isChecklist())
-                        @php
-                            $progress = $this->getChecklistProgress($note->id);
-                            $percentage = $progress['percentage'];
-                            $completed = $progress['completed'];
-                            $total = $progress['total'];
-                            $color = $progress['color'];
-                            // Длина окружности: 2 * π * r = 2 * 3.14159 * 45 ≈ 283
-                            $PI = 3.14159;
-                            $radius = 45;
-                            $circumference = 2 * $PI * $radius;
-                            $offset = $circumference - ($percentage / 100) * $circumference;
-                        @endphp
-                        <div class="text-center">
-                            <h4 class="mb-4 text-center font-medium text-gray-700">Прогресс выполнения</h4>
-                            <div class="flex items-center gap-4 justify-center">
-                                <!-- Progress Circle Container -->
-                                <div class="relative w-[100px] h-[100px]">
-                                    <svg viewBox="0 0 100 100" class="w-full h-full"
-                                        style="transform: rotate(-90deg); display: block;">
-                                        <!-- Background Circle -->
-                                        <circle cx="50" cy="50" r="45" class="fill-none stroke-gray-200"
-                                            stroke-width="8" stroke-linecap="round" />
-                                        <!-- Progress Circle -->
-                                        @if ($percentage > 0)
-                                            <circle cx="50" cy="50" r="45"
-                                                class="fill-none transition-all duration-500" stroke-width="8"
-                                                stroke-linecap="round" stroke-dasharray="283"
-                                                stroke-dashoffset="{{ number_format($offset, 1, '.', '') }}"
-                                                stroke="{{ $color }}" />
-                                        @endif
-                                    </svg>
-                                    <div
-                                        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                        <span class="font-bold text-xl text-gray-900">{{ $percentage }}%</span>
-                                    </div>
-                                </div>
-                                <div class="max-w-[120px] text-center">
-                                    <p class="text-sm text-gray-600">{{ $completed }} из {{ $total }} задач
-                                        выполнено</p>
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <p class="text-gray-700 h-[170px] overflow-hidden break-words">{!! nl2br(e($note->preview)) !!}</p>
-                    @endif
-                </div>
-
-                <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
-                    <button wire:click="createFolder({{ $note->id }})"
-                        class="bg-white border border-gray-300 hover:700 font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                        <i data-lucide="{{ $note->folder ? $note->folder->icon : '' }}" class="w-4 h-4"></i>
-                        {{ $note->folder ? $note->folder->title : 'Без папки' }}
-                    </button>
-
-                    @if ($note->isChecklist())
-                        <button wire:click="openChecklist({{ $note->id }})"
-                            class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                            <span>Открыть</span>
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </button>
-                    @else
-                        <button wire:click="openNote({{ $note->id }})"
-                            class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                            <span>Открыть</span>
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </button>
-                    @endif
-                </div>
-            </div>
+            <x-card :note="$note" />
         @empty
             <!-- Состояние: нет заметок -->
             <div class="w-full flex items-center justify-center py-20">
@@ -185,11 +86,10 @@
                     <p class="text-gray-500 mb-6 max-w-md mx-auto">
                         Создайте первую заметку, чтобы увидеть её здесь
                     </p>
-                    <button wire:click="createNote"
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2">
+                    <x-button-create-note wire:click="createNote" class="px-6 inline-flex">
                         <i data-lucide="plus" class="w-5 h-5"></i>
                         Создать заметку
-                    </button>
+                    </x-button-create-note>
                 </div>
             </div>
         @endforelse

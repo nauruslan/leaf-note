@@ -53,18 +53,16 @@
                 <!-- Right Block: Actions -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
                     <!-- Save Button -->
-                    <button type="button" wire:click.prevent="save" wire:loading.attr="disabled"
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                    <x-button-save wire:click.prevent="save" wire:loading.attr="disabled">
                         <i data-lucide="save" class="w-4 h-4"></i>
                         Сохранить
-                    </button>
+                    </x-button-save>
 
                     <!-- Cancel Button -->
-                    <button type="button" wire:click.prevent="cancel" wire:loading.attr="disabled"
-                        class="bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                    <x-button-cancel wire:click.prevent="cancel" wire:loading.attr="disabled">
                         <i data-lucide="x" class="w-4 h-4"></i>
                         Отмена
-                    </button>
+                    </x-button-cancel>
                 </div>
             </div>
         </div>

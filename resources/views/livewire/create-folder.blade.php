@@ -61,8 +61,7 @@
                 <!-- Кнопки действий -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
                     <!-- Save Button -->
-                    <button type="button" wire:click.prevent="save" wire:loading.attr="disabled"
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                    <x-button-save wire:click.prevent="save" wire:loading.attr="disabled">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round" data-lucide="save" aria-hidden="true"
@@ -73,12 +72,11 @@
                             <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path>
                             <path d="M7 3v4a1 1 0 0 0 1 1h7"></path>
                         </svg>
-                        Создать
-                    </button>
+                        Сохранить
+                    </x-button-save>
 
                     <!-- Cancel Button -->
-                    <button type="button" wire:click.prevent="cancel" wire:loading.attr="disabled"
-                        class="bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                    <x-button-cancel wire:click.prevent="cancel" wire:loading.attr="disabled">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4">
@@ -86,7 +84,7 @@
                             <path d="m6 6 12 12"></path>
                         </svg>
                         Отмена
-                    </button>
+                    </x-button-cancel>
                 </div>
             </form>
         </div>
