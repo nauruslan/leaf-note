@@ -17,6 +17,7 @@ class NoteView extends Component
     public $folders = [];
     public ?Note $note = null;
     public bool $isLoaded = false;
+    public bool $confirmingDeletion = false;
     public array $originalImagePaths = [];
 
     public ?int $pendingFolderId = null;
@@ -169,9 +170,20 @@ class NoteView extends Component
         }
     }
 
+    public function confirmDeletion(): void
+    {
+        $this->confirmingDeletion = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->confirmingDeletion = false;
+    }
+
     public function openDeleteModal(): void
     {
-        $this->js('document.getElementById("delete-modal").classList.add("active")');
+        // Для обратной совместимости
+        $this->confirmDeletion();
     }
 
     public function triggerSave($folderId = null): void

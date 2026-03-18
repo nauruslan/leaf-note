@@ -50,7 +50,7 @@
                         Отменить
                     </x-button-cancel>
                     <!-- Delete Button -->
-                    <x-button-delete wire:click.prevent="openDeleteModal" wire:loading.attr="disabled">
+                    <x-button-delete wire:click.prevent="confirmDeletion" wire:loading.attr="disabled">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         Удалить
                     </x-button-delete>
@@ -261,44 +261,15 @@
             </div>
         </div>
 
-        <!-- Delete Confirmation Modal (ignored) -->
-        <div wire:ignore>
-            <div id="delete-modal" class="link-modal">
-                <div class="link-modal-content">
-                    <h3 class="link-modal-title">Удалить заметку?</h3>
-                    <p class="text-sm text-gray-600 mt-2">Заметка будет перемещена в корзину</p>
-                    <div class="link-modal-buttons">
-                        <button type="button" class="link-modal-btn link-modal-btn-cancel"
-                            data-delete-action="cancel">
-                            Отменить
-                        </button>
-                        <button type="button" class="link-modal-btn link-modal-btn-ok" data-delete-action="confirm"
-                            style="background: #ef4444; border-color: #ef4444;">
-                            Удалить
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Delete Confirmation Modal -->
+        <x-modal-delete :confirmingDeletion="$confirmingDeletion" title="Удалить заметку?" description="Заметка будет перемещена в корзину"
+            closeMethod="closeModal" deleteMethod="confirmDelete" />
     </div>
 
     @script
         <script>
             Livewire.on('restoreNoteOriginalState', () => {
                 document.dispatchEvent(new CustomEvent('restore-note-original-state'));
-            });
-
-            document.addEventListener('click', function(e) {
-                const deleteModal = document.getElementById('delete-modal');
-
-                if (e.target.closest('[data-delete-action="confirm"]')) {
-                    deleteModal.classList.remove('active');
-                    @this.confirmDelete();
-                }
-
-                if (e.target.closest('[data-delete-action="cancel"]')) {
-                    deleteModal.classList.remove('active');
-                }
             });
         </script>
     @endscript

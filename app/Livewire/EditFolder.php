@@ -16,6 +16,7 @@ class EditFolder extends Component
     public string $icon='folder';
 
     public ?Folder $folder = null;
+    public bool $confirmingDeletion = false;
 
 
     public const COLORS = [
@@ -134,7 +135,47 @@ class EditFolder extends Component
 
     public function cancel()
     {
-        $this->dispatch('navigate', ['section' => 'dashboard']);
+        $this->dispatch('navigateTo', section: 'dashboard');
+    }
+
+    public function confirmDeletion()
+    {
+        $this->confirmingDeletion = true;
+    }
+
+    public function closeModal()
+    {
+        $this->confirmingDeletion = false;
+    }
+
+    public function openDeleteModal()
+    {
+        // Для обратной совместимости, вызываем confirmDeletion
+        $this->confirmDeletion();
+    }
+
+    public function deleteFolder()
+    {
+        if (!$this->folder) {
+            $this->dispatch('notify', ['message' => 'Папка не найдена', 'type' => 'error']);
+            return;
+        }
+
+        try {
+            // Удаляем папку (мягкое удаление через trash)
+            $this->folder->moveToTrash();
+
+            // Очистка кэша папок в навигационной панели
+            NavigationSidebar::invalidateFoldersCache();
+
+            $this->dispatch('notify', ['message' => 'Папка удалена', 'type' => 'success']);
+            $this->dispatch('folderDeleted');
+            $this->dispatch('navigateTo', section: 'dashboard');
+            $this->confirmingDeletion = false;
+        } catch (\Throwable $e) {
+            report($e);
+            $this->dispatch('notify', ['message' => 'Ошибка при удалении папки: ' . $e->getMessage(), 'type' => 'error']);
+        }
     }
 
     public function render()

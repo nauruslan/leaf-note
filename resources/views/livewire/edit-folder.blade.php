@@ -86,7 +86,7 @@
                         Отменить
                     </x-button-cancel>
                     <!-- Delete Button -->
-                    <x-button-delete wire:click.prevent="openDeleteModal" wire:loading.attr="disabled">
+                    <x-button-delete wire:click.prevent="confirmDeletion" wire:loading.attr="disabled">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         Удалить
                     </x-button-delete>
@@ -94,4 +94,8 @@
             </form>
         </div>
     </div>
+    <!-- Delete Confirmation Modal -->
+    <x-modal-delete :confirmingDeletion="$confirmingDeletion" title="Удалить папку?"
+        description="Папка будет перемещена в корзину. Вы сможете восстановить её позже." closeMethod="closeModal"
+        deleteMethod="deleteFolder" />
 </div>

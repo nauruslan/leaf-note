@@ -6,5 +6,5 @@ Modern note-taking web app built with:
 - Livewire 4.2
 - Tailwind CSS 4.1
 - MySQL 8
-- Pure JavaScript
+- JavaScript
 - TipTap editor

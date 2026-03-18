@@ -252,25 +252,7 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    @if ($confirmingDeletion)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-                <h3 class="text-xl font-bold text-gray-900">Удалить папку?</h3>
-                <p class="text-gray-600 mt-2">Папка будет перемещена в корзину. Вы сможете восстановить её позже.
-                </p>
-                <div class="flex justify-end gap-4 mt-6">
-                    <button type="button"
-                        class="px-5 py-2.5 text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-                        wire:click="closeModal">
-                        Отменить
-                    </button>
-                    <button type="button"
-                        class="px-5 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-                        wire:click="deleteFolder({{ $folder->id }})">
-                        Удалить
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
+    <x-modal-delete title="Удалить папку?"
+        description="Папка будет перемещена в корзину. Вы сможете восстановить её позже." :confirmingDeletion="$confirmingDeletion"
+        closeMethod="closeModal" deleteMethod="deleteFolder" />
 </div>

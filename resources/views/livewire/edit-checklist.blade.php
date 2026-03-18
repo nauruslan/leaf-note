@@ -50,7 +50,7 @@
                         Отменить
                     </x-button-cancel>
                     <!-- Delete Button -->
-                    <x-button-delete wire:click.prevent="openDeleteModal" wire:loading.attr="disabled">
+                    <x-button-delete wire:click.prevent="confirmDeletion" wire:loading.attr="disabled">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         Удалить
                     </x-button-delete>
@@ -105,43 +105,13 @@
         </div>
 
 
-        <!-- Delete Confirmation Modal (ignored) -->
-        <div wire:ignore>
-            <div id="delete-modal" class="link-modal">
-                <div class="link-modal-content">
-                    <h3 class="link-modal-title">Удалить список?</h3>
-                    <p class="text-sm text-gray-600 mt-2">Список будет перемещен в корзину</p>
-                    <div class="link-modal-buttons">
-                        <button type="button" class="link-modal-btn link-modal-btn-cancel" data-delete-action="cancel">
-                            Отменить
-                        </button>
-                        <button type="button" class="link-modal-btn link-modal-btn-ok" data-delete-action="confirm"
-                            style="background: #ef4444; border-color: #ef4444;">
-                            Удалить
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Delete Confirmation Modal -->
+        <x-modal-delete :confirmingDeletion="$confirmingDeletion" title="Удалить список?" description="Список будет перемещен в корзину"
+            closeMethod="closeModal" deleteMethod="confirmDelete" />
     </div>
 
     @script
         <script>
-            // Обработчик модального окна удаления
-            document.addEventListener('click', function(e) {
-                const deleteModal = document.getElementById('delete-modal');
-                if (!deleteModal) return;
-
-                if (e.target.closest('[data-delete-action="confirm"]')) {
-                    deleteModal.classList.remove('active');
-                    $wire.confirmDelete();
-                }
-
-                if (e.target.closest('[data-delete-action="cancel"]')) {
-                    deleteModal.classList.remove('active');
-                }
-            });
-
             // Загрузка данных при редактировании
             Livewire.on('checklistLoaded', (data) => {
                 let parsedContent = data && data.content ? data.content : data;

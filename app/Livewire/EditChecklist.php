@@ -17,6 +17,7 @@ class EditChecklist extends Component
     public $folders = [];
     public ?Note $checklist = null;
     public bool $isLoaded = false;
+    public bool $confirmingDeletion = false;
     private bool $isSaving = false;
 
 
@@ -132,9 +133,20 @@ class EditChecklist extends Component
         }
     }
 
+    public function confirmDeletion(): void
+    {
+        $this->confirmingDeletion = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->confirmingDeletion = false;
+    }
+
     public function openDeleteModal(): void
     {
-        $this->js('document.getElementById("delete-modal").classList.add("active")');
+        // Для обратной совместимости
+        $this->confirmDeletion();
     }
 
 
