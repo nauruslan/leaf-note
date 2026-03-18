@@ -9,11 +9,9 @@ class AppState extends Component
 {
     public string $section = 'dashboard';
     public ?int $folderId = null;
-    public string $search = '';
 
        protected $listeners = [
         'navigateTo'    => 'handleNavigateTo',
-        'searchUpdated' => 'handleSearchUpdated',
         'updateState'   => 'updateState',
         'getState'      => 'getState',
     ];
@@ -22,7 +20,6 @@ class AppState extends Component
     {
         $this->section = StateManager::get('section', 'dashboard');
         $this->folderId = StateManager::get('folderId');
-        $this->search = StateManager::get('search', '');
     }
 
     public function handleNavigateTo(string $section, ?int $folderId = null): void
@@ -38,21 +35,9 @@ class AppState extends Component
         $this->dispatch('stateUpdated',
             section: $this->section,
             folderId: $this->folderId,
-            search: $this->search
+            search: ''
         );
 
-    }
-
-    public function handleSearchUpdated(string $search): void
-    {
-        $this->search = $search;
-        StateManager::set('search', $this->search);
-
-        $this->dispatch('stateUpdated',
-            section: $this->section,
-            folderId: $this->folderId,
-            search: $this->search
-        );
     }
 
     public function updateState(string $key, mixed $value): void

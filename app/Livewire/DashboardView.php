@@ -21,6 +21,7 @@ class DashboardView extends Component
         'noteDeleted' => 'loadNotes',
     ];
 
+
     public function mount(): void
     {
         $this->loadNotes();
@@ -28,8 +29,7 @@ class DashboardView extends Component
 
     public function updateState(string $section, ?int $folderId, string $search): void
     {
-        $this->search = $search;
-        $this->loadNotes();
+        // Игнорируем, так как локальный поиск и навигация не влияют на dashboard
     }
 
     protected function loadNotes()
@@ -45,6 +45,19 @@ class DashboardView extends Component
             $query->where('type', Note::TYPE_NOTE);
         } elseif ($this->filter === 'checklists') {
             $query->where('type', Note::TYPE_CHECKLIST);
+        }
+
+        // Поиск
+        if (strlen(trim($this->search)) >= 2) {
+            $words = preg_split('/\s+/', trim($this->search));
+            $query->where(function ($q) use ($words) {
+                foreach ($words as $word) {
+                    $q->where(function ($sub) use ($word) {
+                        $sub->where('title', 'LIKE', '%' . $word . '%')
+                            ->orWhere('payload', 'LIKE', '%' . $word . '%');
+                    });
+                }
+            });
         }
 
         // Сортировка
@@ -69,6 +82,11 @@ class DashboardView extends Component
     }
 
     public function updatedPerPage()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch()
     {
         $this->resetPage();
     }
@@ -116,7 +134,6 @@ class DashboardView extends Component
             $this->dispatch('navigateTo', section: 'folder', folderId: $note->folder->id);
         } else {
             // Если папки нет, можно перенаправить на создание папки или ничего не делать
-            // Пока просто игнорируем
         }
     }
 
