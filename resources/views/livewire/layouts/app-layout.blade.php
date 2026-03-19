@@ -3,10 +3,10 @@
     <livewire:navigation-sidebar :section="$section" :folder-id="$folderId" key="{{ $section }}-{{ $componentKey }}" />
     <div class="ml-16 flex-1">
         {{-- Content Dinamic --}}
-        @if($section === 'checklist' && $folderId)
+        @if ($section === 'edit-checklist' && $folderId)
             <livewire:edit-checklist :checklist-id="$folderId" :key="'edit-checklist-' . $folderId" />
-        @elseif($section === 'note' && $folderId)
-            <livewire:note-view :note-id="$folderId" :key="'note-view-' . $folderId" />
+        @elseif($section === 'edit-note' && $folderId)
+            <livewire:edit-note :note-id="$folderId" :key="'edit-note-' . $folderId" />
         @elseif($section === 'edit-folder' && $folderId)
             <livewire:edit-folder :folder-id="$folderId" :key="'edit-folder-' . $folderId" />
         @else

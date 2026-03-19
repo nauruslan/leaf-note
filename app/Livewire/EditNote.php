@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
-class NoteView extends Component
+class EditNote extends Component
 {
     public ?int $noteId = null;
     public string $title = '';
@@ -265,6 +265,6 @@ class NoteView extends Component
 
     public function render()
     {
-        return view('livewire.note-view');
+        return view('livewire.edit-note');
     }
 }

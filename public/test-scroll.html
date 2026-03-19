@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест компонента x-scroll</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+        }
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: center;
+        }
+        .x-scroll-content::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+        .x-scroll-content {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .x-scroll-thumb:active {
+            cursor: grabbing;
+            background-color: #555 !important;
+        }
+        .x-scroll-track.hidden {
+            display: none;
+        }
+        .unselectable {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="text-xl font-bold">Тест компонента x-scroll</h1>
+        <div>
+            <!-- Первый экземпляр -->
+            <div class="x-scroll-wrap relative overflow-hidden bg-white border border-gray-200 shadow-sm"
+                id="scroll1-wrap" style="width: 300px; height: 400px;" data-xscroll>
+                <div class="x-scroll-content h-full p-3 box-border overflow-y-scroll" id="scroll1-content" tabindex="0"
+                    role="region" aria-label="Прокручиваемая область" style="margin-right: 10px;">
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 1</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 2</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 3</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 4</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 5</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 6</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 7</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 8</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 9</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 10</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 11</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 12</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 13</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 14</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 15</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 16</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 17</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 18</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 19</div>
+                    <div class="item p-2 mb-2 bg-gray-100 border border-gray-300 rounded">Пункт 20</div>
+                </div>
+                <div class="x-scroll-track absolute touch-none" id="scroll1-track" aria-hidden="false"
+                    style="top: 6px; right: 6px; bottom: 6px; width: 10px; background-color: rgba(0,0,0,0.05); border-radius: 8px;">
+                    <div class="x-scroll-thumb absolute left-1/2 -translate-x-1/2 cursor-grab transition-colors duration-150"
+                        id="scroll1-thumb" tabindex="0" role="scrollbar" aria-orientation="vertical" aria-valuemin="0"
+                        aria-valuemax="100" aria-valuenow="0"
+                        style="width: 6px; background-color: #666; border-radius: 6px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <!-- Второй экземпляр с кастомными цветами -->
+            <div class="x-scroll-wrap relative overflow-hidden bg-white border border-gray-200 shadow-sm"
+                id="scroll2-wrap" style="width: 500px; height: 200px; background-color: #fef3c7;" data-xscroll>
+                <div class="x-scroll-content h-full p-3 box-border overflow-y-scroll" id="scroll2-content" tabindex="0"
+                    role="region" aria-label="Прокручиваемая область" style="margin-right: 12px;">
+                    <div class="p-4">
+                        <h2 class="font-bold text-lg">Другой контент</h2>
+                        <p>Много текста для прокрутки...</p>
+                        <p>Строка 1: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 2: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 3: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 4: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 5: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 6: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 7: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 8: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 9: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 10: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 11: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 12: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 13: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 14: Lorem ipsum dolor sit amet.</p>
+                        <p>Строка 15: Lorem ipsum dolor sit amet.</p>
+                    </div>
+                </div>
+                <div class="x-scroll-track absolute touch-none" id="scroll2-track" aria-hidden="false"
+                    style="top: 6px; right: 6px; bottom: 6px; width: 12px; background-color: rgba(255,0,0,0.1); border-radius: 8px;">
+                    <div class="x-scroll-thumb absolute left-1/2 -translate-x-1/2 cursor-grab transition-colors duration-150"
+                        id="scroll2-thumb" tabindex="0" role="scrollbar" aria-orientation="vertical" aria-valuemin="0"
+                        aria-valuemax="100" aria-valuenow="0"
+                        style="width: 8px; background-color: #3b82f6; border-radius: 6px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/scroll.js"></script>
+    <script>
+        // Инициализация после загрузки
+        window.addEventListener('load', function() {
+            console.log('Тест x-scroll загружен');
+        });
+    </script>
+</body>
+</html>

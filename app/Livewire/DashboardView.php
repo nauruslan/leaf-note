@@ -114,12 +114,12 @@ class DashboardView extends Component
 
     public function openNote($noteId)
     {
-        $this->dispatch('navigateTo', section: 'note', folderId: $noteId);
+        $this->dispatch('navigateTo', section: 'edit-note', folderId: $noteId);
     }
 
     public function openChecklist($noteId)
     {
-        $this->dispatch('navigateTo', section: 'checklist', folderId: $noteId);
+        $this->dispatch('navigateTo', section: 'edit-checklist', folderId: $noteId);
     }
 
     public function createFolder($noteId)

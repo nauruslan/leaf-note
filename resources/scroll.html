@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Custom Scroll Nav</title>
+        <style>
+            :root {
+                --sb-width: 10px;
+                --thumb-bg: #666;
+                --track-bg: rgba(0, 0, 0, 0.05);
+                --thumb-radius: 6px;
+            }
+
+            body {
+                margin: 0;
+                font-family: system-ui, sans-serif;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f5f5f5;
+            }
+
+            /* Обёртка навигации */
+            .nav-wrap {
+                position: relative;
+                width: 300px;
+                height: 400px;
+                background: white;
+                border: 1px solid #ddd;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+                overflow: hidden; /* Отключаем нативный видимый скролл */
+            }
+
+            /* Контент: оставляем прокрутку логической (чтобы можно было использовать scrollTop), но скрываем нативный скролл */
+            .nav {
+                height: 100%;
+                padding: 12px;
+                box-sizing: border-box;
+                overflow-y: scroll; /* важно для scrollTop */
+                margin-right: calc(var(--sb-width)); /* место для кастомного скролла */
+            }
+
+            /* Скрыть нативные скролбары визуально (WebKit) */
+            .nav::-webkit-scrollbar {
+                width: 0;
+                height: 0;
+            }
+            /* Firefox: */
+            .nav {
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            /* Содержимое для примера */
+            .item {
+                padding: 8px 10px;
+                margin-bottom: 6px;
+                border-radius: 4px;
+                background: #fafafa;
+                border: 1px solid #eee;
+            }
+
+            /* Кастомный трек и ползунок */
+            .scrollbar {
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                bottom: 6px;
+                width: var(--sb-width);
+                background: var(--track-bg);
+                border-radius: 8px;
+                touch-action: none;
+            }
+            .thumb {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(var(--sb-width) - 4px);
+                background: var(--thumb-bg);
+                border-radius: var(--thumb-radius);
+                cursor: grab;
+                transition: background 0.12s;
+            }
+            .thumb:active {
+                cursor: grabbing;
+                background: #555;
+            }
+            .scrollbar.hidden {
+                display: none;
+            }
+
+            /* Фокус для доступности */
+            .nav:focus {
+                outline: 2px solid #cce;
+                outline-offset: 2px;
+            }
+            .thumb:focus {
+                box-shadow: 0 0 0 3px rgba(100, 150, 220, 0.25);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="nav-wrap" id="navWrap">
+            <div class="nav" id="nav" tabindex="0" role="region" aria-label="Навигация">
+                <!-- Много пунктов для демонстрации -->
+                <div class="item">Пункт 1</div>
+                <div class="item">Пункт 2</div>
+                <div class="item">Пункт 3</div>
+                <div class="item">Пункт 4</div>
+                <div class="item">Пункт 5</div>
+                <div class="item">Пункт 6</div>
+                <div class="item">Пункт 7</div>
+                <div class="item">Пункт 8</div>
+                <div class="item">Пункт 9</div>
+                <div class="item">Пункт 10</div>
+                <div class="item">Пункт 11</div>
+                <div class="item">Пункт 12</div>
+                <div class="item">Пункт 13</div>
+                <div class="item">Пункт 14</div>
+                <div class="item">Пункт 15</div>
+            </div>
+
+            <div class="scrollbar" id="scrollbar" aria-hidden="false">
+                <div
+                    class="thumb"
+                    id="thumb"
+                    tabindex="0"
+                    role="scrollbar"
+                    aria-orientation="vertical"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="0"
+                ></div>
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                const nav = document.getElementById('nav');
+                const thumb = document.getElementById('thumb');
+                const scrollbar = document.getElementById('scrollbar');
+                const wrap = document.getElementById('navWrap');
+
+                let dragging = false;
+                let dragOffsetY = 0;
+
+                function updateThumb() {
+                    const viewH = nav.clientHeight;
+                    const contentH = nav.scrollHeight;
+                    if (contentH <= viewH) {
+                        scrollbar.classList.add('hidden');
+                        return;
+                    } else {
+                        scrollbar.classList.remove('hidden');
+                    }
+                    const ratio = viewH / contentH;
+                    const thumbH = Math.max(24, Math.floor(viewH * ratio)); // минимальная высота
+                    const maxThumbTop = wrap.clientHeight - 12 - thumbH; // учитываем top/bottom отступы
+                    const scrollRatio = nav.scrollTop / (contentH - viewH);
+                    const thumbTop = Math.round(
+                        6 + scrollRatio * (wrap.clientHeight - 12 - thumbH),
+                    );
+                    thumb.style.height = thumbH + 'px';
+                    thumb.style.top = thumbTop + 'px';
+                    // ARIA
+                    const value = Math.round(scrollRatio * 100);
+                    thumb.setAttribute('aria-valuenow', value);
+                }
+
+                // Синхронизация при прокрутке (например, колесо или программно)
+                nav.addEventListener('scroll', updateThumb);
+
+                // Wheel на wrap чтобы контролировать прокрутку (вкл. на мобильных через тач)
+                wrap.addEventListener(
+                    'wheel',
+                    (e) => {
+                        e.preventDefault();
+                        nav.scrollTop += e.deltaY;
+                    },
+                    { passive: false },
+                );
+
+                // Клики по треку
+                scrollbar.addEventListener('mousedown', (e) => {
+                    if (e.target === thumb) return;
+                    const rect = scrollbar.getBoundingClientRect();
+                    const clickY = e.clientY - rect.top;
+                    const thumbH = thumb.offsetHeight;
+                    const targetTop = clickY - thumbH / 2;
+                    const maxTop = rect.height - thumbH;
+                    const clamped = Math.max(0, Math.min(maxTop, targetTop));
+                    const scrollRatio = clamped / maxTop;
+                    nav.scrollTop = scrollRatio * (nav.scrollHeight - nav.clientHeight);
+                });
+
+                // Drag thumb (mouse)
+                thumb.addEventListener('mousedown', (e) => {
+                    dragging = true;
+                    dragOffsetY = e.clientY - thumb.getBoundingClientRect().top;
+                    document.body.classList.add('unselectable');
+                    e.preventDefault();
+                });
+                document.addEventListener('mousemove', (e) => {
+                    if (!dragging) return;
+                    const rect = scrollbar.getBoundingClientRect();
+                    const thumbH = thumb.offsetHeight;
+                    const maxTop = rect.height - thumbH;
+                    const top = e.clientY - rect.top - dragOffsetY;
+                    const clamped = Math.max(0, Math.min(maxTop, top));
+                    const ratio = clamped / maxTop;
+                    nav.scrollTop = ratio * (nav.scrollHeight - nav.clientHeight);
+                });
+                document.addEventListener('mouseup', () => {
+                    if (dragging) {
+                        dragging = false;
+                        document.body.classList.remove('unselectable');
+                    }
+                });
+
+                // Touch support for drag (thumb)
+                thumb.addEventListener(
+                    'touchstart',
+                    (e) => {
+                        dragging = true;
+                        dragOffsetY = e.touches[0].clientY - thumb.getBoundingClientRect().top;
+                        e.preventDefault();
+                    },
+                    { passive: false },
+                );
+                document.addEventListener(
+                    'touchmove',
+                    (e) => {
+                        if (!dragging) return;
+                        const rect = scrollbar.getBoundingClientRect();
+                        const thumbH = thumb.offsetHeight;
+                        const maxTop = rect.height - thumbH;
+                        const top = e.touches[0].clientY - rect.top - dragOffsetY;
+                        const clamped = Math.max(0, Math.min(maxTop, top));
+                        const ratio = clamped / maxTop;
+                        nav.scrollTop = ratio * (nav.scrollHeight - nav.clientHeight);
+                    },
+                    { passive: false },
+                );
+                document.addEventListener('touchend', () => {
+                    dragging = false;
+                });
+
+                // Клавиатура: стрелки, PageUp/Down, Home/End
+                nav.addEventListener('keydown', (e) => {
+                    const step = 40;
+                    if (e.key === 'ArrowDown') {
+                        nav.scrollTop += 40;
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowUp') {
+                        nav.scrollTop -= 40;
+                        e.preventDefault();
+                    } else if (e.key === 'PageDown') {
+                        nav.scrollTop += nav.clientHeight;
+                        e.preventDefault();
+                    } else if (e.key === 'PageUp') {
+                        nav.scrollTop -= nav.clientHeight;
+                        e.preventDefault();
+                    } else if (e.key === 'Home') {
+                        nav.scrollTop = 0;
+                        e.preventDefault();
+                    } else if (e.key === 'End') {
+                        nav.scrollTop = nav.scrollHeight;
+                        e.preventDefault();
+                    }
+                });
+
+                // Обновление при изменении содержимого/размера
+                const ro = new ResizeObserver(updateThumb);
+                ro.observe(nav);
+                ro.observe(wrap);
+                // наблюдаем за изменением контента (например, добавление пунктов)
+                const mo = new MutationObserver(updateThumb);
+                mo.observe(nav, { childList: true, subtree: true, characterData: true });
+
+                // Инициализация
+                window.addEventListener('load', updateThumb);
+                window.addEventListener('resize', updateThumb);
+
+                // Prevent text selection while dragging
+                const style = document.createElement('style');
+                style.textContent = '.unselectable{ user-select:none; -webkit-user-select:none; }';
+                document.head.appendChild(style);
+            })();
+        </script>
+    </body>
+</html>

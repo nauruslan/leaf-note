@@ -33,12 +33,12 @@ class NavigationSidebar extends Component
         $this->section = StateManager::get('section', 'dashboard');
         $this->folderId = StateManager::get('folderId');
         $this->isExpanded = Session::get('sidebar_expanded', false);
+        \Log::info('NavigationSidebar mount: isExpanded = ' . ($this->isExpanded ? 'true' : 'false'), []);
     }
 
     public function updateState(string $section, ?int $folderId): void
     {
-        // Для note оставляем активную вкладку dashboard
-        $this->section = ($section === 'note') ? 'dashboard' : $section;
+        $this->section = $section;
         $this->folderId = $folderId;
     }
 
@@ -194,8 +194,20 @@ class NavigationSidebar extends Component
             return;
         }
 
+        \Log::info('navigateTo: устанавливаем isExpanded = true', []);
         Session::put('sidebar_expanded', true);
         $this->isExpanded = true;
+
+        // Сохраняем позицию скролла перед навигацией
+        $this->js(<<<JS
+            (function() {
+                const instance = window.getXScroll ? window.getXScroll('sidebar-nav') : null;
+                if (instance && instance.content) {
+                    localStorage.setItem('sidebar_scroll_position', instance.content.scrollTop.toString());
+                    console.log('[Sidebar Scroll] === PHP navigateTo - сохраняем === scrollTop:', instance.content.scrollTop);
+                }
+            })();
+        JS);
 
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
 
@@ -204,8 +216,10 @@ class NavigationSidebar extends Component
 
     public function clearSidebarFlag(): void
     {
+        \Log::info('clearSidebarFlag вызван, session до: ' . Session::get('sidebar_expanded', 'null'), []);
         Session::forget('sidebar_expanded');
         $this->isExpanded = false;
+        \Log::info('clearSidebarFlag: isExpanded установлен в false', []);
     }
 
     public function logout()
