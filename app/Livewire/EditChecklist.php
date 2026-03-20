@@ -222,7 +222,15 @@ class EditChecklist extends Component
             return;
         }
 
+        $wasFavorite = $this->is_favorite;
         $this->is_favorite = !$this->is_favorite;
+        
+        // Диспатчим событие для обновления sidebar
+        $this->dispatch('favoriteToggled', 
+            noteId: $this->checklist->id, 
+            isFavorite: $this->is_favorite,
+            wasFavorite: $wasFavorite
+        );
     }
 
     public function render()

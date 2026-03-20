@@ -140,6 +140,13 @@ class CreateChecklistView extends Component
     public function toggleFavorite(): void
     {
         $this->is_favorite = !$this->is_favorite;
+        
+        // Для нового списка ещё нет ID, поэтому диспатчим без noteId
+        $this->dispatch('favoriteToggled', 
+            noteId: null, 
+            isFavorite: $this->is_favorite,
+            wasFavorite: !$this->is_favorite
+        );
     }
 
     public function render()

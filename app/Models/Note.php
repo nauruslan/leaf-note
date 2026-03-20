@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Livewire\NavigationSidebar;
 use App\Models\Archive;
 use App\Models\Folder;
 use App\Models\Safe;
@@ -10,7 +9,6 @@ use App\Models\Trash;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Cache;
 
 class Note extends Model
 {
@@ -36,125 +34,28 @@ class Note extends Model
 
     protected static function booted(): void
     {
-        // Инвалидация кэша при создании заметки в папке
-        static::created(function (Note $note) {
-            if ($note->folder_id) {
-                $note->folder?->clearNotesCountCache();
-            }
-            // Если создана сразу в "корне" (активная)
-            if (!$note->isInTrash() && !$note->isInArchive() && !$note->isInSafe()) {
-                NavigationSidebar::invalidateCountCache('dashboard');
-                if ($note->isChecklist()) {
-                    NavigationSidebar::invalidateCountCache('checklist');
-                }
-                if ($note->isFavorite()) {
-                    NavigationSidebar::invalidateCountCache('favorite');
-                }
-            }
-        });
-
         static::updating(function (Note $note) {
-            // Перемещение В корзину
+            // Move to trash
             if (
                 $note->isDirty('trash_id') &&
                 $note->trash_id &&
                 is_null($note->getOriginal('trash_id'))
             ) {
-
                 $note->moved_to_trash_at = now();
-
-                // Инвалидация кэша старой папки
-                $oldFolderId = $note->getOriginal('folder_id');
-                if ($oldFolderId) {
-                    Cache::forget("folder.{$oldFolderId}.notes_count");
-                }
-
-                // Полная очистка других контейнеров и папки
                 $note->folder_id = null;
                 $note->archive_id = null;
                 $note->safe_id = null;
             }
 
-            // Восстановление ИЗ корзины: перемещаем в архив
+            // Restore from trash
             if (
                 $note->isDirty('trash_id') &&
                 is_null($note->trash_id) &&
                 $note->getOriginal('trash_id')
             ) {
                 $note->moved_to_trash_at = null;
-
-                // Перемещаем в архив пользователя
                 $note->archive_id = $note->user->archive->id;
             }
-
-            // Инвалидация при изменении folder_id
-            if ($note->isDirty('folder_id')) {
-                $oldFolderId = $note->getOriginal('folder_id');
-                if ($oldFolderId) {
-                    Cache::forget("folder.{$oldFolderId}.notes_count");
-                }
-                if ($note->folder_id) {
-                    Cache::forget("folder.{$note->folder_id}.notes_count");
-                }
-            }
-
-            // 1. Инвалидация кэша папки при смене
-            if ($note->isDirty('folder_id')) {
-                $old = $note->getOriginal('folder_id');
-                if ($old) Cache::forget("folder.{$old}.notes_count");
-                if ($note->folder_id) Cache::forget("folder.{$note->folder_id}.notes_count");
-            }
-
-            // 2. Логика перемещения в корзину
-            if ($note->isDirty('trash_id') && $note->trash_id && is_null($note->getOriginal('trash_id'))) {
-                // Заметка уходит из активных разделов
-                NavigationSidebar::invalidateCountCache('dashboard');
-                if ($note->isChecklist()) NavigationSidebar::invalidateCountCache('checklist');
-                if ($note->isFavorite()) NavigationSidebar::invalidateCountCache('favorite');
-                // Появляется в треше
-                NavigationSidebar::invalidateCountCache('trash');
-            }
-
-            // 3. Логика восстановления из корзины
-            if ($note->isDirty('trash_id') && is_null($note->trash_id) && $note->getOriginal('trash_id')) {
-                NavigationSidebar::invalidateCountCache('trash');
-                // Если восстанавливается в архив
-                if ($note->archive_id) {
-                    NavigationSidebar::invalidateCountCache('archive');
-                }
-            }
-
-            // 4. Перемещение в АРХИВ (из активного состояния)
-            if ($note->isDirty('archive_id') && $note->archive_id && is_null($note->getOriginal('archive_id'))) {
-                 NavigationSidebar::invalidateCountCache('dashboard');
-                 if ($note->isChecklist()) NavigationSidebar::invalidateCountCache('checklist');
-                 if ($note->isFavorite()) NavigationSidebar::invalidateCountCache('favorite');
-                 NavigationSidebar::invalidateCountCache('archive');
-            }
-
-            // 5. Перемещение в СЕЙФ
-            if ($note->isDirty('safe_id') && $note->safe_id && is_null($note->getOriginal('safe_id'))) {
-                 NavigationSidebar::invalidateCountCache('dashboard');
-                 if ($note->isChecklist()) NavigationSidebar::invalidateCountCache('checklist');
-                 if ($note->isFavorite()) NavigationSidebar::invalidateCountCache('favorite');
-                 NavigationSidebar::invalidateCountCache('safe');
-            }
-
-            // 6. Изменение избранного
-            if ($note->isDirty('is_favorite')) {
-                // Валидно только для активных заметок
-                if (!$note->isInTrash() && !$note->isInArchive() && !$note->isInSafe()) {
-                    NavigationSidebar::invalidateCountCache('favorite');
-                }
-            }
-        });
-
-        // Инвалидация кэша при удалении заметки
-        static::deleted(function (Note $note) {
-            if ($note->folder_id) {
-                $note->folder?->clearNotesCountCache();
-            }
-            NavigationSidebar::invalidateCountCache();
         });
     }
 
@@ -182,7 +83,6 @@ class Note extends Model
     {
         return $this->belongsTo(Safe::class);
     }
-
 
     public function isNote(): bool
     {
@@ -359,7 +259,6 @@ class Note extends Model
 
         return $this->collectTextFromContent($data['content']);
     }
-
 
     private function collectTextFromContent(array $content): string
     {

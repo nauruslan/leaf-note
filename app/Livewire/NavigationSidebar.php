@@ -7,7 +7,6 @@ use App\Models\Note;
 use App\Services\StateManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -19,49 +18,25 @@ class NavigationSidebar extends Component
     public bool $isExpanded = false;
 
     protected $listeners = [
-        'sidebarScrolled' => 'handleSidebarScrolled',
         'stateUpdated' => 'updateState',
         'folderCreated' => 'refreshFolders',
         'folderDeleted' => 'refreshFolders',
         'noteCreated' => 'refreshFolders',
-        'checklistCreated' => 'refreshFolders',
         'noteDeleted' => 'refreshFolders',
+        'checklistCreated' => 'refreshFolders',
+        'checklistDeleted' => 'refreshFolders',
+        'favoriteToggled' => 'refreshFavoriteCount',
     ];
 
     public function mount(): void
     {
+        if (!Auth::check()) {
+            return;
+        }
+
         $this->section = StateManager::get('section', 'dashboard');
         $this->folderId = StateManager::get('folderId');
         $this->isExpanded = Session::get('sidebar_expanded', false);
-        \Log::info('NavigationSidebar mount: isExpanded = ' . ($this->isExpanded ? 'true' : 'false'), []);
-    }
-
-    public function updateState(string $section, ?int $folderId): void
-    {
-        $this->section = $section;
-        $this->folderId = $folderId;
-    }
-
-    public static function invalidateCountCache(?string $section = null): void
-    {
-        $userId = Auth::id();
-        if (!$userId) return;
-
-        $sections = $section
-            ? [$section]
-            : ['dashboard', 'safe', 'archive', 'checklist', 'favorite', 'trash'];
-
-        foreach ($sections as $key) {
-            Cache::forget("user.{$userId}.counts.{$key}");
-        }
-    }
-
-    public static function invalidateFoldersCache(): void
-    {
-        $userId = Auth::id();
-        if ($userId) {
-            Cache::forget("user.{$userId}.folders.active");
-        }
     }
 
     #[Computed]
@@ -70,15 +45,11 @@ class NavigationSidebar extends Component
         $userId = Auth::id();
         if (!$userId) return 0;
 
-        return Cache::remember(
-            "user.{$userId}.counts.dashboard",
-            now()->addMinutes(30),
-            fn() => Note::where('user_id', $userId)
-                ->whereNull('trash_id')
-                ->whereNull('archive_id')
-                ->whereNull('safe_id')
-                ->count()
-        );
+        return Note::where('user_id', $userId)
+            ->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->count();
     }
 
      #[Computed]
@@ -87,13 +58,9 @@ class NavigationSidebar extends Component
         $userId = Auth::id();
         if (!$userId) return 0;
 
-        return Cache::remember(
-            "user.{$userId}.counts.safe",
-            now()->addMinutes(30),
-            fn() => Note::where('user_id', $userId)
-                ->whereNotNull('safe_id')
-                ->count()
-        );
+        return Note::where('user_id', $userId)
+            ->whereNotNull('safe_id')
+            ->count();
     }
 
     #[Computed]
@@ -102,13 +69,9 @@ class NavigationSidebar extends Component
         $userId = Auth::id();
         if (!$userId) return 0;
 
-        return Cache::remember(
-            "user.{$userId}.counts.archive",
-            now()->addMinutes(30),
-            fn() => Note::where('user_id', $userId)
-                ->whereNotNull('archive_id')
-                ->count()
-        );
+        return Note::where('user_id', $userId)
+            ->whereNotNull('archive_id')
+            ->count();
     }
 
     #[Computed]
@@ -117,16 +80,12 @@ class NavigationSidebar extends Component
         $userId = Auth::id();
         if (!$userId) return 0;
 
-        return Cache::remember(
-            "user.{$userId}.counts.checklist",
-            now()->addMinutes(30),
-            fn() => Note::where('user_id', $userId)
-                ->where('type', Note::TYPE_CHECKLIST)
-                ->whereNull('trash_id')
-                ->whereNull('archive_id')
-                ->whereNull('safe_id')
-                ->count()
-        );
+        return Note::where('user_id', $userId)
+            ->where('type', Note::TYPE_CHECKLIST)
+            ->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->count();
     }
 
     #[Computed]
@@ -135,16 +94,12 @@ class NavigationSidebar extends Component
         $userId = Auth::id();
         if (!$userId) return 0;
 
-        return Cache::remember(
-            "user.{$userId}.counts.favorite",
-            now()->addMinutes(30),
-            fn() => Note::where('user_id', $userId)
-                ->where('is_favorite', true)
-                ->whereNull('trash_id')
-                ->whereNull('archive_id')
-                ->whereNull('safe_id')
-                ->count()
-        );
+        return Note::where('user_id', $userId)
+            ->where('is_favorite', true)
+            ->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->count();
     }
 
     #[Computed]
@@ -153,12 +108,8 @@ class NavigationSidebar extends Component
         $userId = Auth::id();
         if (!$userId) return 0;
 
-        return Cache::remember(
-            "user.{$userId}.counts.trash",
-            now()->addMinutes(30),
-            fn() => Note::where('user_id', $userId)->whereNotNull('trash_id')->count()
-                + Folder::where('user_id', $userId)->whereNotNull('trash_id')->count()
-        );
+        return Note::where('user_id', $userId)->whereNotNull('trash_id')->count()
+            + Folder::where('user_id', $userId)->whereNotNull('trash_id')->count();
     }
 
     #[Computed]
@@ -170,23 +121,17 @@ class NavigationSidebar extends Component
             return collect();
         }
 
-        return Cache::remember(
-            "user.{$userId}.folders.active",
-            now()->addMinutes(30),
-            fn() => Folder::where('user_id', $userId)
-                ->active()
-                ->orderBy('title')
-                ->get()
-        );
+        return Folder::where('user_id', $userId)
+            ->active()
+            ->orderBy('title')
+            ->withCount(['activeNotes as notes_count' => function ($query) {
+                $query->whereNull('trash_id')
+                      ->whereNull('archive_id')
+                      ->whereNull('safe_id');
+            }])
+            ->get();
     }
 
-    public function refreshFolders(): void
-    {
-        $userId = Auth::id();
-        if ($userId) {
-            Cache::forget("user.{$userId}.folders.active");
-        }
-    }
 
     public function navigateTo(string $section, ?int $folderId = null): void
     {
@@ -194,37 +139,40 @@ class NavigationSidebar extends Component
             return;
         }
 
-        \Log::info('navigateTo: устанавливаем isExpanded = true', []);
         Session::put('sidebar_expanded', true);
         $this->isExpanded = true;
-
-        // Сохраняем позицию скролла перед навигацией
-        $this->js(<<<JS
-            (function() {
-                const instance = window.getXScroll ? window.getXScroll('sidebar-nav') : null;
-                if (instance && instance.content) {
-                    localStorage.setItem('sidebar_scroll_position', instance.content.scrollTop.toString());
-                    console.log('[Sidebar Scroll] === PHP navigateTo - сохраняем === scrollTop:', instance.content.scrollTop);
-                }
-            })();
-        JS);
 
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
 
         $this->js('window.scrollTo(0, 0)');
     }
 
+    public function updateState(string $section, ?int $folderId): void
+    {
+        $this->section = $section;
+        $this->folderId = $folderId;
+    }
+
+    public function refreshFolders(): void
+    {
+        $this->dispatch('$refresh');
+    }
+
+
+    public function refreshFavoriteCount(): void
+    {
+        $this->dispatch('$refresh');
+    }
+
+
     public function clearSidebarFlag(): void
     {
-        \Log::info('clearSidebarFlag вызван, session до: ' . Session::get('sidebar_expanded', 'null'), []);
         Session::forget('sidebar_expanded');
         $this->isExpanded = false;
-        \Log::info('clearSidebarFlag: isExpanded установлен в false', []);
     }
 
     public function logout()
     {
-        // Очищаем LocalStorage через JavaScript
         $this->js('localStorage.clear()');
         // $this->js("localStorage.removeItem('sidebar_scroll');
 

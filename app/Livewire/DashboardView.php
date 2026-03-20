@@ -106,9 +106,17 @@ class DashboardView extends Component
         $note = Note::where('user_id', Auth::id())->find($noteId);
 
         if ($note) {
+            $wasFavorite = $note->is_favorite;
             $note->toggleFavorite();
+            
+            // Диспатчим событие для обновления sidebar
+            $this->dispatch('favoriteToggled', 
+                noteId: $note->id, 
+                isFavorite: $note->is_favorite,
+                wasFavorite: $wasFavorite
+            );
+            
             $this->loadNotes();
-            $this->dispatch('noteCreated');
         }
     }
 

@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use App\Livewire\NavigationSidebar;
 use App\Models\Note;
 use App\Models\Trash;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Cache;
 
 class Folder extends Model
 {
@@ -28,6 +26,21 @@ class Folder extends Model
         'white'   => ['label' => 'Белый',    'bg' => 'bg-white',        'border' => 'border-gray-300', 'ring' => 'focus:ring-gray-400',  'hex' => '#ffffff'],
     ];
 
+    public const ICONS = [
+        'folder'      => ['label' => 'Папка',         'icon' => 'folder'],
+        'folder-open' => ['label' => 'Открытая папка','icon' => 'folder-open'],
+        'archive'     => ['label' => 'Архив',         'icon' => 'archive'],
+        'book'        => ['label' => 'Книга',         'icon' => 'book'],
+        'calendar'    => ['label' => 'Календарь',     'icon' => 'calendar'],
+        'clipboard'   => ['label' => 'Буфер обмена',  'icon' => 'clipboard'],
+        'cloud'       => ['label' => 'Облако',        'icon' => 'cloud'],
+        'database'    => ['label' => 'База данных',   'icon' => 'database'],
+        'file'        => ['label' => 'Файл',          'icon' => 'file'],
+        'heart'       => ['label' => 'Сердце',        'icon' => 'heart'],
+        'home'        => ['label' => 'Дом',           'icon' => 'home'],
+        'star'        => ['label' => 'Звезда',        'icon' => 'star'],
+    ];
+
 
     protected $fillable = [
         'title',
@@ -44,18 +57,14 @@ class Folder extends Model
     protected static function booted(): void
     {
         static::updating(function (Folder $folder) {
-            // Перемещение В корзину
+            // Move to trash
             if ($folder->isDirty('trash_id') && $folder->trash_id && is_null($folder->getOriginal('trash_id'))) {
                 $folder->moved_to_trash_at = now();
             }
 
-            // Восстановление ИЗ корзины
+            // Restore from trash
             if ($folder->isDirty('trash_id') && is_null($folder->trash_id) && $folder->getOriginal('trash_id')) {
                 $folder->moved_to_trash_at = null;
-            }
-
-             if ($folder->isDirty('trash_id')) {
-                NavigationSidebar::invalidateCountCache('trash');
             }
         });
 
@@ -66,27 +75,6 @@ class Folder extends Model
                 ->whereNull('safe_id')
                 ->delete();
         });
-
-        // Очистка кэша при удалении папки
-        static::deleted(function (Folder $folder) {
-            $folder->clearNotesCountCache();
-            NavigationSidebar::invalidateCountCache('trash');
-            // Cache::forget("folder.{$folder->id}.notes_count");
-        });
-    }
-
-    public function getNotesCountAttribute(): int
-    {
-        return Cache::remember(
-            "folder.{$this->id}.notes_count",
-            now()->addHours(24),
-            fn() => $this->notes()->count()
-        );
-    }
-
-    public function clearNotesCountCache(): void
-    {
-        Cache::forget("folder.{$this->id}.notes_count");
     }
 
     public function user(): BelongsTo
