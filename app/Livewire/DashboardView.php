@@ -4,35 +4,32 @@ namespace App\Livewire;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use Livewire\WithPagination;
+use Livewire\Attributes\Computed;
+use Livewire\WithoutUrlPagination;
 
 class DashboardView extends Component
 {
-    use WithPagination;
+    use WithoutUrlPagination;
 
     public string $search = '';
     public string $filter = 'all';
     public string $sort = 'updated';
     public int $perPage = 12;
+    public int $page = 1;
 
     protected $listeners = [
         'stateUpdated' => 'updateState',
-        'noteCreated' => 'loadNotes',
-        'noteDeleted' => 'loadNotes',
+        // 'noteCreated' => 'resetPagination',
+        // 'noteDeleted' => 'resetPagination',
     ];
-
-
-    public function mount(): void
-    {
-        $this->loadNotes();
-    }
 
     public function updateState(string $section, ?int $folderId, string $search): void
     {
         // Игнорируем, так как локальный поиск и навигация не влияют на dashboard
     }
 
-    public function loadNotes()
+    #[Computed]
+    public function notes()
     {
         $query = Note::where('user_id', Auth::id())
             ->whereNull('trash_id')
@@ -68,27 +65,49 @@ class DashboardView extends Component
         }
 
         // Пагинация
-        return $query->paginate($this->perPage);
+        return $query->paginate($this->perPage, ['*'], 'page', $this->page);
+    }
+
+    public function gotoPage($page)
+    {
+        $this->page = $page;
+    }
+
+    public function nextPage()
+    {
+        $this->page++;
+    }
+
+    public function previousPage()
+    {
+        if ($this->page > 1) {
+            $this->page--;
+        }
+    }
+
+    public function resetPagination()
+    {
+        $this->page = 1;
     }
 
     public function updatedFilter()
     {
-        $this->resetPage();
+        $this->resetPagination();
     }
 
     public function updatedSort()
     {
-        $this->resetPage();
+        $this->resetPagination();
     }
 
     public function updatedPerPage()
     {
-        $this->resetPage();
+        $this->resetPagination();
     }
 
     public function updatedSearch()
     {
-        $this->resetPage();
+        $this->resetPagination();
     }
 
     public function createNote()
@@ -108,15 +127,13 @@ class DashboardView extends Component
         if ($note) {
             $wasFavorite = $note->is_favorite;
             $note->toggleFavorite();
-            
+
             // Диспатчим событие для обновления sidebar
-            $this->dispatch('favoriteToggled', 
-                noteId: $note->id, 
+            $this->dispatch('favoriteToggled',
+                noteId: $note->id,
                 isFavorite: $note->is_favorite,
                 wasFavorite: $wasFavorite
             );
-            
-            $this->loadNotes();
         }
     }
 
@@ -128,6 +145,22 @@ class DashboardView extends Component
     public function openChecklist($noteId)
     {
         $this->dispatch('navigateTo', section: 'edit-checklist', folderId: $noteId);
+    }
+
+
+    public function getChecklistProgress($noteId): array
+    {
+        $note = Note::where('user_id', Auth::id())->find($noteId);
+
+        if (!$note || !$note->isChecklist()) {
+            return [
+                'completed' => 0,
+                'total' => 0,
+                'percentage' => 0,
+            ];
+        }
+
+        return $note->getChecklistProgress();
     }
 
     public function createFolder($noteId)
@@ -145,24 +178,8 @@ class DashboardView extends Component
         }
     }
 
-    public function getChecklistProgress($noteId): array
-    {
-        $note = Note::where('user_id', Auth::id())->find($noteId);
-
-        if (!$note || !$note->isChecklist()) {
-            return [
-                'completed' => 0,
-                'total' => 0,
-                'percentage' => 0,
-            ];
-        }
-
-        return $note->getChecklistProgress();
-    }
-
     public function render()
     {
-        $notes = $this->loadNotes();
-        return view('livewire.dashboard', ['notes' => $notes]);
+        return view('livewire.dashboard');
     }
 }

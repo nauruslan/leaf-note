@@ -73,7 +73,7 @@
 
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap gap-5">
-        @forelse($notes as $note)
+        @forelse($this->notes as $note)
             <x-card :note="$note" />
         @empty
             <!-- Состояние: нет заметок -->
@@ -95,9 +95,9 @@
         @endforelse
     </div>
 
-    @if ($notes->hasPages())
+    @if ($this->notes->hasPages())
         <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-            {{ $notes->links('livewire.pagination') }}
+            {{ $this->notes->links('livewire.pagination') }}
         </div>
     @endif
 </div>

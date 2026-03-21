@@ -182,8 +182,6 @@ class NavigationSidebar extends Component
 
     public function render()
     {
-        return view('livewire.navigation-sidebar', [
-            'folders' => $this->folders,
-        ]);
+        return view('livewire.navigation-sidebar');
     }
 }

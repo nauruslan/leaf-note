@@ -1,7 +1,6 @@
 <?php
 namespace App\Livewire;
 
-use App\Livewire\NavigationSidebar;
 use App\Models\Folder;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;

@@ -146,7 +146,7 @@
                     class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
                     Папки</h4>
                 <ul class="mt-1 space-y-1">
-                    @foreach ($folders as $folder)
+                    @foreach ($this->folders as $folder)
                         <li wire:key="folder-{{ $folder->id }}">
                             <a href="#" wire:click.prevent="navigateTo('folder', {{ $folder->id }})"
                                 class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700transition-all group/item {{ $section === 'folder' && $folderId == $folder->id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">

@@ -10,7 +10,12 @@
 @import './star.css';
 @import './toggle.css';
 @import './dropdown.css';
+@import './scroll-browser.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+    background-color: #f5f4ff;
+}
