@@ -2,7 +2,6 @@
 namespace App\Livewire;
 
 use App\Models\Folder;
-use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -13,20 +12,25 @@ class EditFolder extends Component
     public string $title = '';
     public string $color = 'white';
     public string $icon='folder';
-
-    public ?Folder $folder = null;
     public bool $confirmingDeletion = false;
 
-    public function mount(): void
+    private ?Folder $folder = null;
+
+    public function mount(?int $folderId = null)
     {
-        $this->folderId= StateManager::get('folderId');
+        $this->folderId = $folderId;
+
         if ($this->folderId) {
-            $this->folder = Folder::where('user_id', Auth::id())->find($this->folderId);
-            if ($this->folder) {
-                $this->title = $this->folder->title;
-                $this->color = $this->folder->color;
-                $this->icon = $this->folder->icon;
-            }
+            $this->folder = Folder::where('user_id', Auth::id())
+                ->where('id', $this->folderId)
+                ->active()
+                ->first();
+        }
+
+        if ($this->folder) {
+            $this->title = $this->folder->title;
+            $this->color = $this->folder->color;
+            $this->icon = $this->folder->icon;
         }
     }
 
@@ -84,7 +88,6 @@ class EditFolder extends Component
                 $folder->icon = $this->icon;
                 $folder->user_id = Auth::id();
                 $folder->save();
-                $this->folder = $folder;
                 $message = 'Папка успешно создана';
             }
 
@@ -141,6 +144,6 @@ class EditFolder extends Component
 
     public function render()
     {
-        return view('livewire.edit-folder',['folder'=>$this->folder]);
+        return view('livewire.edit-folder');
     }
 }

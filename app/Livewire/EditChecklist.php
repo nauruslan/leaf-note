@@ -111,7 +111,7 @@ class EditChecklist extends Component
     public function cancel(): void
     {
         $this->js('localStorage.clear()');
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', 'dashboard', null, false);
     }
 
     public function confirmDelete(): void
@@ -224,10 +224,10 @@ class EditChecklist extends Component
 
         $wasFavorite = $this->is_favorite;
         $this->is_favorite = !$this->is_favorite;
-        
+
         // Диспатчим событие для обновления sidebar
-        $this->dispatch('favoriteToggled', 
-            noteId: $this->checklist->id, 
+        $this->dispatch('favoriteToggled',
+            noteId: $this->checklist->id,
             isFavorite: $this->is_favorite,
             wasFavorite: $wasFavorite
         );

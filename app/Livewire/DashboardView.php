@@ -23,11 +23,6 @@ class DashboardView extends Component
         // 'noteDeleted' => 'resetPagination',
     ];
 
-    public function updateState(string $section, ?int $folderId, string $search): void
-    {
-        // Игнорируем, так как локальный поиск и навигация не влияют на dashboard
-    }
-
     #[Computed]
     public function notes()
     {
@@ -163,19 +158,14 @@ class DashboardView extends Component
         return $note->getChecklistProgress();
     }
 
-    public function createFolder($noteId)
+    public function openFolder($folderId)
     {
-        $note = Note::where('user_id', Auth::id())->find($noteId);
-
-        if (!$note) {
+        if (!$folderId) {
             return;
         }
 
-        if ($note->folder) {
-            $this->dispatch('navigateTo', section: 'folder', folderId: $note->folder->id);
-        } else {
-            // Если папки нет, можно перенаправить на создание папки или ничего не делать
-        }
+        $this->dispatch('stateUpdated', section: 'folder', folderId: $folderId);
+        $this->dispatch('navigateTo', section: 'folder', folderId: $folderId);
     }
 
     public function render()

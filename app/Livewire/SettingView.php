@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Services\StateManager;
 use Livewire\Component;
 
 class SettingView extends Component

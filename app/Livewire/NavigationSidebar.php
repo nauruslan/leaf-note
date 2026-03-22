@@ -18,7 +18,6 @@ class NavigationSidebar extends Component
     public bool $isExpanded = false;
 
     protected $listeners = [
-        'stateUpdated' => 'updateState',
         'folderCreated' => 'refreshFolders',
         'folderDeleted' => 'refreshFolders',
         'noteCreated' => 'refreshFolders',
@@ -26,6 +25,7 @@ class NavigationSidebar extends Component
         'checklistCreated' => 'refreshFolders',
         'checklistDeleted' => 'refreshFolders',
         'favoriteToggled' => 'refreshFavoriteCount',
+        'stateUpdated' => 'updateState'
     ];
 
     public function mount(): void
@@ -35,7 +35,7 @@ class NavigationSidebar extends Component
         }
 
         $this->section = StateManager::get('section', 'dashboard');
-        $this->folderId = StateManager::get('folderId');
+        $this->folderId = StateManager::get('folderId', null);
         $this->isExpanded = Session::get('sidebar_expanded', false);
     }
 
@@ -133,21 +133,24 @@ class NavigationSidebar extends Component
     }
 
 
-    public function navigateTo(string $section, ?int $folderId = null): void
+    public function goTo(string $section, ?int $folderId = null, $isExpanded = true): void
     {
         if ($this->section === $section && $this->folderId === $folderId) {
             return;
         }
 
-        Session::put('sidebar_expanded', true);
-        $this->isExpanded = true;
+        $this->section = $section;
+        $this->folderId = $folderId;
+
+        Session::put('sidebar_expanded', $isExpanded);
+        $this->isExpanded = $isExpanded;
 
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
 
         $this->js('window.scrollTo(0, 0)');
     }
 
-    public function updateState(string $section, ?int $folderId): void
+    public function updateState(string $section, ?int $folderId = null): void
     {
         $this->section = $section;
         $this->folderId = $folderId;

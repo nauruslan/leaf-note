@@ -2,8 +2,8 @@
 namespace App\Livewire;
 
 use App\Models\Folder;
-use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 
@@ -14,8 +14,6 @@ class FolderView extends Component
     public ?int $folderId = null;
     public bool $confirmingDeletion = false;
 
-    protected ?Folder $folder = null;
-
     protected $listeners = [
         'stateUpdated' => 'updateState',
         'noteAdded'   => 'refreshCurrentFolder',
@@ -23,31 +21,22 @@ class FolderView extends Component
         'closeModal'  => 'closeModal',
     ];
 
-    public function mount(): void
+    #[Computed]
+    public function folder(): ?Folder
     {
-        $this->search   = StateManager::get('search', '');
-        $this->folderId = StateManager::get('folderId');
+        $userId = Auth::id();
+
+        return Folder::where('user_id', $userId)
+            ->where('id', $this->folderId)
+            ->active()
+            ->first();
     }
 
-    public function updateState(string $section, ?int $folderId, string $search): void
+    public function updateState(string $section, ?int $folderId): void
     {
         $this->section  = $section;
         $this->folderId = $folderId;
-        $this->search   = $search;
 
-        $this->loadCurrentFolder();
-    }
-
-    private function loadCurrentFolder(): void
-    {
-        $this->folder = $this->folderId
-            ? Folder::where('user_id', Auth::id())->find($this->folderId)
-            : null;
-    }
-
-    public function refreshCurrentFolder(): void
-    {
-        $this->loadCurrentFolder();
     }
 
     public function confirmDeletion(): void
@@ -90,7 +79,6 @@ class FolderView extends Component
 
     public function openEditFolder($id): void
     {
-        $this->loadCurrentFolder(); // убедимся, что папка загружена
         if (!$this->folder) {
             return;
         }
@@ -100,9 +88,6 @@ class FolderView extends Component
 
     public function render()
     {
-        $this->loadCurrentFolder();
-        return view('livewire.folder', [
-            'folder' => $this->folder,
-        ]);
+        return view('livewire.folder');
     }
 }

@@ -52,9 +52,6 @@ class CreateFolderView extends Component
             $folder->user_id = Auth::id();
             $folder->save();
 
-            // Очистка кэша папок в навигационной панели
-            NavigationSidebar::invalidateFoldersCache();
-
             $this->reset(['title', 'color', 'icon']);
             $this->title = '';
             $this->color = 'white';

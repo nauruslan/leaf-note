@@ -12,7 +12,6 @@
 </head>
 
 <body class="bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
-    <livewire:app-state />
     <livewire:layouts.app-layout />
     @livewireScripts
 </body>

@@ -14,16 +14,6 @@ class TrashView extends Component
         'stateUpdated' => 'updateState'
     ];
 
-    public function mount(): void
-    {
-        $this->search = StateManager::get('search', '');
-    }
-
-    public function updateState(string $section, ?int $folderId, string $search): void
-    {
-
-        $this->search = $search;
-    }
 
     public function render()
     {

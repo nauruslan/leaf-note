@@ -22,7 +22,7 @@
                     Основное меню</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('dashboard')"
+                        <a href="#" wire:click.prevent="goTo('dashboard')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'dashboard' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="layout-grid" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -35,7 +35,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('checklist')"
+                        <a href="#" wire:click.prevent="goTo('checklist')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'checklist' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="clipboard-list" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -48,7 +48,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('favorite')"
+                        <a href="#" wire:click.prevent="goTo('favorite')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'favorite' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="star" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -60,7 +60,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('safe')"
+                        <a href="#" wire:click.prevent="goTo('safe')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'safe' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="lock" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -72,7 +72,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('archive')"
+                        <a href="#" wire:click.prevent="goTo('archive')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'archive' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="package" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -84,7 +84,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('trash')"
+                        <a href="#" wire:click.prevent="goTo('trash')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'trash' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="trash" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -108,7 +108,7 @@
                     Действия</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('create-note')"
+                        <a href="#" wire:click.prevent="goTo('create-note')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-note' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="file-plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -117,7 +117,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('create-checklist')"
+                        <a href="#" wire:click.prevent="goTo('create-checklist')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-checklist' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="list-plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -126,7 +126,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('create-folder')"
+                        <a href="#" wire:click.prevent="goTo('create-folder')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-folder' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="folder-plus" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -148,7 +148,7 @@
                 <ul class="mt-1 space-y-1">
                     @foreach ($this->folders as $folder)
                         <li wire:key="folder-{{ $folder->id }}">
-                            <a href="#" wire:click.prevent="navigateTo('folder', {{ $folder->id }})"
+                            <a href="#" wire:click.prevent="goTo('folder', {{ $folder->id }})"
                                 class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700transition-all group/item {{ $section === 'folder' && $folderId == $folder->id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                                 <i data-lucide="{{ $folder->icon }}" class="w-6 h-6 flex-shrink-0 "></i>
                                 <span
@@ -176,7 +176,7 @@
                     Аккаунт</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('profile')"
+                        <a href="#" wire:click.prevent="goTo('profile')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'profile' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="user" class="w-6 h-6 flex-shrink-0"></i>
                             <span
@@ -184,7 +184,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="navigateTo('setting')"
+                        <a href="#" wire:click.prevent="goTo('setting')"
                             class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'setting' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
                             <i data-lucide="settings" class="w-6 h-6 flex-shrink-0"></i>
                             <span

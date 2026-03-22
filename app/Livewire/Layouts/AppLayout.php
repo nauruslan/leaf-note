@@ -9,26 +9,21 @@ class AppLayout extends Component
 {
     public string $section = 'dashboard';
     public ?int $folderId = null;
-    public string $search = '';
     public int $componentKey = 0;
 
 
     protected $listeners = [
-        'stateUpdated' => 'updateState'
+        'navigateTo' => 'handleNavigateTo'
     ];
 
-    public function mount(): void
+    public function handleNavigateTo(string $section, ?int $folderId=null): void
     {
-        $this->section = StateManager::get('section') ?: 'dashboard';
-        $this->folderId = StateManager::get('folderId');
-        $this->search = StateManager::get('search', '');
-    }
 
-    public function updateState(string $section, ?int $folderId, string $search): void
-    {
-        $this->section  = $section;
+        StateManager::set('section', $section);
+        StateManager::set('folderId', $folderId);
+
+        $this->section = $section;
         $this->folderId = $folderId;
-        $this->search   = $search;
         $this->componentKey++;
     }
 

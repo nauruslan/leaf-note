@@ -34,7 +34,7 @@
     </div>
 
     <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
-        <button wire:click="createFolder({{ $note->id }})"
+        <button wire:click="openFolder({{ $note->folder_id }})"
             class="bg-white border border-gray-300 hover:700 font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
             <i data-lucide="{{ $note->folder ? $note->folder->icon : '' }}" class="w-4 h-4"></i>
             {{ $note->folder ? $note->folder->title : 'Без папки' }}

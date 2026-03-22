@@ -6,11 +6,11 @@
                 <div>
                     <h1
                         class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        {{ $folder->title }}
+                        {{ $this->folder->title }}
                     </h1>
                     <div class="flex items-center gap-3 mt-1">
                         <button class="text-gray-500 hover:text-indigo-600 focus:outline-none" title="Редактировать папку"
-                            wire:click="openEditFolder({{ $folder->id }})">
+                            wire:click="openEditFolder({{ $this->folder->id }})">
                             Редактировать
                         </button>|
                         <button class="text-gray-500 hover:text-red-600 focus:outline-none" title="Удалить папку"
