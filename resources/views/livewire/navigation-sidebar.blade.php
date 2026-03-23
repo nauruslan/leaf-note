@@ -1,6 +1,6 @@
 <!-- Боковое меню NavigationSidebar -->
 <aside id="navigation-sidebar"
-    class="group fixed left-0 top-0 h-full z-[9999] flex flex-col bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out {{ $isExpanded ? 'w-64' : 'hover:w-64 w-[72px]' }} overflow-hidden"
+    class="group fixed left-0 top-0 h-full z-[9999] flex flex-col bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out {{ $isExpanded ? 'w-64' : 'w-[72px]' }} hover:w-64 overflow-hidden"
     role="navigation" aria-label="Основное меню">
     <!-- Логотип -->
     <div class="flex items-center h-16 border-b border-gray-200 px-4 shrink-0">
@@ -117,12 +117,19 @@
         </ul>
     </nav>
 </aside>
-
 @script
     <script>
         let collapseTimer = null;
         const sidebar = document.getElementById('navigation-sidebar');
         let isHovered = false;
+        let isNavigating = false;
+
+        function clearAllTimers() {
+            if (collapseTimer) {
+                clearTimeout(collapseTimer);
+                collapseTimer = null;
+            }
+        }
 
         function updateExpandedAttribute() {
             if (sidebar) {
@@ -132,35 +139,94 @@
             }
         }
 
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                    updateExpandedAttribute();
-                }
-            });
-        });
-
         if (sidebar) {
-            observer.observe(sidebar, {
-                attributes: true
-            });
             updateExpandedAttribute();
         }
 
         sidebar?.addEventListener('mouseenter', () => {
             isHovered = true;
-            if (collapseTimer) clearTimeout(collapseTimer);
+            clearAllTimers();
             updateExpandedAttribute();
+            // Если панель свёрнута через DOM (без Livewire) - показываем элементы
+            const currentSidebar = document.getElementById('navigation-sidebar');
+            if (currentSidebar && currentSidebar.classList.contains('w-[72px]')) {
+                expandSidebarDOM();
+            }
         });
         sidebar?.addEventListener('mouseleave', () => {
             isHovered = false;
-            if (collapseTimer) clearTimeout(collapseTimer);
+            clearAllTimers();
             updateExpandedAttribute();
             collapseTimer = setTimeout(() => {
-                $wire.clearSidebarFlag();
-            }, 200);
+                if (isNavigating) {
+                    return;
+                }
+
+                const currentSidebar = document.getElementById('navigation-sidebar');
+                if (!currentSidebar || !document.contains(currentSidebar)) {
+                    return;
+                }
+
+                try {
+                    $wire.clearSidebarFlag();
+                } catch (e) {}
+            }, 150);
         });
 
+        $wire.on('navigateTo', () => {
+            isNavigating = true;
+            clearAllTimers();
+            // После навигации сворачиваем через DOM
+            setTimeout(() => {
+                isNavigating = false;
+                if (!isHovered) {
+                    collapseSidebarDOM();
+                }
+            }, 250);
+        });
+
+        function collapseSidebarDOM() {
+            const currentSidebar = document.getElementById('navigation-sidebar');
+            const sidebarNav = document.getElementById('sidebar-nav');
+
+            if (currentSidebar && document.contains(currentSidebar)) {
+                currentSidebar.classList.remove('w-64');
+                currentSidebar.classList.add('w-[72px]');
+                currentSidebar.setAttribute('data-expanded', 'false');
+
+                if (sidebarNav && document.contains(sidebarNav)) {
+                    sidebarNav.classList.remove('overflow-y-auto');
+                    sidebarNav.classList.add('overflow-hidden');
+                }
+
+                currentSidebar.querySelectorAll('.opacity-100').forEach(el => {
+                    el.classList.remove('opacity-100');
+                    el.classList.add('opacity-0');
+                });
+            }
+        }
+
+        function expandSidebarDOM() {
+            const currentSidebar = document.getElementById('navigation-sidebar');
+            const sidebarNav = document.getElementById('sidebar-nav');
+
+            if (currentSidebar && document.contains(currentSidebar)) {
+                currentSidebar.classList.remove('w-[72px]');
+                currentSidebar.classList.add('w-64');
+                currentSidebar.setAttribute('data-expanded', 'true');
+
+                if (sidebarNav && document.contains(sidebarNav)) {
+                    sidebarNav.classList.remove('overflow-hidden');
+                    sidebarNav.classList.add('overflow-y-auto');
+                }
+
+                currentSidebar.querySelectorAll('.opacity-0').forEach(el => {
+                    el.classList.remove('opacity-0');
+                    el.classList.add('opacity-100');
+                });
+            }
+        }
+        document.addEventListener('beforeunload', clearAllTimers);
         let scrollTimeout;
         const STORAGE_KEY = 'sidebar_scroll';
 
@@ -177,7 +243,7 @@
         function scrollToActiveItem() {
             const nav = document.getElementById('sidebar-nav');
             if (!nav) {
-                setTimeout(scrollToActiveItem, 100);
+                setTimeout(scrollToActiveItem, 50);
                 return;
             }
 
@@ -195,20 +261,26 @@
             });
         }
 
+        $wire.on('scrollToActiveItem', () => {
+            setTimeout(scrollToActiveItem, 500);
+        });
+
         function setupScrollListenerAndRestore() {
             const nav = document.getElementById('sidebar-nav');
             if (!nav) {
-                setTimeout(setupScrollListenerAndRestore, 100);
+                setTimeout(setupScrollListenerAndRestore, 50);
                 return;
             }
             const savedScroll = localStorage.getItem(STORAGE_KEY);
             if (savedScroll !== null) {
-                nav.scrollTop = parseInt(savedScroll, 10);
+                requestAnimationFrame(() => {
+                    nav.scrollTop = parseInt(savedScroll, 10);
+                });
             }
             nav.removeEventListener('scroll', handleScroll);
             nav.addEventListener('scroll', handleScroll);
 
-            setTimeout(scrollToActiveItem, 100);
+            setTimeout(scrollToActiveItem, 200);
         }
 
         setupScrollListenerAndRestore();

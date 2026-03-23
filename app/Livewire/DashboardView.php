@@ -18,7 +18,6 @@ class DashboardView extends Component
     public int $page = 1;
 
     protected $listeners = [
-        'stateUpdated' => 'updateState',
         // 'noteCreated' => 'resetPagination',
         // 'noteDeleted' => 'resetPagination',
     ];
@@ -44,9 +43,10 @@ class DashboardView extends Component
             $words = preg_split('/\s+/', trim($this->search));
             $query->where(function ($q) use ($words) {
                 foreach ($words as $word) {
-                    $q->where(function ($sub) use ($word) {
-                        $sub->where('title', 'LIKE', '%' . $word . '%')
-                            ->orWhere('payload', 'LIKE', '%' . $word . '%');
+                    $lowerWord = mb_strtolower($word);
+                    $q->where(function ($sub) use ($lowerWord) {
+                        $sub->whereRaw('LOWER(title) LIKE ?', ['%' . $lowerWord . '%'])
+                        ->orWhereRaw('LOWER(payload) LIKE ?', ['%' . $lowerWord . '%']);
                     });
                 }
             });
@@ -120,15 +120,15 @@ class DashboardView extends Component
         $note = Note::where('user_id', Auth::id())->find($noteId);
 
         if ($note) {
-            $wasFavorite = $note->is_favorite;
+            // $wasFavorit = $note->is_favorite;
             $note->toggleFavorite();
 
-            // Диспатчим событие для обновления sidebar
-            $this->dispatch('favoriteToggled',
-                noteId: $note->id,
-                isFavorite: $note->is_favorite,
-                wasFavorite: $wasFavorite
-            );
+            $this->dispatch('favoriteToggled');
+            // $this->dispatch('favoriteToggled',
+            //     noteId: $note->id,
+            //     isFavorite: $note->is_favorite,
+            //     wasFavorite: $wasFavorite
+            // );
         }
     }
 
