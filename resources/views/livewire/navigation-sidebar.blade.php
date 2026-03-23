@@ -22,78 +22,28 @@
                     Основное меню</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
-                        <a href="#" wire:click.prevent="goTo('dashboard')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'dashboard' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="layout-grid" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Главная
-                                доска</span>
-                            <span
-                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                {{ $this->dashboardCount }}
-                            </span>
-                        </a>
+                        <x-sidebar-item icon="layout-grid" label="Главная доска" wireClick="goTo('dashboard')"
+                            :active="$section === 'dashboard'" :count="$this->noteCounts->dashboardCount" :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="goTo('checklist')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'checklist' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="clipboard-list" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Списки
-                                задач</span>
-                            <span
-                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                {{ $this->checklistCount }}
-                            </span>
-                        </a>
+                        <x-sidebar-item icon="clipboard-list" label="Списки задач" wireClick="goTo('checklist')"
+                            :active="$section === 'checklist'" :count="$this->noteCounts->checklistCount" :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="goTo('favorite')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700  transition-all group/item {{ $section === 'favorite' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="star" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Избранное</span>
-                            <span
-                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                {{ $this->favoriteCount }}
-                            </span>
-                        </a>
+                        <x-sidebar-item icon="star" label="Избранное" wireClick="goTo('favorite')" :active="$section === 'favorite'"
+                            :count="$this->noteCounts->favoriteCount" :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="goTo('safe')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'safe' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="lock" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Сейф</span>
-                            <span
-                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                {{ $this->safeCount }}
-                            </span>
-                        </a>
+                        <x-sidebar-item icon="lock" label="Сейф" wireClick="goTo('safe')" :active="$section === 'safe'"
+                            :count="$this->noteCounts->safeCount" :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="goTo('archive')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'archive' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="package" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Архив</span>
-                            <span
-                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                {{ $this->archiveCount }}
-                            </span>
-                        </a>
+                        <x-sidebar-item icon="package" label="Архив" wireClick="goTo('archive')" :active="$section === 'archive'"
+                            :count="$this->noteCounts->archiveCount" :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="goTo('trash')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'trash' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="trash" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Корзина</span>
-                            <span
-                                class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                {{ $this->trashCount }}
-                            </span>
-                        </a>
+                        <x-sidebar-item icon="trash" label="Корзина" wireClick="goTo('trash')" :active="$section === 'trash'"
+                            :count="$this->trashCount" :isExpanded="$isExpanded" />
                     </li>
                 </ul>
             </li>
@@ -108,31 +58,16 @@
                     Действия</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
-                        <a href="#" wire:click.prevent="goTo('create-note')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-note' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="file-plus" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
-                                заметку</span>
-                        </a>
+                        <x-sidebar-item icon="file-plus" label="Создать заметку" wireClick="goTo('create-note')"
+                            :active="$section === 'create-note'" :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="goTo('create-checklist')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-checklist' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="list-plus" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
-                                список</span>
-                        </a>
+                        <x-sidebar-item icon="list-plus" label="Создать список" wireClick="goTo('create-checklist')"
+                            :active="$section === 'create-checklist'" :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="goTo('create-folder')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'create-folder' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="folder-plus" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Создать
-                                папку</span>
-                        </a>
+                        <x-sidebar-item icon="folder-plus" label="Создать папку" wireClick="goTo('create-folder')"
+                            :active="$section === 'create-folder'" :isExpanded="$isExpanded" />
                     </li>
                 </ul>
             </li>
@@ -148,19 +83,9 @@
                 <ul class="mt-1 space-y-1">
                     @foreach ($this->folders as $folder)
                         <li wire:key="folder-{{ $folder->id }}">
-                            <a href="#" wire:click.prevent="goTo('folder', {{ $folder->id }})"
-                                class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700transition-all group/item {{ $section === 'folder' && $folderId == $folder->id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                                <i data-lucide="{{ $folder->icon }}" class="w-6 h-6 flex-shrink-0 "></i>
-                                <span
-                                    class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
-                                    {{ $folder->title }}
-                                </span>
-                                <span
-                                    class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-                                    {{ $folder->notes_count }}
-                                </span>
-
-                            </a>
+                            <x-sidebar-item icon="{{ $folder->icon }}" label="{{ $folder->title }}"
+                                wireClick="goTo('folder', {{ $folder->id }})" :active="$section === 'folder' && $folderId == $folder->id" :count="$folder->notes_count"
+                                :isExpanded="$isExpanded" />
                         </li>
                     @endforeach
                 </ul>
@@ -176,28 +101,16 @@
                     Аккаунт</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
-                        <a href="#" wire:click.prevent="goTo('profile')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'profile' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="user" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Профиль</span>
-                        </a>
+                        <x-sidebar-item icon="user" label="Профиль" wireClick="goTo('profile')" :active="$section === 'profile'"
+                            :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="goTo('setting')"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'setting' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="settings" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Настройки</span>
-                        </a>
+                        <x-sidebar-item icon="settings" label="Настройки" wireClick="goTo('setting')" :active="$section === 'setting'"
+                            :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <a href="#" wire:click.prevent="logout"
-                            class="flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item {{ $section === 'logout' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'hover:bg-gray-100 hover:text-indigo-600' }}">
-                            <i data-lucide="log-out" class="w-6 h-6 flex-shrink-0"></i>
-                            <span
-                                class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">Выйти</span>
-                        </a>
+                        <x-sidebar-item icon="log-out" label="Выйти" wireClick="logout" :active="$section === 'logout'"
+                            :isExpanded="$isExpanded" />
                     </li>
                 </ul>
             </li>
@@ -245,7 +158,7 @@
             updateExpandedAttribute();
             collapseTimer = setTimeout(() => {
                 $wire.clearSidebarFlag();
-            }, 150);
+            }, 200);
         });
 
         let scrollTimeout;
@@ -264,7 +177,7 @@
         function scrollToActiveItem() {
             const nav = document.getElementById('sidebar-nav');
             if (!nav) {
-                setTimeout(scrollToActiveItem, 50);
+                setTimeout(scrollToActiveItem, 100);
                 return;
             }
 
@@ -282,26 +195,20 @@
             });
         }
 
-        $wire.on('scrollToActiveItem', () => {
-            setTimeout(scrollToActiveItem, 500);
-        });
-
         function setupScrollListenerAndRestore() {
             const nav = document.getElementById('sidebar-nav');
             if (!nav) {
-                setTimeout(setupScrollListenerAndRestore, 50);
+                setTimeout(setupScrollListenerAndRestore, 100);
                 return;
             }
             const savedScroll = localStorage.getItem(STORAGE_KEY);
             if (savedScroll !== null) {
-                requestAnimationFrame(() => {
-                    nav.scrollTop = parseInt(savedScroll, 10);
-                });
+                nav.scrollTop = parseInt(savedScroll, 10);
             }
             nav.removeEventListener('scroll', handleScroll);
             nav.addEventListener('scroll', handleScroll);
 
-            setTimeout(scrollToActiveItem, 200);
+            setTimeout(scrollToActiveItem, 100);
         }
 
         setupScrollListenerAndRestore();

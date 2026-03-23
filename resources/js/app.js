@@ -10,6 +10,10 @@ import './search';
 
 import { createIcons, icons } from 'lucide';
 
+// document.addEventListener('DOMContentLoaded', () => {
+//     createIcons({ icons });
+// });
+
 function initLucide(root = document) {
     const iconsToReplace = root.querySelectorAll('i[data-lucide]');
     if (iconsToReplace.length === 0) return;
