@@ -18,13 +18,14 @@ class NavigationSidebar extends Component
     public bool $isExpanded = false;
 
     protected $listeners = [
-        'folderCreated' => 'refreshSidebar',
-        'folderDeleted' => 'refreshSidebar',
-        'noteCreated' => 'refreshSidebar',
-        'noteDeleted' => 'refreshSidebar',
-        'checklistCreated' => 'refreshSidebar',
-        'checklistDeleted' => 'refreshSidebar',
-        'favoriteToggled' => 'refreshSidebar',
+        // 'folderCreated' => 'refreshSidebar',
+        // 'folderDeleted' => 'refreshSidebar',
+        // 'noteCreated' => 'refreshSidebar',
+        // 'noteDeleted' => 'refreshSidebar',
+        // 'checklistCreated' => 'refreshSidebar',
+        // 'checklistDeleted' => 'refreshSidebar',
+        // 'favoriteToggled' => 'refreshSidebar',
+        'refreshSidebar' => 'refreshSidebar',
         'stateUpdated' => 'updateState'
     ];
 
@@ -40,11 +41,16 @@ class NavigationSidebar extends Component
     }
 
     #[Computed]
+    public function userId(): ?int
+    {
+        return Auth::id();
+    }
+
+    #[Computed]
     public function noteCounts(): object
     {
-        $userId = Auth::id();
 
-        if (!$userId) {
+        if (!$this->userId) {
             return (object) [
                 'dashboard' => 0,
                 'safe' => 0,
@@ -54,13 +60,13 @@ class NavigationSidebar extends Component
             ];
         }
 
-        $counts = Note::where('user_id', $userId)
+        $counts = Note::where('user_id', $this->userId)
             ->selectRaw("
-                COUNT(CASE WHEN trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as dashboardCount,
-                COUNT(CASE WHEN safe_id IS NOT NULL THEN 1 END) as safeCount,
-                COUNT(CASE WHEN archive_id IS NOT NULL THEN 1 END) as archiveCount,
-                COUNT(CASE WHEN type = ? AND trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as checklistCount,
-                COUNT(CASE WHEN is_favorite = 1 AND trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as favoriteCount
+                COUNT(CASE WHEN trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as dashboard,
+                COUNT(CASE WHEN safe_id IS NOT NULL THEN 1 END) as safe,
+                COUNT(CASE WHEN archive_id IS NOT NULL THEN 1 END) as archive,
+                COUNT(CASE WHEN type = ? AND trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as checklist,
+                COUNT(CASE WHEN is_favorite = 1 AND trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as favorite
             ", [Note::TYPE_CHECKLIST])
             ->first();
 
@@ -70,30 +76,30 @@ class NavigationSidebar extends Component
     #[Computed]
     public function trashCount(): int
     {
-        $userId = Auth::id();
-        if (!$userId) return 0;
+        if (!$this->userId) {
+            return 0;
+        }
 
-        $notes = Note::where('user_id', $userId)
-                     ->whereNotNull('trash_id')
-                     ->select('id');
+        $notesCount = Note::where('user_id', $this->userId)
+            ->whereNotNull('trash_id')
+            ->count();
 
-        $folders = Folder::where('user_id', $userId)
-                         ->whereNotNull('trash_id')
-                         ->select('id');
+        $foldersCount = Folder::where('user_id', $this->userId)
+            ->whereNotNull('trash_id')
+            ->count();
 
-        return $notes->union($folders)->count();
+        return $notesCount + $foldersCount;
     }
 
     #[Computed]
     public function folders(): Collection
     {
-        $userId = Auth::id();
 
-        if (!$userId) {
+        if (!$this->userId) {
             return collect();
         }
 
-        return Folder::where('user_id', $userId)
+        return Folder::where('user_id', $this->userId)
             ->active()
             ->orderBy('title')
             ->withCount(['activeNotes as notes_count' => function ($query) {

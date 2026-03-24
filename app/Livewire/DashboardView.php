@@ -1,29 +1,50 @@
 <?php
+
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithFavorite;
+use App\Livewire\Traits\WithFiltering;
+use App\Livewire\Traits\WithSearch;
+use App\Livewire\Traits\WithComponentPagination;
 use App\Models\Note;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
 use Livewire\Attributes\Computed;
-use Livewire\WithoutUrlPagination;
+use Livewire\Component;
 
 class DashboardView extends Component
 {
-    use WithoutUrlPagination;
+    use WithComponentPagination;
+    use WithSearch;
+    use WithFiltering;
+    use WithFavorite;
 
-    public string $search = '';
-    public string $filter = 'all';
-    public string $sort = 'updated';
-    public int $perPage = 12;
-    public int $page = 1;
+    /**
+     * Карта фильтров для заметок.
+     */
+    private const FILTER_MAP = [
+        'notes' => ['column' => 'type', 'value' => Note::TYPE_NOTE],
+        'checklists' => ['column' => 'type', 'value' => Note::TYPE_CHECKLIST],
+    ];
 
-    protected $listeners = [
-        // 'noteCreated' => 'resetPagination',
-        // 'noteDeleted' => 'resetPagination',
+    /**
+     * Карта сортировок.
+     */
+    private const SORT_MAP = [
+        'updated' => 'updated_at',
+        'title' => 'title',
+    ];
+
+    /**
+     * Направления сортировки.
+     */
+    private const SORT_DIRECTIONS = [
+        'updated' => 'desc',
+        'title' => 'asc',
     ];
 
     #[Computed]
-    public function notes()
+    public function notes(): LengthAwarePaginator
     {
         $query = Note::where('user_id', Auth::id())
             ->whereNull('trash_id')
@@ -31,134 +52,57 @@ class DashboardView extends Component
             ->whereNull('safe_id')
             ->with('folder');
 
-        // Фильтр по типу
-        if ($this->filter === 'notes') {
-            $query->where('type', Note::TYPE_NOTE);
-        } elseif ($this->filter === 'checklists') {
-            $query->where('type', Note::TYPE_CHECKLIST);
-        }
+        // Применяем фильтр и сортировку через трейт
+        $query = $this->applyFilter($query, 'type', self::FILTER_MAP);
+        $query = $this->applySort($query, self::SORT_MAP, self::SORT_DIRECTIONS);
 
-        // Поиск
-        if (strlen(trim($this->search)) >= 2) {
-            $words = preg_split('/\s+/', trim($this->search));
-            $query->where(function ($q) use ($words) {
-                foreach ($words as $word) {
-                    $lowerWord = mb_strtolower($word);
-                    $q->where(function ($sub) use ($lowerWord) {
-                        $sub->whereRaw('LOWER(title) LIKE ?', ['%' . $lowerWord . '%'])
-                        ->orWhereRaw('LOWER(payload) LIKE ?', ['%' . $lowerWord . '%']);
-                    });
-                }
-            });
-        }
-
-        // Сортировка
-        if ($this->sort === 'updated') {
-            $query->orderBy('updated_at', 'desc');
-        } elseif ($this->sort === 'title') {
-            $query->orderBy('title', 'asc');
-        }
+        // Применяем поиск
+        $query = $this->applySearch($query, ['title', 'payload']);
 
         // Пагинация
         return $query->paginate($this->perPage, ['*'], 'page', $this->page);
     }
 
-    public function gotoPage($page)
+    /**
+     * Сбросить пагинацию при изменении любого из параметров: search, filter, sort.
+     */
+    public function updated($property): void
     {
-        $this->page = $page;
-    }
-
-    public function nextPage()
-    {
-        $this->page++;
-    }
-
-    public function previousPage()
-    {
-        if ($this->page > 1) {
-            $this->page--;
+        if (in_array($property, ['search', 'filter', 'sort'])) {
+            $this->resetPagination();
         }
     }
 
-    public function resetPagination()
-    {
-        $this->page = 1;
-    }
-
-    public function updatedFilter()
-    {
-        $this->resetPagination();
-    }
-
-    public function updatedSort()
-    {
-        $this->resetPagination();
-    }
-
-    public function updatedPerPage()
-    {
-        $this->resetPagination();
-    }
-
-    public function updatedSearch()
-    {
-        $this->resetPagination();
-    }
-
-    public function createNote()
+    public function createNote(): void
     {
         $this->dispatch('navigateTo', 'create-note');
     }
 
-    public function createChecklist()
+    public function createChecklist(): void
     {
         $this->dispatch('navigateTo', 'create-checklist');
     }
 
-    public function toggleFavorite($noteId)
+
+    /**
+     * Внутренний метод для открытия заметки или чеклиста.
+     */
+    private function openItem(int $noteId): void
     {
         $note = Note::where('user_id', Auth::id())->find($noteId);
 
-        if ($note) {
-            // $wasFavorit = $note->is_favorite;
-            $note->toggleFavorite();
-
-            $this->dispatch('favoriteToggled');
-            // $this->dispatch('favoriteToggled',
-            //     noteId: $note->id,
-            //     isFavorite: $note->is_favorite,
-            //     wasFavorite: $wasFavorite
-            // );
-        }
-    }
-
-    public function openNote($noteId)
-    {
-        $this->dispatch('navigateTo', section: 'edit-note', folderId: $noteId);
-    }
-
-    public function openChecklist($noteId)
-    {
-        $this->dispatch('navigateTo', section: 'edit-checklist', folderId: $noteId);
-    }
-
-
-    public function getChecklistProgress($noteId): array
-    {
-        $note = Note::where('user_id', Auth::id())->find($noteId);
-
-        if (!$note || !$note->isChecklist()) {
-            return [
-                'completed' => 0,
-                'total' => 0,
-                'percentage' => 0,
-            ];
+        if (!$note) {
+            return;
         }
 
-        return $note->getChecklistProgress();
+        $section = $note->type === Note::TYPE_CHECKLIST ? 'edit-checklist' : 'edit-note';
+        $this->dispatch('navigateTo', section: $section, noteId: $noteId);
     }
 
-    public function openFolder($folderId)
+    /**
+     * Открыть папку.
+     */
+    public function openFolder(int $folderId): void
     {
         if (!$folderId) {
             return;

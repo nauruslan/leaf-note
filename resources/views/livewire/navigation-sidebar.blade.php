@@ -23,23 +23,23 @@
                 <ul class="mt-1 space-y-1">
                     <li>
                         <x-sidebar-item icon="layout-grid" label="Главная доска" wireClick="goTo('dashboard')"
-                            :active="$section === 'dashboard'" :count="$this->noteCounts->dashboardCount" :isExpanded="$isExpanded" />
+                            :active="$section === 'dashboard'" :count="$this->noteCounts->dashboard" :isExpanded="$isExpanded" />
                     </li>
                     <li>
                         <x-sidebar-item icon="clipboard-list" label="Списки задач" wireClick="goTo('checklist')"
-                            :active="$section === 'checklist'" :count="$this->noteCounts->checklistCount" :isExpanded="$isExpanded" />
+                            :active="$section === 'checklist'" :count="$this->noteCounts->checklist" :isExpanded="$isExpanded" />
                     </li>
                     <li>
                         <x-sidebar-item icon="star" label="Избранное" wireClick="goTo('favorite')" :active="$section === 'favorite'"
-                            :count="$this->noteCounts->favoriteCount" :isExpanded="$isExpanded" />
+                            :count="$this->noteCounts->favorite" :isExpanded="$isExpanded" />
                     </li>
                     <li>
                         <x-sidebar-item icon="lock" label="Сейф" wireClick="goTo('safe')" :active="$section === 'safe'"
-                            :count="$this->noteCounts->safeCount" :isExpanded="$isExpanded" />
+                            :count="$this->noteCounts->safe" :isExpanded="$isExpanded" />
                     </li>
                     <li>
                         <x-sidebar-item icon="package" label="Архив" wireClick="goTo('archive')" :active="$section === 'archive'"
-                            :count="$this->noteCounts->archiveCount" :isExpanded="$isExpanded" />
+                            :count="$this->noteCounts->archive" :isExpanded="$isExpanded" />
                     </li>
                     <li>
                         <x-sidebar-item icon="trash" label="Корзина" wireClick="goTo('trash')" :active="$section === 'trash'"

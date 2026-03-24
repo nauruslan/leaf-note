@@ -8,6 +8,7 @@ import './dropdown';
 import './toggle';
 import './search';
 
+// import './sidebar';
 import { createIcons, icons } from 'lucide';
 
 // document.addEventListener('DOMContentLoaded', () => {

@@ -40,18 +40,11 @@
             {{ $note->folder ? $note->folder->title : 'Без папки' }}
         </button>
 
-        @if ($note->isChecklist())
-            <button wire:click="openChecklist({{ $note->id }})"
-                class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                <span>Открыть</span>
-                <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </button>
-        @else
-            <button wire:click="openNote({{ $note->id }})"
-                class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                <span>Открыть</span>
-                <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </button>
-        @endif
+        <button wire:click="openItem({{ $note->id }})"
+            class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+            <span>Открыть</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+
     </div>
 </div>

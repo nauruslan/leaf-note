@@ -9,21 +9,24 @@ class AppLayout extends Component
 {
     public string $section = 'dashboard';
     public ?int $folderId = null;
+    public ?int $noteId = null;
     public int $componentKey = 0;
 
 
     protected $listeners = [
-        'navigateTo' => 'handleNavigateTo'
+        'navigateTo' => 'navigateTo'
     ];
 
-    public function handleNavigateTo(string $section, ?int $folderId=null): void
+    public function navigateTo(string $section, ?int $folderId=null, ?int $noteId=null): void
     {
 
         StateManager::set('section', $section);
         StateManager::set('folderId', $folderId);
+        StateManager::set('noteId', $noteId);
 
         $this->section = $section;
         $this->folderId = $folderId;
+        $this->noteId = $noteId;
         $this->componentKey++;
     }
 

@@ -4,9 +4,9 @@
     <div class="ml-16 flex-1">
         {{-- Content Dinamic --}}
         @if ($section === 'edit-checklist')
-            <livewire:edit-checklist :checklist-id="$folderId" key="{{ $section }}-{{ $componentKey }}" />
+            <livewire:edit-checklist :note-id="$noteId" key="{{ $section }}-{{ $componentKey }}" />
         @elseif($section === 'edit-note')
-            <livewire:edit-note :note-id="$folderId" key="{{ $section }}-{{ $componentKey }}" />
+            <livewire:edit-note :note-id="$noteId" key="{{ $section }}-{{ $componentKey }}" />
         @elseif($section === 'edit-folder' && $folderId)
             <livewire:edit-folder :folder-id="$folderId" key="{{ $section }}-{{ $componentKey }}" />
         @else

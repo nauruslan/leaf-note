@@ -9,7 +9,7 @@ use Livewire\Component;
 
 class EditChecklist extends Component
 {
-    public ?int $checklistId = null;
+    public ?int $noteId = null;
     public string $title = '';
     public ?int $folderId = null;
     public bool $is_favorite = false;
@@ -30,16 +30,15 @@ class EditChecklist extends Component
         'checklistContentReady' => 'handleContentReady',
     ];
 
-    public function mount(?int $checklistId = null, ?int $folderId = null): void
+    public function mount(?int $noteId = null, ?int $folderId = null): void
     {
-        // Для edit-checklist folderId используется как checklistId
-        $this->checklistId = $checklistId ?? $folderId;
+        $this->noteId = $noteId;
         $this->folders = Folder::forUser(Auth::user())
             ->active()
             ->orderBy('title')
             ->get();
 
-        if ($this->checklistId) {
+        if ($this->noteId) {
             $this->loadChecklist();
         }
     }
@@ -60,27 +59,27 @@ class EditChecklist extends Component
         $this->performSave();
     }
 
-    public function handleNavigateTo(string $section, ?int $folderId = null): void
+    public function handleNavigateTo(string $section, ?int $noteId = null): void
     {
-        if ($section === 'checklist' && $folderId) {
+        if ($section === 'checklist' && $noteId) {
             $this->openChecklist($folderId);
         }
     }
 
-    public function openChecklist($checklistId): void
+    public function openChecklist($noteId): void
     {
-        $this->checklistId = $checklistId;
+        $this->noteId = $noteId;
         $this->loadChecklist();
     }
 
     public function loadChecklist(): void
     {
-        if (!$this->checklistId) {
+        if (!$this->noteId) {
             return;
         }
 
         $this->checklist = Note::where('user_id', Auth::id())
-            ->find($this->checklistId);
+            ->find($this->noteId);
 
         if ($this->checklist) {
             $this->title = $this->checklist->title;
