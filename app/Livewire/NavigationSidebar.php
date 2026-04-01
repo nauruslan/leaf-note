@@ -4,6 +4,7 @@ namespace App\Livewire;
 use App\Livewire\Actions\Logout;
 use App\Models\Folder;
 use App\Models\Note;
+use App\Models\Safe;
 use App\Services\StateManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -123,6 +124,15 @@ class NavigationSidebar extends Component
 
         Session::put('sidebar_expanded', $isExpanded);
         $this->isExpanded = $isExpanded;
+
+        // Для сейфа - проверить нужно ли показывать модальное окно пароля
+        if ($section === 'safe') {
+            $safe = Safe::where('user_id', Auth::id())->first();
+            if ($safe && $safe->hasPassword()) {
+                // Сейф защищён паролем - отправить событие для открытия модального окна
+                $this->dispatch('openSafePasswordModal');
+            }
+        }
 
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
 

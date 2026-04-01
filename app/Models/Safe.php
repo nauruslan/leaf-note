@@ -9,14 +9,21 @@ use App\Models\Archive;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Hash;
 
 class Safe extends Model
 {
     protected $fillable = [
+        'user_id',
+        'password_hash',
         'max_attempts',
         'failed_attempts',
         'locked_until',
         'last_accessed_at',
+    ];
+
+    protected $hidden = [
+        'password_hash',
     ];
 
     protected $casts = [
@@ -26,11 +33,6 @@ class Safe extends Model
         'last_accessed_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | ОТНОШЕНИЯ
-    |--------------------------------------------------------------------------
-    */
 
     public function user(): BelongsTo
     {
@@ -42,11 +44,6 @@ class Safe extends Model
         return $this->hasMany(Note::class, 'safe_id');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ПРОВЕРКИ СОСТОЯНИЯ
-    |--------------------------------------------------------------------------
-    */
 
     /**
      * Заблокирован ли сейф?
@@ -83,11 +80,6 @@ class Safe extends Model
         return max(0, $this->locked_until->diffInSeconds(now()));
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ЛОГИКА БЛОКИРОВКИ
-    |--------------------------------------------------------------------------
-    */
 
     /**
      * Зафиксировать неудачную попытку.
@@ -137,11 +129,6 @@ class Safe extends Model
         $this->save();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | РАБОТА С ЗАМЕТКАМИ В СЕЙФЕ
-    |--------------------------------------------------------------------------
-    */
 
     /**
      * Количество заметок в сейфе.
@@ -207,11 +194,41 @@ class Safe extends Model
         return $note->moveToTrash();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
-    |--------------------------------------------------------------------------
-    */
+
+    /**
+     * Установлен ли пароль?
+     */
+    public function hasPassword(): bool
+    {
+        return !empty($this->password_hash);
+    }
+
+    /**
+     * Проверить пароль.
+     */
+    public function verifyPassword(string $password): bool
+    {
+        return Hash::check($password, $this->password_hash);
+    }
+
+    /**
+     * Установить пароль.
+     */
+    public function setPassword(string $password): void
+    {
+        $this->password_hash = Hash::make($password);
+        $this->save();
+    }
+
+    /**
+     * Сбросить пароль.
+     */
+    public function resetPassword(): void
+    {
+        $this->password_hash = null;
+        $this->save();
+    }
+
 
     /**
      * Статус сейфа для интерфейса.
