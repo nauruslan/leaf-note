@@ -11,16 +11,7 @@
                     <p class="text-sm text-gray-500 mt-0.5">Ваши избранные заметки и списки</p>
                 </div>
 
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <input type="text" wire:model="search" placeholder="Поиск в избранном..."
-                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 transition-all">
-                </div>
+                <x-search wireModel="search" width="w-64" />
             </div>
         </div>
     </header>
@@ -29,141 +20,84 @@
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="bg-white rounded-xl shadow-md p-5">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <!-- Left Block: Actions -->
+                <!-- Left Block: Create Buttons -->
                 <div class="flex flex-wrap items-center gap-3">
-                    <button wire:click="$dispatch('openModal', 'add-to-favorites')"
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                        <i data-lucide="star" class="w-4 h-4"></i>
-                        Добавить в избранное
-                    </button>
-                    <button wire:click="exportFavorites"
-                        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                        <i data-lucide="download" class="w-4 h-4"></i>
-                        Экспорт избранного
-                    </button>
+                    <x-button-create-note wire:click="createNote">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Новая заметка
+                    </x-button-create-note>
+                    <x-button-create-checklist wire:click="createChecklist">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                        Новый список
+                    </x-button-create-checklist>
                 </div>
 
                 <!-- Right Block: Filters -->
                 <div class="flex flex-wrap items-center gap-4 justify-end">
-                    <!-- Тип -->
+                    <!-- Показать Dropdown -->
                     <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Тип:</span>
-                        <div class="relative">
-                            <select
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[120px]">
-                                <option value="all">Все</option>
-                                <option value="notes">Заметки</option>
-                                <option value="checklists">Списки</option>
-                                <option value="folders">Папки</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
+                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Показать:</span>
+                        <x-dropdown :options="[
+                            ['value' => 12, 'text' => '12'],
+                            ['value' => 24, 'text' => '24'],
+                            ['value' => 36, 'text' => '36'],
+                        ]" selected="{{ $perPage }}" wireModel="perPage" live
+                            width="80px" />
                     </div>
 
-                    <!-- Сортировка -->
+                    <!-- Фильтр Dropdown -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Фильтр:</span>
+                        <x-dropdown :options="[
+                            ['value' => 'all', 'text' => 'Все'],
+                            ['value' => 'notes', 'text' => 'Заметки'],
+                            ['value' => 'checklists', 'text' => 'Списки'],
+                        ]" selected="{{ $filter }}" wireModel="filter" live
+                            width="100px" />
+                    </div>
+
+                    <!-- Сортировка Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Сортировка:</span>
-                        <div class="relative">
-                            <select
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[120px]">
-                                <option value="recent">Недавние</option>
-                                <option value="oldest">Старые</option>
-                                <option value="name">По названию</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
+                        <x-dropdown :options="[
+                            ['value' => 'updated', 'text' => 'По дате'],
+                            ['value' => 'title', 'text' => 'По названию'],
+                        ]" selected="{{ $sort }}" wireModel="sort" live
+                            width="140px" />
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 
     <!-- Content Section -->
-    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-xl font-bold mb-4">Избранные элементы</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Пример избранной заметки -->
-                <div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="font-bold text-lg">Идеи для проекта</h4>
-                            <p class="text-sm text-gray-500 mt-1">Заметка • 2 дня назад</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button wire:click="toggleFavorite(1)" class="text-yellow-500 hover:text-yellow-700">
-                                <i data-lucide="star" class="w-5 h-5 fill-current"></i>
-                            </button>
-                            <button wire:click="removeFromFavorites(1)" class="text-red-500 hover:text-red-700">
-                                <i data-lucide="trash-2" class="w-5 h-5"></i>
-                            </button>
-                        </div>
+    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap gap-5">
+        @forelse($this->notes as $note)
+            <x-card :note="$note" />
+        @empty
+            <!-- Состояние: нет заметок -->
+            <div class="w-full flex items-center justify-center py-20">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
+                        <i data-lucide="star" class="w-10 h-10 text-gray-400"></i>
                     </div>
-                    <div class="mt-4">
-                        <p class="text-sm text-gray-600 line-clamp-2">Собрал идеи для нового проекта по автоматизации
-                            процессов. Нужно обсудить с командой.</p>
-                    </div>
-                    <div class="mt-4 flex items-center justify-between text-sm">
-                        <span class="text-gray-500">Папка: <strong>Работа</strong></span>
-                        <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs">Заметка</span>
-                    </div>
-                </div>
-
-                <!-- Пример избранного списка -->
-                <div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="font-bold text-lg">Еженедельные задачи</h4>
-                            <p class="text-sm text-gray-500 mt-1">Список • 5 дней назад</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button wire:click="toggleFavorite(2)" class="text-yellow-500 hover:text-yellow-700">
-                                <i data-lucide="star" class="w-5 h-5 fill-current"></i>
-                            </button>
-                            <button wire:click="removeFromFavorites(2)" class="text-red-500 hover:text-red-700">
-                                <i data-lucide="trash-2" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <p class="text-sm text-gray-600 line-clamp-2">Список задач на неделю с приоритетами и сроками.
-                        </p>
-                    </div>
-                    <div class="mt-4 flex items-center justify-between text-sm">
-                        <span class="text-gray-500">Прогресс: <strong>60%</strong></span>
-                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Список</span>
-                    </div>
-                </div>
-
-                <!-- Пример избранной папки -->
-                <div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="font-bold text-lg">Личные заметки</h4>
-                            <p class="text-sm text-gray-500 mt-1">Папка • 1 неделю назад</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button wire:click="toggleFavorite(3)" class="text-yellow-500 hover:text-yellow-700">
-                                <i data-lucide="star" class="w-5 h-5 fill-current"></i>
-                            </button>
-                            <button wire:click="removeFromFavorites(3)" class="text-red-500 hover:text-red-700">
-                                <i data-lucide="trash-2" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <p class="text-sm text-gray-600 line-clamp-2">Папка с личными заметками, идеями и мыслями.</p>
-                    </div>
-                    <div class="mt-4 flex items-center justify-between text-sm">
-                        <span class="text-gray-500">Элементов: <strong>12</strong></span>
-                        <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">Папка</span>
-                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Избранных заметок пока нет</h3>
+                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
+                        Добавьте заметки в избранное, чтобы видеть их здесь
+                    </p>
+                    <x-button-create-note wire:click="createNote" class="px-6 inline-flex">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        Создать заметку
+                    </x-button-create-note>
                 </div>
             </div>
-        </div>
+        @endforelse
     </div>
+
+    @if ($this->notes->hasPages())
+        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+            {{ $this->notes->links('livewire.pagination') }}
+        </div>
+    @endif
 </div>

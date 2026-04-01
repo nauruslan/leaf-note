@@ -19,14 +19,6 @@ class DashboardView extends Component
     use WithFiltering;
     use WithFavorite;
 
-    /**
-     * Карта фильтров для заметок.
-     */
-    protected array $filterMap = [
-        'notes' => ['column' => 'type', 'value' => Note::TYPE_NOTE],
-        'checklists' => ['column' => 'type', 'value' => Note::TYPE_CHECKLIST],
-    ];
-
     #[Computed]
     public function notes(): LengthAwarePaginator
     {
@@ -37,7 +29,11 @@ class DashboardView extends Component
             ->with('folder');
 
         // Применяем фильтр
-        $query = $this->applyFilter($query, 'type', $this->filterMap);
+        $filterMap = [
+            'notes' => ['column' => 'type', 'value' => Note::TYPE_NOTE],
+            'checklists' => ['column' => 'type', 'value' => Note::TYPE_CHECKLIST],
+        ];
+        $query = $this->applyFilter($query, 'type', $filterMap);
         // Применяем сортировку (использует значения по умолчанию из трейта)
         $query = $this->applySorting($query);
 

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
  * - sort: string - текущая сортировка
  *
  * Защищённые свойства (можно переопределить в компоненте):
+ * - filterMap: array - карта фильтров (по умолчанию пустой)
  * - sortMap: array - карта сортировок (по умолчанию updated/title)
  * - sortDirections: array - направления сортировок (по умолчанию desc/asc)
  */
@@ -20,6 +21,12 @@ trait WithFiltering
 {
     public string $filter = 'all';
     public string $sort = 'updated';
+
+    /**
+     * Карта фильтров для типов заметок.
+     * Переопределить в компоненте при необходимости.
+     */
+    protected array $filterMap = [];
 
     /**
      * Карта сортировок.
