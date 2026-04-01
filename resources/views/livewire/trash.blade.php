@@ -8,19 +8,12 @@
                         class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         Корзина
                     </h1>
-                    <p class="text-sm text-gray-500 mt-0.5">Удалённые заметки и списки</p>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        {{ $this->totalCount > 0 ? 'Удалённые заметки и папки' : 'Корзина пуста' }}
+                    </p>
                 </div>
 
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <input type="text" placeholder="Поиск в корзине..."
-                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 transition-all">
-                </div>
+                <x-search wireModel="search" width="w-64" />
             </div>
         </div>
     </header>
@@ -31,12 +24,12 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <!-- Left Block: Actions -->
                 <div class="flex flex-wrap items-center gap-3">
-                    <button wire:click="restoreAll"
-                        class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                    <button wire:click="$dispatch('confirmRestoreAll')"
+                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
                         <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
                         Восстановить всё
                     </button>
-                    <button wire:click="emptyTrash"
+                    <button wire:click="$dispatch('confirmEmptyTrash')"
                         class="bg-white border border-gray-300 hover:bg-red-50 text-red-600 font-medium py-2.5 px-5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         Очистить корзину
@@ -45,38 +38,37 @@
 
                 <!-- Right Block: Filters -->
                 <div class="flex flex-wrap items-center gap-4 justify-end">
+                    <!-- Показать Dropdown -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Показать:</span>
+                        <x-dropdown :options="[
+                            ['value' => 12, 'text' => '12'],
+                            ['value' => 24, 'text' => '24'],
+                            ['value' => 36, 'text' => '36'],
+                        ]" selected="{{ $perPage }}" wireModel="perPage" live
+                            width="80px" />
+                    </div>
+
                     <!-- Фильтр Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Фильтр:</span>
-                        <div class="relative">
-                            <select
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[100px]">
-                                <option value="all">Все</option>
-                                <option value="notes">Заметки</option>
-                                <option value="checklists">Списки</option>
-                                <option value="important">Важные</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
+                        <x-dropdown :options="[
+                            ['value' => 'all', 'text' => 'Все'],
+                            ['value' => 'notes', 'text' => 'Заметки'],
+                            ['value' => 'checklists', 'text' => 'Списки'],
+                            ['value' => 'folders', 'text' => 'Папки'],
+                        ]" selected="{{ $filter }}" wireModel="filter" live
+                            width="100px" />
                     </div>
 
                     <!-- Сортировка Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Сортировка:</span>
-                        <div class="relative">
-                            <select
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[140px]">
-                                <option value="deleted">По дате удаления</option>
-                                <option value="created">По дате создания</option>
-                                <option value="title">По названию</option>
-                                <option value="size">По размеру</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
+                        <x-dropdown :options="[
+                            ['value' => 'deleted', 'text' => 'По дате'],
+                            ['value' => 'title', 'text' => 'По названию'],
+                        ]" selected="{{ $sort }}" wireModel="sort" live
+                            width="150px" />
                     </div>
                 </div>
             </div>
@@ -85,40 +77,119 @@
 
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap gap-5">
-        <!-- Placeholder for trashed items -->
-        <div
-            class="min-w-[320px] basis-[320px] h-[340px] flex grow flex-col p-4 bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all">
-            <div class="flex items-start justify-between mb-6">
-                <div class="w-8 flex-shrink-0 self-stretch">
-                    <i data-lucide="trash" class="w-8 h-8 text-gray-500"></i>
+        @php
+            $showNotes = $filter === 'all' || $filter === 'notes' || $filter === 'checklists';
+            $showFolders = $filter === 'all' || $filter === 'folders';
+            $hasFolders = $showFolders && $this->trashedFolders->count() > 0;
+            $hasNotes = $showNotes && $this->trashedNotes->count() > 0;
+            $hasResults = $hasFolders || $hasNotes;
+            $isSearching = !empty($search);
+        @endphp
+
+        {{-- Результаты поиска --}}
+        @if ($hasResults)
+            {{-- Папки в корзине --}}
+            @if ($showFolders)
+                @foreach ($this->trashedFolders as $folder)
+                    <x-card-delete :item="$folder" type="folder" />
+                @endforeach
+            @endif
+
+            {{-- Заметки в корзине --}}
+            @if ($showNotes)
+                @foreach ($this->trashedNotes as $note)
+                    <x-card-delete :item="$note" type="note" />
+                @endforeach
+            @endif
+        @endif
+
+        {{-- Пустое состояние --}}
+        @if ($this->totalCount === 0)
+            <div class="w-full flex items-center justify-center py-20">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
+                        <i data-lucide="trash" class="w-10 h-10 text-gray-400"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Корзина пуста</h3>
+                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
+                        Удалённые заметки и папки будут отображаться здесь
+                    </p>
                 </div>
-                <div class="flex flex-1 ml-3 flex-col">
-                    <h3 class="font-bold text-lg text-gray-900">Удалённая заметка</h3>
-                    <p class="text-xs text-gray-500">Удалено: 2 марта 2026</p>
-                </div>
-                <div class="self-stretch flex flex-end items-baseline">
-                    <button class="text-gray-400 hover:text-yellow-400 p-1 mb-1" aria-label="Добавить в избранное">
-                        <i data-lucide="star" class="w-6 h-6"></i>
+            </div>
+        @endif
+
+        {{-- Нет результатов поиска --}}
+        @if (!$hasResults && $this->totalCount > 0 && $isSearching)
+            <div class="w-full flex items-center justify-center py-20">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
+                        <i data-lucide="search-x" class="w-10 h-10 text-gray-400"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Совпадений не найдено</h3>
+                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
+                        Попробуйте изменить поисковый запрос
+                    </p>
+                    <button wire:click="goTo('dashboard')"
+                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2 mx-auto">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                        Вернуться на главную доску
                     </button>
-                    <button class="text-gray-400 hover:text-gray-600 p-1">
-                        <i data-lucide="more-vertical" class="w-6 h-6"></i>
-                    </button>
                 </div>
             </div>
-            <div class="flex-grow flex">
-                <p class="text-gray-600">Эта заметка была удалена. Вы можете восстановить её или удалить навсегда.</p>
-            </div>
-            <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
-                <div class="px-3 py-1.5 rounded-lg text-md font-bold bg-red-100 text-red-800 flex items-center gap-1.5">
-                    <i data-lucide="trash" class="w-4 h-4"></i>
-                    <span>Корзина</span>
-                </div>
-                <button
-                    class="text-indigo-600 hover:text-indigo-800 font-bold text-md flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
-                    <span>осстанов</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </button>
-            </div>
-        </div>
+        @endif
     </div>
+
+    @if ($hasResults && $this->trashedNotes->hasPages())
+        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+            {{ $this->trashedNotes->links('livewire.pagination') }}
+        </div>
+    @endif
+
+    <!-- Модальное окно подтверждения восстановления одного элемента -->
+    <x-modal-confirm
+        :show="$confirmingRestore"
+        title="Восстановить?"
+        description="Элемент будет восстановлен и перемещен в архив."
+        confirmText="Восстановить"
+        cancelText="Отмена"
+        confirmMethod="confirmRestore"
+        cancelMethod="closeModal"
+        confirmColor="indigo"
+    />
+
+    <!-- Модальное окно подтверждения удаления одного элемента -->
+    <x-modal-confirm
+        :show="$confirmingDeletion"
+        title="Удалить навсегда?"
+        description="Это действие необратимо. Элемент будет удален безвозвратно."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        confirmMethod="confirmDelete"
+        cancelMethod="closeModal"
+        confirmColor="red"
+    />
+
+    <!-- Модальное окно подтверждения восстановления всех элементов -->
+    <x-modal-confirm
+        :show="$confirmingRestoreAll"
+        title="Восстановить всё?"
+        description="Все удалённые элементы будут восстановлены и перемещены в архив."
+        confirmText="Восстановить"
+        cancelText="Отмена"
+        confirmMethod="restoreAll"
+        cancelMethod="closeRestoreAllModal"
+        confirmColor="indigo"
+    />
+
+    <!-- Модальное окно подтверждения очистки корзины -->
+    <x-modal-confirm
+        :show="$confirmingEmptyTrash"
+        title="Очистить корзину?"
+        description="Все элементы в корзине будут удалены безвозвратно. Это действие необратимо."
+        confirmText="Очистить"
+        cancelText="Отмена"
+        confirmMethod="emptyTrash"
+        cancelMethod="closeEmptyTrashModal"
+        confirmColor="red"
+    />
 </div>
