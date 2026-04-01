@@ -11,11 +11,32 @@ use Illuminate\Database\Eloquent\Builder;
  * Публичные свойства:
  * - filter: string - текущий фильтр
  * - sort: string - текущая сортировка
+ *
+ * Защищённые свойства (можно переопределить в компоненте):
+ * - sortMap: array - карта сортировок (по умолчанию updated/title)
+ * - sortDirections: array - направления сортировок (по умолчанию desc/asc)
  */
 trait WithFiltering
 {
     public string $filter = 'all';
     public string $sort = 'updated';
+
+    /**
+     * Карта сортировок.
+     */
+    protected array $sortMap = [
+        'updated' => 'updated_at',
+        'title' => 'title',
+    ];
+
+    /**
+     * Направления сортировки.
+     */
+    protected array $sortDirections = [
+        'updated' => 'desc',
+        'title' => 'asc',
+    ];
+
 
     /**
      * Применить фильтр к builder-у.
@@ -57,24 +78,39 @@ trait WithFiltering
     }
 
     /**
+     * Применить фильтр к builder-у, используя $this->filterMap.
+     *
+     * @param Builder $query
+     * @param string $typeColumn
+     * @return Builder
+     */
+    protected function applyFilters(Builder $query, string $typeColumn = 'type'): Builder
+    {
+        return $this->applyFilter($query, $typeColumn, $this->filterMap);
+    }
+
+    /**
+     * Применить сортировку к builder-у, используя $this->sortMap и $this->sortDirections.
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    protected function applySorting(Builder $query): Builder
+    {
+        return $this->applySort($query, $this->sortMap, $this->sortDirections);
+    }
+
+    /**
      * Применить все фильтры и сортировку.
      *
      * @param Builder $query
-     * @param array $filterMap
-     * @param array $sortMap
-     * @param array $sortDirections
+     * @param string $typeColumn
      * @return Builder
      */
-    protected function applyFiltersAndSort(
-        Builder $query,
-        array $filterMap = [],
-        array $sortMap = [],
-        array $sortDirections = []
-    ): Builder {
-        return $this->applySort(
-            $this->applyFilter($query, 'type', $filterMap),
-            $sortMap,
-            $sortDirections
+    protected function applyFiltersAndSort(Builder $query, string $typeColumn = 'type'): Builder
+    {
+        return $this->applySorting(
+            $this->applyFilters($query, $typeColumn)
         );
     }
 

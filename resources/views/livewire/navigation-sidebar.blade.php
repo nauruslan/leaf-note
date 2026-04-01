@@ -26,10 +26,6 @@
                             :active="$section === 'dashboard'" :count="$this->noteCounts->dashboard" :isExpanded="$isExpanded" />
                     </li>
                     <li>
-                        <x-sidebar-item icon="clipboard-list" label="Списки задач" wireClick="goTo('checklist')"
-                            :active="$section === 'checklist'" :count="$this->noteCounts->checklist" :isExpanded="$isExpanded" />
-                    </li>
-                    <li>
                         <x-sidebar-item icon="star" label="Избранное" wireClick="goTo('favorite')" :active="$section === 'favorite'"
                             :count="$this->noteCounts->favorite" :isExpanded="$isExpanded" />
                     </li>

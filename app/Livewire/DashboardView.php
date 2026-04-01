@@ -22,25 +22,9 @@ class DashboardView extends Component
     /**
      * Карта фильтров для заметок.
      */
-    private const FILTER_MAP = [
+    protected array $filterMap = [
         'notes' => ['column' => 'type', 'value' => Note::TYPE_NOTE],
         'checklists' => ['column' => 'type', 'value' => Note::TYPE_CHECKLIST],
-    ];
-
-    /**
-     * Карта сортировок.
-     */
-    private const SORT_MAP = [
-        'updated' => 'updated_at',
-        'title' => 'title',
-    ];
-
-    /**
-     * Направления сортировки.
-     */
-    private const SORT_DIRECTIONS = [
-        'updated' => 'desc',
-        'title' => 'asc',
     ];
 
     #[Computed]
@@ -52,9 +36,10 @@ class DashboardView extends Component
             ->whereNull('safe_id')
             ->with('folder');
 
-        // Применяем фильтр и сортировку через трейт
-        $query = $this->applyFilter($query, 'type', self::FILTER_MAP);
-        $query = $this->applySort($query, self::SORT_MAP, self::SORT_DIRECTIONS);
+        // Применяем фильтр
+        $query = $this->applyFilter($query, 'type', $this->filterMap);
+        // Применяем сортировку (использует значения по умолчанию из трейта)
+        $query = $this->applySorting($query);
 
         // Применяем поиск
         $query = $this->applySearch($query, ['title', 'payload']);
@@ -87,7 +72,7 @@ class DashboardView extends Component
     /**
      * Внутренний метод для открытия заметки или чеклиста.
      */
-    private function openItem(int $noteId): void
+    public function openItem(int $noteId): void
     {
         $note = Note::where('user_id', Auth::id())->find($noteId);
 

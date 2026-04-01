@@ -17,6 +17,7 @@ class NavigationSidebar extends Component
     public ?int $folderId = null;
     public bool $isExpanded = false;
 
+
     protected $listeners = [
         // 'folderCreated' => 'refreshSidebar',
         // 'folderDeleted' => 'refreshSidebar',
