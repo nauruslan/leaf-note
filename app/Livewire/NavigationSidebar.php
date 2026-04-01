@@ -122,6 +122,10 @@ class NavigationSidebar extends Component
         $this->section = $section;
         $this->folderId = $folderId;
 
+        // Сохраняем состояние в сессию
+        StateManager::set('section', $section);
+        StateManager::set('folderId', $folderId);
+
         Session::put('sidebar_expanded', $isExpanded);
         $this->isExpanded = $isExpanded;
 
@@ -143,6 +147,10 @@ class NavigationSidebar extends Component
     {
         $this->section = $section;
         $this->folderId = $folderId;
+
+        // Сохраняем состояние в сессию
+        StateManager::set('section', $section);
+        StateManager::set('folderId', $folderId);
     }
 
     public function refreshSidebar(): void

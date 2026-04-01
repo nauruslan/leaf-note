@@ -13,6 +13,13 @@ class AppLayout extends Component
     public int $componentKey = 0;
 
 
+    public function mount(): void
+    {
+        $this->section = StateManager::get('section', 'dashboard');
+        $this->folderId = StateManager::get('folderId', null);
+        $this->noteId = StateManager::get('noteId', null);
+    }
+
     protected $listeners = [
         'navigateTo' => 'navigateTo'
     ];
