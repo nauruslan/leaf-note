@@ -184,6 +184,16 @@ class SafeView extends Component
         $this->dispatch('navigateTo', 'create-safe-note');
     }
 
+    public function createNote(): void
+    {
+        $this->dispatch('navigateTo', 'create-note');
+    }
+
+    public function createChecklist(): void
+    {
+        $this->dispatch('navigateTo', 'create-checklist');
+    }
+
     public function render()
     {
         return view('livewire.safe');

@@ -35,12 +35,12 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown wireModel="folderId"
-                                    :options="$folders->map(function($folder) {
-                                        return ['value' => $folder->id, 'text' => $folder->title];
-                                    })->toArray()"
-                                    selected="{{ $folderId }}"
-                                    width="150px" />
+                        <x-dropdown wireModel="folderId" :options="$folders
+                            ->map(function ($folder) {
+                                return ['value' => $folder->id, 'text' => $folder->title];
+                            })
+                            ->toArray()" :safes="$safes"
+                            selected="{{ $folderId }}" width="150px" />
                     </div>
 
                     <!-- Favorite -->
@@ -274,6 +274,12 @@
         <script>
             Livewire.on('deleteUploadedImages', () => {
                 document.dispatchEvent(new CustomEvent('delete-uploaded-images'));
+            });
+
+            document.addEventListener('update-safe-id', (e) => {
+                Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id
+                });
             });
         </script>
     @endscript

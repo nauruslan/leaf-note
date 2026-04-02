@@ -51,11 +51,10 @@
                         class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         Сейф
                     </h1>
-                    <p class="text-sm text-gray-500 mt-0.5">Защищённые заметки с шифрованием</p>
+                    <p class="text-sm text-gray-500 mt-0.5">Защищённые заметки</p>
                 </div>
 
                 <div class="flex items-center gap-3">
-
                     <x-search wireModel="search" width="w-64" />
                 </div>
             </div>
@@ -69,11 +68,14 @@
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Left Block: Create Buttons -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <button wire:click="createSafeNote"
-                            class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                            <i data-lucide="lock" class="w-4 h-4"></i>
-                            Новая защищённая заметка
-                        </button>
+                        <x-button-create-note wire:click="createNote">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Новая заметка
+                        </x-button-create-note>
+                        <x-button-create-checklist wire:click="createChecklist">
+                            <i data-lucide="list" class="w-4 h-4"></i>
+                            Новый список
+                        </x-button-create-checklist>
                     </div>
 
                     <!-- Right Block: Filters -->

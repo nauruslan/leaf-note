@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Folder;
 use App\Models\Note;
+use App\Models\Safe;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -12,9 +13,11 @@ class EditChecklist extends Component
     public ?int $noteId = null;
     public string $title = '';
     public ?int $folderId = null;
+    public ?int $safeId = null;
     public bool $is_favorite = false;
     public $content = '';
     public $folders = [];
+    public $safes = [];
     public ?Note $checklist = null;
     public bool $isLoaded = false;
     public bool $confirmingDeletion = false;
@@ -23,6 +26,7 @@ class EditChecklist extends Component
 
     protected $listeners = [
         'updateFolderId' => 'setFolderId',
+        'updateSafeId' => 'setSafeId',
         'checklistUpdated' => 'onChecklistUpdated',
         'openChecklist' => 'openChecklist',
         'navigateTo' => 'handleNavigateTo',
@@ -37,6 +41,10 @@ class EditChecklist extends Component
             ->active()
             ->orderBy('title')
             ->get();
+
+        $this->safes = Safe::where('user_id', Auth::id())
+            ->get()
+            ->map(fn($safe) => ['value' => $safe->id, 'text' => 'Сейф']);
 
         if ($this->noteId) {
             $this->loadChecklist();
@@ -84,6 +92,7 @@ class EditChecklist extends Component
         if ($this->checklist) {
             $this->title = $this->checklist->title;
             $this->folderId = $this->checklist->folder_id;
+            $this->safeId = $this->checklist->safe_id;
             $this->is_favorite = (bool) $this->checklist->is_favorite;
             $this->content = $this->checklist->payload;
             $this->isLoaded = true;
@@ -95,6 +104,11 @@ class EditChecklist extends Component
     public function setFolderId($id): void
     {
         $this->folderId = $id;
+    }
+
+    public function setSafeId($id): void
+    {
+        $this->safeId = $id;
     }
 
     public function setContent($content): void
@@ -153,6 +167,14 @@ class EditChecklist extends Component
     {
         $this->js('localStorage.clear()');
 
+        // Check if the selected ID is a safe
+        $isSafe = collect($this->safes)->contains('value', $this->folderId);
+
+        if ($isSafe) {
+            $this->safeId = $this->folderId;
+            $this->folderId = null;
+        }
+
         $this->dispatch('getChecklistContent');
     }
 
@@ -199,6 +221,10 @@ class EditChecklist extends Component
 
             if ($this->folderId !== null) {
                 $this->checklist->folder_id = $this->folderId;
+                $this->checklist->safe_id = null;
+            } elseif ($this->safeId !== null) {
+                $this->checklist->safe_id = $this->safeId;
+                $this->checklist->folder_id = null;
             }
 
             $this->checklist->save();

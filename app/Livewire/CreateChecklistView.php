@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Folder;
 use App\Models\Note;
+use App\Models\Safe;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -11,14 +12,17 @@ class CreateChecklistView extends Component
 {
     public string $title = '';
     public ?int $folderId = null;
+    public ?int $safeId = null;
     public bool $is_favorite = false;
     public $content = '';
     public $folders = [];
+    public $safes = [];
     private bool $isSaving = false;
 
 
     protected $listeners = [
         'updateFolderId' => 'setFolderId',
+        'updateSafeId' => 'setSafeId',
         'checklistSaved' => 'onChecklistSaved',
         'checklistLoaded' => 'handleChecklistLoaded',
         'checklistContentReady' => 'handleContentReady',
@@ -41,11 +45,20 @@ class CreateChecklistView extends Component
             ->active()
             ->orderBy('title')
             ->get();
+
+        $this->safes = Safe::where('user_id', Auth::id())
+            ->get()
+            ->map(fn($safe) => ['value' => $safe->id, 'text' => 'Сейф']);
     }
 
     public function setFolderId($id)
     {
         $this->folderId = $id;
+    }
+
+    public function setSafeId($id)
+    {
+        $this->safeId = $id;
     }
 
     public function onChecklistSaved()
@@ -64,6 +77,14 @@ class CreateChecklistView extends Component
     public function prepareAndSave()
     {
         $this->js('localStorage.clear()');
+
+        // Check if the selected ID is a safe
+        $isSafe = collect($this->safes)->contains('value', $this->folderId);
+
+        if ($isSafe) {
+            $this->safeId = $this->folderId;
+            $this->folderId = null;
+        }
 
         // Запрашиваем контент у JavaScript через событие
         $this->dispatch('getChecklistContent');
@@ -110,6 +131,10 @@ class CreateChecklistView extends Component
 
             if ($this->folderId) {
                 $note->folder_id = $this->folderId;
+                $note->safe_id = null;
+            } elseif ($this->safeId) {
+                $note->safe_id = $this->safeId;
+                $note->folder_id = null;
             } else {
                 $note->archive_id = Auth::user()->archive->id;
             }

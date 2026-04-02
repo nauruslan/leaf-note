@@ -24,7 +24,7 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown :options="$folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" selected="{{ $folderId }}" wireModel="folderId" live
+                        <x-dropdown :options="$folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$safes" selected="{{ $folderId ?? $safeId }}" wireModel="folderId" live
                             width="150px" />
                     </div>
 
@@ -122,6 +122,12 @@
                         parsedContent = '';
                     }
                 }
+            });
+
+            document.addEventListener('update-safe-id', (e) => {
+                Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id
+                });
             });
         </script>
     @endscript

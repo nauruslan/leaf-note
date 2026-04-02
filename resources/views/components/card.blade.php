@@ -34,11 +34,31 @@
     </div>
 
     <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
-        <button wire:click="openFolder({{ $note->folder_id }})"
-            class="bg-white border border-gray-300 hover:700 font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-            <i data-lucide="{{ $note->folder ? $note->folder->icon : '' }}" class="w-4 h-4"></i>
-            {{ $note->folder ? $note->folder->title : 'Без папки' }}
-        </button>
+        @if ($note->isInFolder())
+            <button wire:click="openFolder({{ $note->folder_id }})"
+                class="bg-white border border-gray-300 hover:700 font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
+                <i data-lucide="{{ $note->folder ? $note->folder->icon : '' }}" class="w-4 h-4"></i>
+                {{ $note->folder->title }}
+            </button>
+        @elseif ($note->isInArchive())
+            <div
+                class="bg-white border border-gray-300 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2">
+                <i data-lucide="archive" class="w-4 h-4"></i>
+                Архив
+            </div>
+        @elseif ($note->isInSafe())
+            <div
+                class="bg-white border border-gray-300 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+                Сейф
+            </div>
+        @else
+            <div
+                class="bg-white border border-gray-300 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-gray-500">
+                <i data-lucide="inbox" class="w-4 h-4"></i>
+                Без папки
+            </div>
+        @endif
 
         <button wire:click="openItem({{ $note->id }})"
             class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">

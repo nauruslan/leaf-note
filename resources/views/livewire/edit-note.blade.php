@@ -24,8 +24,8 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown :options="$folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" selected="{{ $folderId }}" wireModel="folderId" live
-                            width="150px" />
+                        <x-dropdown :options="$folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$safes" selected="{{ $folderId ?? $safeId }}"
+                            wireModel="folderId" live width="150px" />
                     </div>
 
                     <!-- Favorite -->
@@ -270,6 +270,12 @@
         <script>
             Livewire.on('restoreNoteOriginalState', () => {
                 document.dispatchEvent(new CustomEvent('restore-note-original-state'));
+            });
+
+            document.addEventListener('update-safe-id', (e) => {
+                Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id
+                });
             });
         </script>
     @endscript

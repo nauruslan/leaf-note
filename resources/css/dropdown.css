@@ -54,3 +54,9 @@
     color: white;
     font-weight: 600;
 }
+
+.custom-select-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 4px 0;
+}

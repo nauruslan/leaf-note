@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Folder;
 use App\Models\Note;
+use App\Models\Safe;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -13,8 +14,10 @@ class EditNote extends Component
     public ?int $noteId = null;
     public string $title = '';
     public ?int $folderId = null;
+    public ?int $safeId = null;
     public $content = '';
     public $folders = [];
+    public $safes = [];
     public ?Note $note = null;
     public bool $isLoaded = false;
     public bool $confirmingDeletion = false;
@@ -25,6 +28,7 @@ class EditNote extends Component
 
     protected $listeners = [
         'updateFolderId' => 'setFolderId',
+        'updateSafeId' => 'setSafeId',
         'noteUpdated' => 'onNoteUpdated',
         'saveNote' => 'triggerSave',
         'editorContent' => 'setContent',
@@ -46,6 +50,10 @@ class EditNote extends Component
             ->active()
             ->orderBy('title')
             ->get();
+
+        $this->safes = Safe::where('user_id', Auth::id())
+            ->get()
+            ->map(fn($safe) => ['value' => $safe->id, 'text' => 'Сейф']);
 
         if ($this->noteId) {
             $this->loadNote();
@@ -77,6 +85,7 @@ class EditNote extends Component
         if ($this->note) {
             $this->title = $this->note->title;
             $this->folderId = $this->note->folder_id;
+            $this->safeId = $this->note->safe_id;
             $this->is_favorite = (bool) $this->note->is_favorite;
             $this->content = $this->note->payload;
             $this->originalImagePaths = $this->extractImagePathsFromPayload($this->note->payload);
@@ -128,6 +137,11 @@ class EditNote extends Component
     public function setFolderId($id): void
     {
         $this->folderId = $id;
+    }
+
+    public function setSafeId($id): void
+    {
+        $this->safeId = $id;
     }
 
     public function save(): void
@@ -188,7 +202,19 @@ class EditNote extends Component
 
     public function triggerSave($folderId = null): void
     {
-        $this->pendingFolderId = $folderId ?? $this->folderId;
+        // Check if the selected ID is actually a folder or a safe
+        $selectedId = $folderId ?? $this->folderId;
+
+        // Check if selected ID is a safe ID
+        $isSafe = collect($this->safes)->contains('value', $selectedId);
+
+        if ($isSafe) {
+            $this->pendingFolderId = null;
+            $this->safeId = $selectedId;
+        } else {
+            $this->pendingFolderId = $selectedId;
+        }
+
         $this->dispatch('getEditorContent');
     }
 
@@ -223,6 +249,10 @@ class EditNote extends Component
 
             if ($this->pendingFolderId !== null) {
                 $this->note->folder_id = $this->pendingFolderId;
+                $this->note->safe_id = null;
+            } elseif ($this->safeId !== null) {
+                $this->note->safe_id = $this->safeId;
+                $this->note->folder_id = null;
             }
 
             $this->note->save();
@@ -246,10 +276,10 @@ class EditNote extends Component
 
         $wasFavorite = $this->is_favorite;
         $this->is_favorite = !$this->is_favorite;
-        
+
         // Диспатчим событие для обновления sidebar
-        $this->dispatch('favoriteToggled', 
-            noteId: $this->note->id, 
+        $this->dispatch('favoriteToggled',
+            noteId: $this->note->id,
             isFavorite: $this->is_favorite,
             wasFavorite: $wasFavorite
         );

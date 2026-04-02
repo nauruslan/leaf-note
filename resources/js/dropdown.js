@@ -101,15 +101,25 @@ class Dropdown {
         }
 
         // Генерируем пользовательское событие
+        const isSafe = item.dataset.safe === 'true';
         this.container.dispatchEvent(
             new CustomEvent('dropdown-change', {
                 detail: {
                     value: this.value,
                     text: item.textContent,
                     element: this.container,
+                    isSafe: isSafe,
                 },
             }),
         );
+
+        // Если выбран safe, генерируем событие для Livewire
+        if (isSafe) {
+            const event = new CustomEvent('update-safe-id', {
+                detail: { id: this.value },
+            });
+            document.dispatchEvent(event);
+        }
     }
 
     getValue() {
