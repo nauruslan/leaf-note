@@ -1,179 +1,296 @@
 <div>
     <!-- Header Section -->
-    <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
+    <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="bg-white rounded-b-xl shadow-md p-5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1
-                        class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        Профиль пользователя
-                    </h1>
-                    <p class="text-sm text-gray-500 mt-0.5">Управление вашими настройками и данными</p>
-                </div>
-
-                <div class="relative">
-                    <div class="absolute-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <input type="text" placeholder="Поиск в профиле..."
-                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 transition-all">
-                </div>
-            </div>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Настройки профиля
+            </h1>
+            <p class="text-sm text-gray-500 mt-0.5">Управление вашими личными данными и настройками</p>
         </div>
     </header>
 
-    <!-- ControlPanel Section -->
-    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="bg-white rounded-xl shadow-md p-5">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <!-- Left Block: Actions -->
-                <div class="flex flex-wrap items-center gap-3">
-                    <button wire:click="saveProfile"
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Сохранить изменения
-                    </button>
-                    <button wire:click="changePassword"
-                        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                        <i data-lucide="key" class="w-4 h-4"></i>
-                        Сменить пароль
-                    </button>
-                    <button wire:click="$dispatch('navigate', {section: 'dashboard'})"
-                        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                        Назад
-                    </button>
-                </div>
-
-                <!-- Right Block: Options -->
-                <div class="flex flex-wrap items-center gap-4 justify-end">
-                    <!-- Язык -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Язык:</span>
-                        <div class="relative">
-                            <select
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[120px]">
-                                <option value="ru">Русский</option>
-                                <option value="en">English</option>
-                                <option value="de">Deutsch</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Тема -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Тема:</span>
-                        <div class="relative">
-                            <select
-                                class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[120px]">
-                                <option value="light">Светлая</option>
-                                <option value="dark">Тёмная</option>
-                                <option value="auto">Авто</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Content Section -->
-    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 py-6">
         <div class="bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-xl font-bold mb-4">Личные данные</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Левая колонка -->
-                <div class="space-y-6">
-                    <!-- Аватар -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Аватар</label>
-                        <div class="flex items-center gap-4">
-                            <div
-                                class="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                                U
-                            </div>
-                            <div>
-                                <button class="text-sm text-indigo-600 hover:text-indigo-800">Загрузить новое
-                                    фото</button>
-                                <p class="text-xs text-gray-500 mt-1">JPG, PNG до 2 МБ</p>
-                            </div>
+            <form wire:submit.prevent="saveProfile" class="space-y-8">
+
+                <!-- Секция: Личные данные -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i>
+                        Личные данные
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Имя -->
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Имя
+                            </label>
+                            <input type="text" id="name" wire:model="name" autofocus
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                placeholder="Введите имя">
+                            @error('name')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
-                    </div>
-                    <!-- Имя -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Имя</label>
-                        <input type="text" wire:model="firstName"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="Введите имя">
-                    </div>
-                    <!-- Фамилия -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Фамилия</label>
-                        <input type="text" wire:model="lastName"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="Введите фамилию">
-                    </div>
-                    <!-- Email -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" wire:model="email"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="email@example.com">
+
+                        <!-- Фамилия -->
+                        <div>
+                            <label for="surname" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Фамилия
+                            </label>
+                            <input type="text" id="surname" wire:model="surname"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                placeholder="Введите фамилию">
+                            @error('surname')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Email -->
+                        <div class="md:col-span-2">
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Электронная почта
+                            </label>
+                            <input type="email" id="email" wire:model="email"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                placeholder="email@example.com">
+                            @error('email')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
-                <!-- Правая колонка -->
-                <div class="space-y-6">
-                    <!-- О себе -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">О себе</label>
-                        <textarea rows="4" wire:model="bio"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="Расскажите о себе..."></textarea>
-                    </div>
-                    <!-- Уведомления -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Уведомления</label>
-                        <div class="space-y-2">
-                            <label class="flex items-center">
-                                <input type="checkbox" wire:model="notifyEmail" class="rounded text-indigo-600">
-                                <span class="ml-2 text-sm">Email уведомления</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" wire:model="notifyPush" class="rounded text-indigo-600">
-                                <span class="ml-2 text-sm">Push-уведомления</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" wire:model="notifyWeekly" class="rounded text-indigo-600">
-                                <span class="ml-2 text-sm">Еженедельный отчёт</span>
-                            </label>
-                        </div>
-                    </div>
-                    <!-- Статистика -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Статистика</label>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gray-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-500">Заметок</p>
-                                <p class="text-2xl font-bold">42</p>
+                <!-- Разделитель -->
+                <div class="border-t border-gray-200"></div>
+
+                <!-- Секция: Статистика -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-indigo-600"></i>
+                        Статистика
+                    </h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Заметок</p>
+                                    <p class="text-2xl font-bold text-gray-900">{{ $notesCount }}</p>
+                                </div>
                             </div>
-                            <div class="bg-gray-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-500">Списков</p>
-                                <p class="text-2xl font-bold">7</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                    <i data-lucide="list-checks" class="w-5 h-5 text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Списков</p>
+                                    <p class="text-2xl font-bold text-gray-900">{{ $checklistsCount }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i data-lucide="folder" class="w-5 h-5 text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Папок</p>
+                                    <p class="text-2xl font-bold text-gray-900">{{ $foldersCount }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Разделитель -->
+                <div class="border-t border-gray-200"></div>
+
+                <!-- Секция: Настройки -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i>
+                        Настройки
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Уведомления -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Уведомления
+                            </label>
+                            <p class="text-sm text-gray-500 mb-3">Получать уведомления о важных событиях</p>
+                            <x-dropdown :options="[
+                                ['value' => '1', 'text' => 'Включено'],
+                                ['value' => '0', 'text' => 'Отключено'],
+                            ]" selected="{{ $notificationsEnabled ? '1' : '0' }}"
+                                wireModel="notificationsEnabled" width="180px" />
+                        </div>
+
+                        <!-- Автоматическое удаление корзины -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Автоматическое удаление корзины
+                            </label>
+                            <p class="text-sm text-gray-500 mb-3">Корзина будет автоматически очищаться выбранный период
+                            </p>
+                            <x-dropdown :options="[
+                                ['value' => 'disabled', 'text' => 'Отключено'],
+                                ['value' => '7', 'text' => '7 дней'],
+                                ['value' => '14', 'text' => '14 дней'],
+                                ['value' => '30', 'text' => '30 дней'],
+                            ]" selected="{{ $autoDeleteDays }}" wireModel="autoDeleteDays"
+                                width="180px" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="border-t border-gray-200"></div>
+
+                <!-- Секция: Смена пароля -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="key" class="w-5 h-5 text-indigo-600"></i>
+                        Смена пароля
+                    </h3>
+
+                    <!-- Текущий пароль -->
+                    <div class="mb-4">
+                        <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Текущий пароль
+                        </label>
+                        <input type="password" id="currentPassword" wire:model="currentPassword"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                            placeholder="Введите текущий пароль">
+                        @error('currentPassword')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Новый пароль -->
+                    <div class="mb-4">
+                        <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Новый пароль
+                        </label>
+                        <input type="password" id="newPassword" wire:model="newPassword"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                            placeholder="Минимум 8 символов">
+                        @error('newPassword')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Подтверждение пароля -->
+                    <div class="mb-4">
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Подтверждение пароля
+                        </label>
+                        <input type="password" id="confirmPassword" wire:model="confirmPassword"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                            placeholder="Повторите новый пароль">
+                        @error('confirmPassword')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="border-t border-gray-200"></div>
+
+                <!-- Секция: Пароль сейфа -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="lock" class="w-5 h-5 text-indigo-600"></i>
+                        Пароль сейфа
+                    </h3>
+
+                    @if ($hasSafePassword)
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                                <p class="text-sm text-green-800">Пароль сейфа установлен</p>
+                            </div>
+                        </div>
+
+                        <!-- Текущий пароль сейфа -->
+                        <div class="mb-4">
+                            <label for="safeCurrentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Текущий пароль сейфа
+                            </label>
+                            <input type="password" id="safeCurrentPassword" wire:model="safeCurrentPassword"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                placeholder="Введите текущий пароль сейфа">
+                            @error('safeCurrentPassword')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @else
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="info" class="w-5 h-5 text-gray-600"></i>
+                                <p class="text-sm text-gray-600">Установите пароль для защиты ваших заметок в сейфе</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Новый пароль сейфа -->
+                    <div class="mb-4">
+                        <label for="safePassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            {{ $hasSafePassword ? 'Новый пароль сейфа' : 'Создать пароль сейфа' }}
+                        </label>
+                        <input type="password" id="safePassword" wire:model="safePassword"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                            placeholder="Минимум 4 символа">
+                        @error('safePassword')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Подтверждение пароля сейфа -->
+                    <div class="mb-4">
+                        <label for="safeConfirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Подтверждение пароля сейфа
+                        </label>
+                        <input type="password" id="safeConfirmPassword" wire:model="safeConfirmPassword"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                            placeholder="Повторите пароль">
+                        @error('safeConfirmPassword')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    @if ($hasSafePassword)
+                        <div class="mt-4">
+                            <x-button-cancel wire:click.prevent="removeSafePassword" wire:loading.attr="disabled">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                Удалить пароль сейфа
+                            </x-button-cancel>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Разделитель -->
+                <div class="border-t border-gray-200"></div>
+
+                <!-- Кнопки действий -->
+                <div class="flex flex-wrap items-center gap-3 justify-end">
+                    <x-button-save wire:click.prevent="saveProfile" wire:loading.attr="disabled">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Сохранить
+                    </x-button-save>
+
+                    <x-button-cancel wire:click.prevent="cancel" wire:loading.attr="disabled">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                        Отмена
+                    </x-button-cancel>
+                </div>
+            </form>
         </div>
     </div>
 </div>

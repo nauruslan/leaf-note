@@ -55,13 +55,7 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    @if ($isUnlocked)
-                        <button wire:click="lock"
-                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                            <i data-lucide="lock" class="w-4 h-4"></i>
-                            Заблокировать
-                        </button>
-                    @endif
+
                     <x-search wireModel="search" width="w-64" />
                 </div>
             </div>

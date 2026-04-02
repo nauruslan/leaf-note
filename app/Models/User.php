@@ -19,6 +19,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = [
         'name',
+        'surname',
         'email',
         'password',
         'is_demo',
@@ -27,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'birth_date',
         'country',
         'google_id',
+        'notifications_enabled',
     ];
 
     protected $hidden = [
@@ -39,6 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'birth_date' => 'date',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'notifications_enabled' => 'boolean',
     ];
 
     // Вычисляемые атрибуты
@@ -54,7 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail
             : asset('images/default-avatar.png');
     }
 
-    // Boot-логика с явными значениями (рекомендуется)
+    // Boot-логика с явными значениями
     protected static function booted(): void
     {
         static::created(function (User $user) {

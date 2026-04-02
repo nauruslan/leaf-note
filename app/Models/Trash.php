@@ -15,6 +15,7 @@ class Trash extends Model
     protected $fillable = [
         'capacity',
         'current_quantity',
+        'auto_delete_days',
     ];
 
 

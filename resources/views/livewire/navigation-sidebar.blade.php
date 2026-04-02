@@ -100,10 +100,7 @@
                         <x-sidebar-item icon="user" label="Профиль" wireClick="goTo('profile')" :active="$section === 'profile'"
                             :isExpanded="$isExpanded" />
                     </li>
-                    <li>
-                        <x-sidebar-item icon="settings" label="Настройки" wireClick="goTo('setting')" :active="$section === 'setting'"
-                            :isExpanded="$isExpanded" />
-                    </li>
+
                     <li>
                         <x-sidebar-item icon="log-out" label="Выйти" wireClick="logout" :active="$section === 'logout'"
                             :isExpanded="$isExpanded" />
