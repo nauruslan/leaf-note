@@ -105,37 +105,13 @@
 
         {{-- Пустое состояние --}}
         @if ($this->totalCount === 0)
-            <div class="w-full flex items-center justify-center py-20">
-                <div class="text-center">
-                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
-                        <i data-lucide="trash" class="w-10 h-10 text-gray-400"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Корзина пуста</h3>
-                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
-                        Удалённые заметки и папки будут отображаться здесь
-                    </p>
-                </div>
-            </div>
+            <x-no-data icon="trash" title="Корзина пуста" description="Удалённые файлы будут отображаться здесь" />
         @endif
 
         {{-- Нет результатов поиска --}}
         @if (!$hasResults && $this->totalCount > 0 && $isSearching)
-            <div class="w-full flex items-center justify-center py-20">
-                <div class="text-center">
-                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
-                        <i data-lucide="search-x" class="w-10 h-10 text-gray-400"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Совпадений не найдено</h3>
-                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
-                        Попробуйте изменить поисковый запрос
-                    </p>
-                    <button wire:click="goTo('dashboard')"
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2 mx-auto">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                        Вернуться на главную доску
-                    </button>
-                </div>
-            </div>
+            <x-no-data icon="search-x" title="Совпадений не найдено"
+                description="Попробуйте изменить поисковый запрос" />
         @endif
     </div>
 
@@ -146,50 +122,22 @@
     @endif
 
     <!-- Модальное окно подтверждения восстановления одного элемента -->
-    <x-modal-confirm
-        :show="$confirmingRestore"
-        title="Восстановить?"
-        description="Элемент будет восстановлен и перемещен в архив."
-        confirmText="Восстановить"
-        cancelText="Отмена"
-        confirmMethod="confirmRestore"
-        cancelMethod="closeModal"
-        confirmColor="indigo"
-    />
+    <x-modal-confirm :show="$confirmingRestore" title="Восстановить?"
+        description="Элемент будет восстановлен и перемещен в архив." confirmText="Восстановить" cancelText="Отмена"
+        confirmMethod="confirmRestore" cancelMethod="closeModal" confirmColor="indigo" />
 
     <!-- Модальное окно подтверждения удаления одного элемента -->
-    <x-modal-confirm
-        :show="$confirmingDeletion"
-        title="Удалить навсегда?"
-        description="Это действие необратимо. Элемент будет удален безвозвратно."
-        confirmText="Удалить"
-        cancelText="Отмена"
-        confirmMethod="confirmDelete"
-        cancelMethod="closeModal"
-        confirmColor="red"
-    />
+    <x-modal-confirm :show="$confirmingDeletion" title="Удалить навсегда?"
+        description="Это действие необратимо. Элемент будет удален безвозвратно." confirmText="Удалить"
+        cancelText="Отмена" confirmMethod="confirmDelete" cancelMethod="closeModal" confirmColor="red" />
 
     <!-- Модальное окно подтверждения восстановления всех элементов -->
-    <x-modal-confirm
-        :show="$confirmingRestoreAll"
-        title="Восстановить всё?"
-        description="Все удалённые элементы будут восстановлены и перемещены в архив."
-        confirmText="Восстановить"
-        cancelText="Отмена"
-        confirmMethod="restoreAll"
-        cancelMethod="closeRestoreAllModal"
-        confirmColor="indigo"
-    />
+    <x-modal-confirm :show="$confirmingRestoreAll" title="Восстановить всё?"
+        description="Все удалённые элементы будут восстановлены и перемещены в архив." confirmText="Восстановить"
+        cancelText="Отмена" confirmMethod="restoreAll" cancelMethod="closeRestoreAllModal" confirmColor="indigo" />
 
     <!-- Модальное окно подтверждения очистки корзины -->
-    <x-modal-confirm
-        :show="$confirmingEmptyTrash"
-        title="Очистить корзину?"
-        description="Все элементы в корзине будут удалены безвозвратно. Это действие необратимо."
-        confirmText="Очистить"
-        cancelText="Отмена"
-        confirmMethod="emptyTrash"
-        cancelMethod="closeEmptyTrashModal"
-        confirmColor="red"
-    />
+    <x-modal-confirm :show="$confirmingEmptyTrash" title="Очистить корзину?"
+        description="Все элементы в корзине будут удалены безвозвратно. Это действие необратимо." confirmText="Очистить"
+        cancelText="Отмена" confirmMethod="emptyTrash" cancelMethod="closeEmptyTrashModal" confirmColor="red" />
 </div>

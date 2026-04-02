@@ -63,18 +63,13 @@
         @forelse($this->notes as $note)
             <x-card :note="$note" />
         @empty
-            <!-- Состояние: нет заметок -->
-            <div class="w-full flex items-center justify-center py-20">
-                <div class="text-center">
-                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
-                        <i data-lucide="archive" class="w-10 h-10 text-gray-400"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Архив пуст</h3>
-                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
-                        Заметки, которые вы отправите в архив, появятся здесь
-                    </p>
-                </div>
-            </div>
+            @if ($search)
+                <x-no-data icon="search-x" title="Совпадений не найдено"
+                    description="Попробуйте изменить поисковый запрос" />
+            @else
+                <x-no-data icon="archive" title="Архив пуст"
+                    description="Сюда добавляются заметки, которые были восстановлены из корзины" />
+            @endif
         @endforelse
     </div>
 
