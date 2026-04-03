@@ -250,9 +250,11 @@ class EditNote extends Component
             if ($this->pendingFolderId !== null) {
                 $this->note->folder_id = $this->pendingFolderId;
                 $this->note->safe_id = null;
+                $this->note->archive_id = null;
             } elseif ($this->safeId !== null) {
                 $this->note->safe_id = $this->safeId;
                 $this->note->folder_id = null;
+                $this->note->archive_id = null;
             }
 
             $this->note->save();

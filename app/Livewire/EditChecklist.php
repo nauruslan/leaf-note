@@ -222,9 +222,11 @@ class EditChecklist extends Component
             if ($this->folderId !== null) {
                 $this->checklist->folder_id = $this->folderId;
                 $this->checklist->safe_id = null;
+                $this->checklist->archive_id = null;
             } elseif ($this->safeId !== null) {
                 $this->checklist->safe_id = $this->safeId;
                 $this->checklist->folder_id = null;
+                $this->checklist->archive_id = null;
             }
 
             $this->checklist->save();
