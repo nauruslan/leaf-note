@@ -194,6 +194,21 @@ class SafeView extends Component
         $this->dispatch('navigateTo', 'create-checklist');
     }
 
+    /**
+     * Внутренний метод для открытия заметки или чеклиста.
+     */
+    public function openItem(int $noteId): void
+    {
+        $note = Note::where('user_id', Auth::id())->find($noteId);
+
+        if (!$note) {
+            return;
+        }
+
+        $section = $note->type === Note::TYPE_CHECKLIST ? 'edit-checklist' : 'edit-note';
+        $this->dispatch('navigateTo', section: $section, noteId: $noteId);
+    }
+
     public function render()
     {
         return view('livewire.safe');

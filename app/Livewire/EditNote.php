@@ -37,14 +37,9 @@ class EditNote extends Component
         'noteLoaded' => 'handleNoteLoaded',
     ];
 
-    public function handleNoteLoaded(): void
-    {
-        // Пустой метод для обработки события noteLoaded
-    }
 
     public function mount(?int $noteId = null, ?int $folderId = null): void
     {
-        // Для note-view folderId используется как noteId
         $this->noteId = $noteId ?? $folderId;
         $this->folders = Folder::forUser(Auth::user())
             ->active()
@@ -202,10 +197,8 @@ class EditNote extends Component
 
     public function triggerSave($folderId = null): void
     {
-        // Check if the selected ID is actually a folder or a safe
         $selectedId = $folderId ?? $this->folderId;
 
-        // Check if selected ID is a safe ID
         $isSafe = collect($this->safes)->contains('value', $selectedId);
 
         if ($isSafe) {

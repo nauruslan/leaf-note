@@ -51,11 +51,6 @@ class EditChecklist extends Component
         }
     }
 
-    public function handleChecklistLoaded(): void
-    {
-        // Пустой метод для обработки события checklistLoaded
-    }
-
     public function handleContentReady($content): void
     {
         if ($this->isSaving) {
@@ -167,7 +162,6 @@ class EditChecklist extends Component
     {
         $this->js('localStorage.clear()');
 
-        // Check if the selected ID is a safe
         $isSafe = collect($this->safes)->contains('value', $this->folderId);
 
         if ($isSafe) {
