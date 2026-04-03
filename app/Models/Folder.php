@@ -119,17 +119,39 @@ class Folder extends Model
     public function moveToTrash(): bool
     {
         $trash = $this->user->trash;
-        if (!$trash->hasRoom()) {
+
+        // Получаем количество заметок для подсчёта
+        $notesCount = $this->notes()
+            ->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->count();
+
+        // Проверяем, есть ли место с учётом заметок
+        if (!$trash->hasRoom($notesCount + 1)) {
             return false;
         }
 
+        // Перемещаем все активные заметки папки в корзину
+        $this->notes()
+            ->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->update([
+                'trash_id' => $trash->id,
+                // Не обнуляем folder_id - он нужен для связи с папкой
+                'moved_to_trash_at' => now(),
+            ]);
+
+        // Увеличиваем счётчик корзины на количество заметок
+        $trash->incrementQuantity($notesCount + 1);
+        $trash->save();
+
+        // Помещаем саму папку в корзину
         $this->update([
             'trash_id' => $trash->id,
             'moved_to_trash_at' => now(),
         ]);
-
-        $trash->incrementQuantity();
-        $trash->save();
 
         return true;
     }
@@ -140,14 +162,34 @@ class Folder extends Model
             return false;
         }
 
+        $trash = $this->user->trash;
+
+        // Восстанавливаем все заметки папки из корзины обратно в папку
+        $notesCount = $this->notes()
+            ->whereNotNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->count();
+
+        $this->notes()
+            ->whereNotNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->update([
+                'trash_id' => null,
+                'folder_id' => $this->id,
+                'moved_to_trash_at' => null,
+            ]);
+
+        // Уменьшаем счётчик корзины на количество заметок
+        $trash->decrementQuantity(1 + $notesCount);
+        $trash->save();
+
+        // Восстанавливаем саму папку
         $this->update([
             'trash_id' => null,
             'moved_to_trash_at' => null,
         ]);
-
-        $trash = $this->user->trash;
-        $trash->decrementQuantity();
-        $trash->save();
 
         return true;
     }

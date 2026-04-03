@@ -42,7 +42,8 @@ class Note extends Model
                 is_null($note->getOriginal('trash_id'))
             ) {
                 $note->moved_to_trash_at = now();
-                $note->folder_id = null;
+                // Не обнуляем folder_id - он нужен для связи с папкой при удалении/восстановлении
+                // folder_id будет очищен только если сама папка удалена
                 $note->archive_id = null;
                 $note->safe_id = null;
             }
