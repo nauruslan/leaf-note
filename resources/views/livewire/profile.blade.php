@@ -267,10 +267,10 @@
 
                     @if ($hasSafePassword)
                         <div class="mt-4">
-                            <x-button-cancel wire:click.prevent="removeSafePassword" wire:loading.attr="disabled">
+                            <x-button-delete wire:click.prevent="removeSafePassword" wire:loading.attr="disabled">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 Удалить пароль сейфа
-                            </x-button-cancel>
+                            </x-button-delete>
                         </div>
                     @endif
                 </div>
