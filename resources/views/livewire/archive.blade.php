@@ -19,7 +19,19 @@
     <!-- ControlPanel Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="bg-white rounded-xl shadow-md p-5">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-end gap-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <!-- Left Block: Create Buttons -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <x-button-create-note wire:click="createNote">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Новая заметка
+                    </x-button-create-note>
+                    <x-button-create-checklist wire:click="createChecklist">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                        Новый список
+                    </x-button-create-checklist>
+                </div>
+
                 <!-- Right Block: Filters -->
                 <div class="flex flex-wrap items-center gap-4 justify-end">
                     <!-- Показать Dropdown -->
@@ -61,7 +73,7 @@
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap gap-5">
         @forelse($this->notes as $note)
-            <x-card :note="$note" />
+            <x-card-minimal :note="$note" />
         @empty
             @if ($search)
                 <x-no-data icon="search-x" title="Совпадений не найдено"

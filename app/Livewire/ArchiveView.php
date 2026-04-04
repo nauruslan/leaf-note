@@ -50,9 +50,6 @@ class ArchiveView extends Component
         }
     }
 
-    /**
-     * Внутренний метод для открытия заметки или чеклиста.
-     */
     public function openItem(int $noteId): void
     {
         $note = Note::where('user_id', Auth::id())->find($noteId);
@@ -65,6 +62,15 @@ class ArchiveView extends Component
         $this->dispatch('navigateTo', section: $section, noteId: $noteId);
     }
 
+    public function createNote(): void
+    {
+        $this->dispatch('navigateTo', 'create-note');
+    }
+
+    public function createChecklist(): void
+    {
+        $this->dispatch('navigateTo', 'create-checklist');
+    }
 
     public function render()
     {
