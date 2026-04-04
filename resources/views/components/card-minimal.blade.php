@@ -1,7 +1,7 @@
 @props(['note'])
 
 <div
-    {{ $attributes->merge(['class' => 'min-w-[320px] basis-[320px] h-[340px] flex grow flex-col py-4 px-5 bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all']) }}>
+    {{ $attributes->merge(['class' => 'min-w-[320px] h-[340px] flex flex-col py-4 px-5 bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all']) }}>
     <div class="flex items-start justify-between mb-4">
         <div class="flex flex-1 flex-col">
             <h3 class="font-bold text-lg text-gray-900">{{ $note->title ?: 'Без названия' }}</h3>

@@ -1,12 +1,8 @@
 <div>
     {{-- Модальное окно предупреждения о незащищённом сейфе --}}
-    <x-modal-info
-        :show="$showUnprotectedModal"
-        title="Сейф не защищён"
-        description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль."
-        okText="Ок"
-        okMethod="closeModal"
-    />
+    <x-modal-info :show="$showUnprotectedModal" title="Сейф не защищён"
+        description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль." okText="Ок"
+        okMethod="closeModal" />
 
     @if ($isUnlocked)
         <!-- Header Section -->
@@ -84,7 +80,8 @@
         </div>
 
         <!-- Content Section -->
-        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap gap-5">
+        <div
+            class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
             @forelse($this->notes as $note)
                 <x-card-minimal :note="$note" />
             @empty
@@ -104,7 +101,7 @@
         @endif
     @else
         <!-- Заблокированное состояние -->
-        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-24">
             <div class="flex items-center justify-center">
                 <div class="text-center">
                     <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
@@ -131,9 +128,9 @@
                             @enderror
                         </div>
 
-                        <div class="flex justify-center pt-2">
+                        <div class="pt-2">
                             <button type="submit"
-                                class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
                                 <i data-lucide="lock" class="w-4 h-4"></i>
                                 Открыть сейф
                             </button>
