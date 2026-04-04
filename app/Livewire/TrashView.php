@@ -28,6 +28,7 @@ class TrashView extends Component
     public bool $confirmingRestore = false;
     public ?int $pendingRestoreId = null;
     public ?string $pendingRestoreType = null;
+    public string $restoreDescription = '';
 
     // Свойства для модальных окон восстановления всех и очистки
     public bool $confirmingRestoreAll = false;
@@ -46,6 +47,16 @@ class TrashView extends Component
         $this->confirmingRestore = true;
         $this->pendingRestoreId = $id;
         $this->pendingRestoreType = $type;
+
+        if ($type === 'folder') {
+            $this->restoreDescription = 'Папка будет восстановлена';
+        } else {
+            $note = Note::find($id);
+            $isChecklist = $note && $note->type === 'checklist';
+            $this->restoreDescription = $isChecklist
+                ? 'Список будет перемещен в архив'
+                : 'Заметка будет перемещена в архив';
+        }
     }
 
     #[On('deleteItem')]
@@ -86,6 +97,7 @@ class TrashView extends Component
         $this->confirmingRestore = false;
         $this->pendingRestoreId = null;
         $this->pendingRestoreType = null;
+        $this->restoreDescription = '';
     }
 
     public function confirmRestore(): void

@@ -119,9 +119,8 @@
     @endif
 
     <!-- Модальное окно подтверждения восстановления одного элемента -->
-    <x-modal-confirm :show="$confirmingRestore" title="Восстановить?"
-        description="Элемент будет восстановлен и перемещен в архив." confirmText="Восстановить" cancelText="Отмена"
-        confirmMethod="confirmRestore" cancelMethod="closeModal" confirmColor="indigo" />
+    <x-modal-confirm :show="$confirmingRestore" title="Восстановить?" :description="$restoreDescription" confirmText="Восстановить"
+        cancelText="Отмена" confirmMethod="confirmRestore" cancelMethod="closeModal" confirmColor="indigo" />
 
     <!-- Модальное окно подтверждения удаления одного элемента -->
     <x-modal-confirm :show="$confirmingDeletion" title="Удалить навсегда?"
@@ -130,8 +129,8 @@
 
     <!-- Модальное окно подтверждения восстановления всех элементов -->
     <x-modal-confirm :show="$confirmingRestoreAll" title="Восстановить всё?"
-        description="Все удалённые элементы будут восстановлены и перемещены в архив." confirmText="Восстановить"
-        cancelText="Отмена" confirmMethod="restoreAll" cancelMethod="closeRestoreAllModal" confirmColor="indigo" />
+        description="Все удалённые элементы будут восстановлены" confirmText="Восстановить" cancelText="Отмена"
+        confirmMethod="restoreAll" cancelMethod="closeRestoreAllModal" confirmColor="indigo" />
 
     <!-- Модальное окно подтверждения очистки корзины -->
     <x-modal-confirm :show="$confirmingEmptyTrash" title="Очистить корзину?"
