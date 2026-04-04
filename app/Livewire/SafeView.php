@@ -20,15 +20,12 @@ class SafeView extends Component
     use WithFiltering;
     use WithFavorite;
 
-    protected $listeners = [
-        'openSafePasswordModal' => 'openPasswordModal'
-    ];
-
     public bool $confirmingPassword = false;
     public string $password = '';
     public bool $isUnlocked = false;
     public ?string $errorMessage = null;
     public ?Safe $safe = null;
+    public bool $showUnprotectedModal = false;
 
     public function mount(): void
     {
@@ -39,8 +36,9 @@ class SafeView extends Component
     {
         $this->safe = Safe::where('user_id', Auth::id())->first();
 
-        // Если пароль не установлен - сейф открыт
+        // Если пароль не установлен - показываем предупреждение
         if (!$this->safe || !$this->safe->hasPassword()) {
+            $this->showUnprotectedModal = true;
             $this->isUnlocked = true;
             $this->confirmingPassword = false;
             return;
@@ -65,38 +63,6 @@ class SafeView extends Component
         // Требуется ввод пароля
         $this->confirmingPassword = true;
         $this->isUnlocked = false;
-    }
-
-    public function openPasswordModal(): void
-    {
-        $this->loadSafe();
-
-        // Если пароль не установлен - сейф открыт
-        if (!$this->safe || !$this->safe->hasPassword()) {
-            $this->isUnlocked = true;
-            $this->confirmingPassword = false;
-            return;
-        }
-
-        // Если сейф заблокирован
-        if ($this->safe->isLocked()) {
-            $this->confirmingPassword = true;
-            $this->isUnlocked = false;
-            $this->errorMessage = "Сейф заблокирован. Попробуйте через {$this->safe->seconds_until_unlock} секунд.";
-            return;
-        }
-
-        // Требуется ввод пароля
-        $this->confirmingPassword = true;
-        $this->isUnlocked = false;
-        $this->errorMessage = null;
-    }
-
-    public function closeModal(): void
-    {
-        $this->confirmingPassword = false;
-        $this->password = '';
-        $this->errorMessage = null;
     }
 
     public function verifyPassword(): void
@@ -145,6 +111,11 @@ class SafeView extends Component
         $this->confirmingPassword = true;
     }
 
+    public function closeModal(): void
+    {
+        $this->showUnprotectedModal = false;
+    }
+
     #[Computed]
     public function notes(): LengthAwarePaginator
     {
@@ -174,11 +145,6 @@ class SafeView extends Component
         if (in_array($property, ['search', 'filter', 'sort'])) {
             $this->resetPagination();
         }
-    }
-
-    public function createSafeNote(): void
-    {
-        $this->dispatch('navigateTo', 'create-safe-note');
     }
 
     public function createNote(): void

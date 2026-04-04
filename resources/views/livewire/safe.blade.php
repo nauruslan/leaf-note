@@ -1,66 +1,34 @@
 <div>
-    <!-- Модальное окно ввода пароля -->
-    @if ($confirmingPassword && !$isUnlocked)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-                <div class="text-center mb-6">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
-                        <i data-lucide="lock" class="w-8 h-8 text-indigo-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900">Введите пароль сейфа</h3>
-                    <p class="text-gray-500 mt-1">Для доступа к защищённым заметкам введите пароль</p>
-                </div>
-
-                @if ($errorMessage)
-                    <div class="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg text-red-700 text-sm">
-                        {{ $errorMessage }}
-                    </div>
-                @endif
-
-                <form wire:submit="verifyPassword" class="space-y-4">
-                    <div>
-                        <input type="password" wire:model="password" placeholder="Пароль"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @if ($errorMessage) border-red-500 @endif"
-                            autofocus>
-                        @error('password')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" wire:click="closeModal"
-                            class="px-5 py-2.5 text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
-                            Отмена
-                        </button>
-                        <button type="submit"
-                            class="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-                            Открыть сейф
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endif
-    <!-- Header Section -->
-    <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
-        <div class="bg-white rounded-b-xl shadow-md p-5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1
-                        class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        Сейф
-                    </h1>
-                    <p class="text-sm text-gray-500 mt-0.5">Защищённые заметки</p>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <x-search wireModel="search" width="w-64" />
-                </div>
-            </div>
-        </div>
-    </header>
+    {{-- Модальное окно предупреждения о незащищённом сейфе --}}
+    <x-modal-info
+        :show="$showUnprotectedModal"
+        title="Сейф не защищён"
+        description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль."
+        okText="Ок"
+        okMethod="closeModal"
+    />
 
     @if ($isUnlocked)
+        <!-- Header Section -->
+        <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
+            <div class="bg-white rounded-b-xl shadow-md p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1
+                            class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            Сейф
+                        </h1>
+                        <p class="text-sm text-gray-500 mt-0.5">Защищённые заметки</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <x-search wireModel="search" width="w-64" />
+                    </div>
+                </div>
+            </div>
+        </header>
+
+
         <!-- ControlPanel Section -->
         <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="bg-white rounded-xl shadow-md p-5">
@@ -139,18 +107,38 @@
         <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <div class="flex items-center justify-center">
                 <div class="text-center">
-                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 mb-6">
-                        <i data-lucide="lock" class="w-12 h-12 text-gray-400"></i>
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
+                        <i data-lucide="lock" class="w-8 h-8 text-indigo-600"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">Сейф заблокирован</h3>
-                    <p class="text-gray-500 mb-6 max-w-md mx-auto">
+                    <p class="text-gray-500 mb-3 max-w-md mx-auto">
                         Введите пароль для доступа к защищённым заметкам
                     </p>
-                    <button wire:click="$set('confirmingPassword', true)"
-                        class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2">
-                        <i data-lucide="key" class="w-5 h-5"></i>
-                        Разблокировать
-                    </button>
+
+                    @if ($errorMessage)
+                        <div class="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg text-red-700 text-sm">
+                            {{ $errorMessage }}
+                        </div>
+                    @endif
+
+                    <form wire:submit="verifyPassword" class="space-y-4">
+                        <div>
+                            <input type="password" wire:model="password" placeholder="Пароль"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @if ($errorMessage) border-red-500 @endif"
+                                autofocus>
+                            @error('password')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="flex justify-center pt-2">
+                            <button type="submit"
+                                class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                                <i data-lucide="lock" class="w-4 h-4"></i>
+                                Открыть сейф
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
