@@ -86,19 +86,16 @@
             $isSearching = !empty($search);
         @endphp
 
-        {{-- Результаты поиска --}}
         @if ($hasResults)
-            {{-- Папки в корзине --}}
             @if ($showFolders)
                 @foreach ($this->trashedFolders as $folder)
-                    <x-card-delete :item="$folder" type="folder" />
+                    <x-card-folder-trash :item="$folder" type="folder" />
                 @endforeach
             @endif
 
-            {{-- Заметки в корзине --}}
             @if ($showNotes)
                 @foreach ($this->trashedNotes as $note)
-                    <x-card-delete :item="$note" type="note" />
+                    <x-card-note-trash :item="$note" />
                 @endforeach
             @endif
         @endif
