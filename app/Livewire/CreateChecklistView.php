@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Folder;
 use App\Models\Note;
 use App\Models\Safe;
+use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -49,6 +50,24 @@ class CreateChecklistView extends Component
         $this->safes = Safe::where('user_id', Auth::id())
             ->get()
             ->map(fn($safe) => ['value' => $safe->id, 'text' => 'Сейф']);
+
+        // Проверяем preset_safe_id (переданный при открытии из сейфа)
+        $presetSafeId = StateManager::get('preset_safe_id');
+        if ($presetSafeId) {
+            $this->folderId = $presetSafeId;
+            $this->safeId = $presetSafeId;
+            // Очищаем preset после использования
+            StateManager::remove('preset_safe_id');
+            return;
+        }
+
+        // Проверяем preset_folder_id (переданный при открытии из папки)
+        $presetFolderId = StateManager::get('preset_folder_id');
+        if ($presetFolderId) {
+            $this->folderId = $presetFolderId;
+            // Очищаем preset после использования
+            StateManager::remove('preset_folder_id');
+        }
     }
 
     public function setFolderId($id)

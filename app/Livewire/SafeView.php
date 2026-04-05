@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
 use App\Models\Safe;
+use App\Services\StateManager;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -149,11 +150,19 @@ class SafeView extends Component
 
     public function createNote(): void
     {
+        // Устанавливаем preset safeId для новой заметки
+        if ($this->safe) {
+            StateManager::set('preset_safe_id', $this->safe->id);
+        }
         $this->dispatch('navigateTo', 'create-note');
     }
 
     public function createChecklist(): void
     {
+        // Устанавливаем preset safeId для нового списка
+        if ($this->safe) {
+            StateManager::set('preset_safe_id', $this->safe->id);
+        }
         $this->dispatch('navigateTo', 'create-checklist');
     }
 

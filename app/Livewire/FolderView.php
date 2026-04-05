@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Folder;
 use App\Models\Note;
+use App\Services\StateManager;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -85,11 +86,19 @@ class FolderView extends Component
 
     public function createNote(): void
     {
+        // Устанавливаем preset folderId для новой заметки
+        if ($this->folderId) {
+            StateManager::set('preset_folder_id', $this->folderId);
+        }
         $this->dispatch('navigateTo', 'create-note');
     }
 
     public function createChecklist(): void
     {
+        // Устанавливаем preset folderId для нового списка
+        if ($this->folderId) {
+            StateManager::set('preset_folder_id', $this->folderId);
+        }
         $this->dispatch('navigateTo', 'create-checklist');
     }
 
