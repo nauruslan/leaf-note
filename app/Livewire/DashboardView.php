@@ -73,11 +73,14 @@ class DashboardView extends Component
         $note = Note::where('user_id', Auth::id())->find($noteId);
 
         if (!$note) {
+            $this->dispatch('notification', title: 'Ошибка', content: 'Переход не состоялся', type: 'danger');
             return;
         }
 
         $section = $note->type === Note::TYPE_CHECKLIST ? 'edit-checklist' : 'edit-note';
+
         $this->dispatch('navigateTo', section: $section, noteId: $noteId);
+        $this->dispatch('notification', title: 'Успешно', content: 'Переход к заметке', type: 'success');
     }
 
     /**

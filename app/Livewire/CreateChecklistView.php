@@ -51,21 +51,17 @@ class CreateChecklistView extends Component
             ->get()
             ->map(fn($safe) => ['value' => $safe->id, 'text' => 'Сейф']);
 
-        // Проверяем preset_safe_id (переданный при открытии из сейфа)
         $presetSafeId = StateManager::get('preset_safe_id');
         if ($presetSafeId) {
             $this->folderId = $presetSafeId;
             $this->safeId = $presetSafeId;
-            // Очищаем preset после использования
             StateManager::remove('preset_safe_id');
             return;
         }
 
-        // Проверяем preset_folder_id (переданный при открытии из папки)
         $presetFolderId = StateManager::get('preset_folder_id');
         if ($presetFolderId) {
             $this->folderId = $presetFolderId;
-            // Очищаем preset после использования
             StateManager::remove('preset_folder_id');
         }
     }
@@ -97,7 +93,6 @@ class CreateChecklistView extends Component
     {
         $this->js('localStorage.clear()');
 
-        // Check if the selected ID is a safe
         $isSafe = collect($this->safes)->contains('value', $this->folderId);
 
         if ($isSafe) {
@@ -105,7 +100,6 @@ class CreateChecklistView extends Component
             $this->folderId = null;
         }
 
-        // Запрашиваем контент у JavaScript через событие
         $this->dispatch('getChecklistContent');
     }
 
@@ -180,7 +174,6 @@ class CreateChecklistView extends Component
     {
         $this->is_favorite = !$this->is_favorite;
 
-        // Для нового списка ещё нет ID, поэтому диспатчим без noteId
         $this->dispatch('favoriteToggled',
             noteId: null,
             isFavorite: $this->is_favorite,

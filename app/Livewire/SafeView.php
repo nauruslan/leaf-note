@@ -124,20 +124,16 @@ class SafeView extends Component
             ->whereNotNull('safe_id')
             ->with('folder');
 
-        // Применяем фильтр
         $filterMap = [
             'notes' => ['column' => 'type', 'value' => Note::TYPE_NOTE],
             'checklists' => ['column' => 'type', 'value' => Note::TYPE_CHECKLIST],
         ];
         $query = $this->applyFilter($query, 'type', $filterMap);
 
-        // Применяем сортировку
         $query = $this->applySorting($query);
 
-        // Применяем поиск
         $query = $this->applySearch($query, ['title', 'payload']);
 
-        // Пагинация
         return $query->paginate($this->perPage, ['*'], 'page', $this->page);
     }
 
@@ -150,7 +146,6 @@ class SafeView extends Component
 
     public function createNote(): void
     {
-        // Устанавливаем preset safeId для новой заметки
         if ($this->safe) {
             StateManager::set('preset_safe_id', $this->safe->id);
         }
@@ -159,7 +154,6 @@ class SafeView extends Component
 
     public function createChecklist(): void
     {
-        // Устанавливаем preset safeId для нового списка
         if ($this->safe) {
             StateManager::set('preset_safe_id', $this->safe->id);
         }

@@ -86,7 +86,6 @@ class FolderView extends Component
 
     public function createNote(): void
     {
-        // Устанавливаем preset folderId для новой заметки
         if ($this->folderId) {
             StateManager::set('preset_folder_id', $this->folderId);
         }
@@ -95,7 +94,6 @@ class FolderView extends Component
 
     public function createChecklist(): void
     {
-        // Устанавливаем preset folderId для нового списка
         if ($this->folderId) {
             StateManager::set('preset_folder_id', $this->folderId);
         }

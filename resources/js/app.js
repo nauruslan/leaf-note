@@ -7,6 +7,7 @@ import './star';
 import './dropdown';
 import './toggle';
 import './search';
+import './notifications';
 
 // import './sidebar';
 import { createIcons, icons } from 'lucide';

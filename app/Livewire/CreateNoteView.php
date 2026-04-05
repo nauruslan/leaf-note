@@ -39,21 +39,17 @@ class CreateNoteView extends Component
             ->get()
             ->map(fn($safe) => ['value' => $safe->id, 'text' => 'Сейф']);
 
-        // Проверяем preset_safe_id (переданный при открытии из сейфа)
         $presetSafeId = StateManager::get('preset_safe_id');
         if ($presetSafeId) {
             $this->folderId = $presetSafeId;
             $this->safeId = $presetSafeId;
-            // Очищаем preset после использования
             StateManager::remove('preset_safe_id');
             return;
         }
 
-        // Проверяем preset_folder_id (переданный при открытии из папки)
         $presetFolderId = StateManager::get('preset_folder_id');
         if ($presetFolderId) {
             $this->folderId = $presetFolderId;
-            // Очищаем preset после использования
             StateManager::remove('preset_folder_id');
         }
     }
@@ -98,10 +94,8 @@ class CreateNoteView extends Component
 
     public function triggerSave($folderId = null): void
     {
-        // Check if the selected ID is actually a folder or a safe
         $selectedId = $folderId ?? $this->folderId;
 
-        // Check if selected ID is a safe ID
         $isSafe = collect($this->safes)->contains('value', $selectedId);
 
         if ($isSafe) {
@@ -165,8 +159,6 @@ class CreateNoteView extends Component
     {
         $this->is_favorite = !$this->is_favorite;
 
-        // Для новой заметки ещё нет ID, поэтому диспатчим без noteId
-        // Sidebar обновит счётчик при следующем рендере
         $this->dispatch('favoriteToggled',
             noteId: null,
             isFavorite: $this->is_favorite,
