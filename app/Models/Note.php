@@ -55,7 +55,7 @@ class Note extends Model
                 $note->getOriginal('trash_id')
             ) {
                 $note->moved_to_trash_at = null;
-                $note->archive_id = $note->user->archive->id;
+                $note->archive_id = $note->user->archive?->id;
             }
         });
     }
@@ -138,6 +138,7 @@ class Note extends Model
             'archive_id' => null,
             'safe_id' => null,
             'trash_id' => $trash->id,
+            'is_favorite' => false,
         ]);
 
         $trash->incrementQuantity();
@@ -154,6 +155,7 @@ class Note extends Model
 
         $this->update([
             'trash_id' => null,
+            'folder_id' => null,
             'archive_id' => $this->user->archive->id,
         ]);
 

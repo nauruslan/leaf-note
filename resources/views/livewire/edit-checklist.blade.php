@@ -1,4 +1,5 @@
 <div>
+    <meta name="note-id" content="{{ $noteId }}">
     <!-- Header Section -->
     <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
         <div class="bg-white rounded-b-xl shadow-md p-5">
@@ -6,9 +7,9 @@
                 <div>
                     <h1
                         class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        Редактирование списка
+                        Редактирование списка задач
                     </h1>
-                    <p class="text-sm text-gray-500 mt-0.5">Редактирование списка задач</p>
+                    <p class="text-sm text-gray-500 mt-0.5">{{ $this->checklist->title }}</p>
                 </div>
             </div>
         </div>
@@ -24,14 +25,15 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown :options="$folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$safes" selected="{{ $folderId ?? $safeId }}" wireModel="folderId" live
-                            width="150px" />
+                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" selected="{{ $folderId ?? $safeId }}"
+                            wireModel="folderId" live width="150px" />
                     </div>
 
                     <!-- Favorite -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Избранное:</span>
-                        <x-star :active="$is_favorite" wire:click="toggleFavorite" size="30px" />
+                        <x-star :active="$this->checklist->is_favorite" size="30px"
+                            wire:click.debounce.500ms="toggleFavorite({{ $this->checklist->id }})" />
                     </div>
                 </div>
 
@@ -39,9 +41,13 @@
                 <div class="flex flex-wrap items-center gap-3 justify-end">
 
                     <!-- Save Button -->
-                    <x-button-save wire:click="prepareAndSave" wire:loading.attr="disabled">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Сохранить
+                    <x-button-save wire:click.prevent="saveWithLocation" wire:loading.attr="disabled"
+                        wire:loading.class="opacity-50 cursor-not-allowed">
+                        <span wire:loading>Сохранение...</span>
+                        <span wire:loading.remove class="flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Сохранить
+                        </span>
                     </x-button-save>
 
                     <!-- Cancel Button -->
@@ -50,7 +56,7 @@
                         Отменить
                     </x-button-cancel>
                     <!-- Delete Button -->
-                    <x-button-delete wire:click.prevent="confirmDeletion" wire:loading.attr="disabled">
+                    <x-button-delete wire:click.prevent="toggleDeleteModal" wire:loading.attr="disabled">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         Удалить
                     </x-button-delete>
@@ -62,12 +68,9 @@
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
-            <!-- Скрытый input для хранения контента -->
-            <input type="hidden" id="edit-checklist-content-input" value="">
-
             <!-- Note Title Input -->
             <div class="px-6 pt-6 pb-2 border-b border-gray-100">
-                <input type="text" wire:model="title" placeholder="Название списка"
+                <input type="text" wire:model.live.debounce.300ms="title" placeholder="Название списка"
                     class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
             </div>
 
@@ -89,14 +92,17 @@
                 </div>
             </div>
 
+            <!-- Hidden input for content synchronization -->
+            <input type="hidden" wire:model.live.debounce.500ms="content" id="checklist-content-input">
+
             <!-- Footer Info (ignored) -->
             <div wire:ignore>
                 <div
                     class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
                     <div class="flex items-center gap-4">
-                        <span>Создано: {{ $checklist?->created_at?->translatedFormat('d F Y') }}</span>
+                        <span>Создано: {{ $this->checklist?->created_at?->translatedFormat('d F Y') }}</span>
                         <span>•</span>
-                        <span>Изменено: {{ $checklist?->updated_at?->translatedFormat('d F Y') }}</span>
+                        <span>Изменено: {{ $this->checklist?->updated_at?->translatedFormat('d F Y') }}</span>
                         <span>•</span>
                         <span data-task-count>0 задач</span>
                     </div>
@@ -107,23 +113,11 @@
 
         <!-- Delete Confirmation Modal -->
         <x-modal-delete :confirmingDeletion="$confirmingDeletion" title="Удалить список?" description="Список будет перемещен в корзину"
-            closeMethod="closeModal" deleteMethod="confirmDelete" />
+            closeMethod="toggleDeleteModal" deleteMethod="delete" />
     </div>
 
     @script
         <script>
-            // Загрузка данных при редактировании
-            Livewire.on('checklistLoaded', (data) => {
-                let parsedContent = data && data.content ? data.content : data;
-                if (typeof parsedContent === 'string') {
-                    try {
-                        parsedContent = JSON.parse(parsedContent);
-                    } catch (e) {
-                        parsedContent = '';
-                    }
-                }
-            });
-
             document.addEventListener('update-safe-id', (e) => {
                 Livewire.dispatch('updateSafeId', {
                     id: e.detail.id

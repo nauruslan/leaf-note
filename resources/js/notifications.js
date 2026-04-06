@@ -40,7 +40,7 @@ class Notifications {
         this.initialized = true;
 
         if (window.Livewire) {
-            Livewire.on('notification-js', (data) => {
+            Livewire.on('notification', (data) => {
                 this.show(data.title, data.content, data.type, 3000);
             });
         }

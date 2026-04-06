@@ -19,7 +19,6 @@ function updateTaskCount(count) {
 function initEditChecklistEditor(initialData = null) {
     const container = document.getElementById('edit-checklist-editor');
     if (!container) {
-        console.error('[EditChecklistEditor] Element #edit-checklist-editor not found');
         return null;
     }
 
@@ -48,6 +47,16 @@ function initEditChecklistEditor(initialData = null) {
             if (progressBarInstance) {
                 progressBarInstance.update();
             }
+            // Обновляем скрытый input для синхронизации с Livewire
+            const contentInput = document.getElementById('checklist-content-input');
+            if (contentInput) {
+                contentInput.value = JSON.stringify(json);
+                // Триггерим событие input для Livewire
+                // eslint-disable-next-line no-undef
+                contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            // Автосохранение через AJAX больше не используется
+            // Данные синхронизируются с Livewire через скрытый input
         },
     });
 
@@ -78,14 +87,6 @@ function destroyEditEditor() {
         progressBarInstance = null;
     }
     lastContent = null;
-}
-
-// Отправляет контент в Livewire через событие (только если редактор существует)
-function sendContentToLivewire() {
-    if (typeof Livewire !== 'undefined' && editorInstance) {
-        const content = getEditEditorContent();
-        Livewire.dispatch('checklistContentReady', { content: JSON.stringify(content) });
-    }
 }
 
 // Автоматическая инициализация редактора редактирования
@@ -148,10 +149,8 @@ if (document.readyState === 'loading') {
 
 // Обработка событий Livewire
 if (typeof Livewire !== 'undefined') {
-    Livewire.hook('component.init', ({ component }) => {
-        setTimeout(() => {
-            autoInitEditEditor();
-        }, 50);
+    Livewire.hook('component.init', () => {
+        setTimeout(autoInitEditEditor, 50);
     });
 
     // Загрузка данных при редактировании
@@ -160,7 +159,7 @@ if (typeof Livewire !== 'undefined') {
         if (typeof parsedContent === 'string') {
             try {
                 parsedContent = JSON.parse(parsedContent);
-            } catch (e) {
+            } catch {
                 parsedContent = '';
             }
         }
@@ -171,24 +170,7 @@ if (typeof Livewire !== 'undefined') {
             initEditChecklistEditor(parsedContent);
         }
     });
-
-    // Слушаем запрос на получение контента от PHP (только если редактор существует)
-    Livewire.on('getChecklistContent', () => {
-        const container = document.getElementById('edit-checklist-editor');
-        if (container && editorInstance) {
-            sendContentToLivewire();
-        }
-    });
-
-    // Очистка после сохранения
-    Livewire.on('checklistSaved', () => {
-        lastContent = null;
-    });
-
-    Livewire.on('checklistUpdated', () => {
-        lastContent = null;
-    });
 }
 
 // Экспортируем только то, что нужно для тестов (опционально)
-export { destroyEditEditor, getEditEditorContent, initEditChecklistEditor, sendContentToLivewire };
+export { destroyEditEditor, getEditEditorContent, initEditChecklistEditor };

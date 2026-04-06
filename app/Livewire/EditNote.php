@@ -2,22 +2,21 @@
 
 namespace App\Livewire;
 
-use App\Models\Folder;
+use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
-use App\Models\Safe;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
 class EditNote extends Component
 {
+    use WithFolderSafeSelection;
+
     public ?int $noteId = null;
     public string $title = '';
     public ?int $folderId = null;
     public ?int $safeId = null;
     public $content = '';
-    public $folders = [];
-    public $safes = [];
     public ?Note $note = null;
     public bool $isLoaded = false;
     public bool $confirmingDeletion = false;
@@ -37,18 +36,9 @@ class EditNote extends Component
         'noteLoaded' => 'handleNoteLoaded',
     ];
 
-
     public function mount(?int $noteId = null, ?int $folderId = null): void
     {
         $this->noteId = $noteId ?? $folderId;
-        $this->folders = Folder::forUser(Auth::user())
-            ->active()
-            ->orderBy('title')
-            ->get();
-
-        $this->safes = Safe::where('user_id', Auth::id())
-            ->get()
-            ->map(fn($safe) => ['value' => $safe->id, 'text' => 'Сейф']);
 
         if ($this->noteId) {
             $this->loadNote();
@@ -74,23 +64,24 @@ class EditNote extends Component
             return;
         }
 
-        $this->note = Note::where('user_id', Auth::id())
-            ->find($this->noteId);
+        $note = Note::where('user_id', Auth::id())->find($this->noteId);
 
-        if ($this->note) {
-            $this->title = $this->note->title;
-            $this->folderId = $this->note->folder_id;
-            $this->safeId = $this->note->safe_id;
-            $this->is_favorite = (bool) $this->note->is_favorite;
-            $this->content = $this->note->payload;
-            $this->originalImagePaths = $this->extractImagePathsFromPayload($this->note->payload);
-            $this->isLoaded = true;
-
-            $this->dispatch('noteLoaded',
-                content: $this->content,
-                originalImagePaths: $this->originalImagePaths
-            );
+        if (!$note) {
+            return;
         }
+
+        $this->title = $note->title;
+        $this->folderId = $note->folder_id;
+        $this->safeId = $note->safe_id;
+        $this->is_favorite = (bool) $note->is_favorite;
+        $this->content = $note->payload;
+        $this->originalImagePaths = $this->extractImagePathsFromPayload($note->payload);
+        $this->isLoaded = true;
+
+        $this->dispatch('noteLoaded',
+            content: $this->content,
+            originalImagePaths: $this->originalImagePaths
+        );
     }
 
     private function extractImagePathsFromPayload($payload): array
@@ -129,25 +120,6 @@ class EditNote extends Component
         }
     }
 
-    public function setFolderId($id): void
-    {
-        $this->folderId = $id;
-    }
-
-    public function setSafeId($id): void
-    {
-        $this->safeId = $id;
-    }
-
-    public function save(): void
-    {
-        $this->js('localStorage.clear()');
-
-        $this->dispatch('saveNote',
-            folderId: $this->folderId
-        );
-    }
-
     public function onNoteUpdated(): void
     {
         $this->dispatch('navigateTo', 'dashboard');
@@ -162,21 +134,24 @@ class EditNote extends Component
 
     public function confirmDelete(): void
     {
-        if (!$this->note) {
+        $note = $this->note;
+
+        if (!$note) {
             $this->dispatch('showError', 'Заметка не найдена');
             return;
         }
 
-        if ($this->note->is_favorite) {
-            $this->note->update(['is_favorite' => false]);
+        if ($note->is_favorite) {
+            $note->toggleFavorite();
         }
 
-        if ($this->note->moveToTrash()) {
-            $this->dispatch('noteUpdated');
-            $this->dispatch('navigateTo', 'dashboard');
-        } else {
+        if (!$note->moveToTrash()) {
             $this->dispatch('showError', 'Не удалось удалить заметку');
+            return;
         }
+
+        $this->dispatch('noteUpdated');
+        $this->dispatch('navigateTo', 'dashboard');
     }
 
     public function confirmDeletion(): void
@@ -191,7 +166,6 @@ class EditNote extends Component
 
     public function openDeleteModal(): void
     {
-        // Для обратной совместимости
         $this->confirmDeletion();
     }
 
@@ -199,9 +173,7 @@ class EditNote extends Component
     {
         $selectedId = $folderId ?? $this->folderId;
 
-        $isSafe = collect($this->safes)->contains('value', $selectedId);
-
-        if ($isSafe) {
+        if ($this->isSafeSelected($selectedId)) {
             $this->pendingFolderId = null;
             $this->safeId = $selectedId;
         } else {
@@ -220,38 +192,15 @@ class EditNote extends Component
     private function performSave(): void
     {
         try {
-            $this->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required',
-            ]);
-
-            if (!$this->note) {
-                $this->dispatch('showError', 'Заметка не найдена');
+            if (!$this->validateNote()) {
                 return;
             }
 
             $currentImagePaths = $this->extractImagePathsFromPayload($this->content);
-
             $removedImagePaths = array_diff($this->originalImagePaths, $currentImagePaths);
-
             $this->deleteImagesFromStorage($removedImagePaths);
 
-            $this->note->title = $this->title;
-            $this->note->payload = $this->content;
-            $this->note->is_favorite = $this->is_favorite;
-
-            if ($this->pendingFolderId !== null) {
-                $this->note->folder_id = $this->pendingFolderId;
-                $this->note->safe_id = null;
-                $this->note->archive_id = null;
-            } elseif ($this->safeId !== null) {
-                $this->note->safe_id = $this->safeId;
-                $this->note->folder_id = null;
-                $this->note->archive_id = null;
-            }
-
-            $this->note->save();
-
+            $this->updateNoteLocation();
             $this->originalImagePaths = $currentImagePaths;
 
             $this->dispatch('noteUpdated');
@@ -263,6 +212,56 @@ class EditNote extends Component
         }
     }
 
+    private function validateNote(): bool
+    {
+        if (empty(trim($this->title))) {
+            $this->dispatch('showError', 'Название обязательно');
+            return false;
+        }
+
+        if (strlen($this->title) > 255) {
+            $this->dispatch('showError', 'Название слишком длинное');
+            return false;
+        }
+
+        return true;
+    }
+
+    private function updateNoteLocation(): void
+    {
+        $note = $this->note;
+
+        if (!$note) {
+            $this->dispatch('showError', 'Заметка не найдена');
+            return;
+        }
+
+        $note->title = $this->title;
+        $note->payload = $this->content;
+        $note->is_favorite = $this->is_favorite;
+
+        if ($this->pendingFolderId !== null) {
+            $note->folder_id = $this->pendingFolderId;
+            $note->safe_id = null;
+            $note->archive_id = null;
+        } elseif ($this->safeId !== null) {
+            $note->safe_id = $this->safeId;
+            $note->folder_id = null;
+            $note->archive_id = null;
+        }
+
+        $note->save();
+    }
+
+    private function isSafeSelected(?int $folderId): bool
+    {
+        if ($folderId === null) {
+            return false;
+        }
+
+        return collect($this->safes)->contains('value', $folderId);
+    }
+
     public function toggleFavorite(): void
     {
         if (!$this->note) {
@@ -272,7 +271,6 @@ class EditNote extends Component
         $wasFavorite = $this->is_favorite;
         $this->is_favorite = !$this->is_favorite;
 
-        // Диспатчим событие для обновления sidebar
         $this->dispatch('favoriteToggled',
             noteId: $this->note->id,
             isFavorite: $this->is_favorite,

@@ -66,8 +66,7 @@
     </div>
 
     @if ($wireModel)
-        <input type="hidden" value="{{ $selected }}" wire:model{{ $live ? '.live' : '' }}="{{ $wireModel }}"
-            data-dropdown-input>
+        <input type="hidden" value="{{ $selected }}" wire:model.live="{{ $wireModel }}" data-dropdown-input>
     @else
         <input type="hidden" value="{{ $selected }}" data-dropdown-input>
     @endif

@@ -22,7 +22,6 @@ class AppLayout extends Component
 
     protected $listeners = [
         'navigateTo' => 'navigateTo',
-        'notification' => 'handleNotification'
     ];
 
     public function navigateTo(string $section, ?int $folderId=null, ?int $noteId=null): void
@@ -36,11 +35,6 @@ class AppLayout extends Component
         $this->folderId = $folderId;
         $this->noteId = $noteId;
         $this->componentKey++;
-    }
-
-    public function handleNotification(string $title, string $content, string $type = 'info'): void
-    {
-        $this->dispatch('show-notification', title: $title, content: $content, type: $type);
     }
 
     public function render()

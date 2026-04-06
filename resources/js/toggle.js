@@ -12,10 +12,6 @@ export function initToggles(selector = '.toggle-switch input') {
         // Слушаем изменения
         toggle.addEventListener('change', () => {
             localStorage.setItem(storageKey, toggle.checked);
-            console.log(
-                `Переключатель ${toggle.id || toggle.name}:`,
-                toggle.checked ? 'ВКЛ' : 'ВЫКЛ',
-            );
 
             // Диспатч кастомного события
             toggle.dispatchEvent(

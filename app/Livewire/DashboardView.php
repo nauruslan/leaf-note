@@ -44,9 +44,7 @@ class DashboardView extends Component
         return $query->paginate($this->perPage, ['*'], 'page', $this->page);
     }
 
-    /**
-     * Сбросить пагинацию при изменении любого из параметров: search, filter, sort.
-     */
+    // Сбросить пагинацию при изменении любого из параметров: search, filter, sort.
     public function updated($property): void
     {
         if (in_array($property, ['search', 'filter', 'sort'])) {
@@ -64,10 +62,6 @@ class DashboardView extends Component
         $this->dispatch('navigateTo', 'create-checklist');
     }
 
-
-    /**
-     * Внутренний метод для открытия заметки или чеклиста.
-     */
     public function openItem(int $noteId): void
     {
         $note = Note::where('user_id', Auth::id())->find($noteId);
@@ -83,9 +77,6 @@ class DashboardView extends Component
         $this->dispatch('notification', title: 'Успешно', content: 'Переход к заметке', type: 'success');
     }
 
-    /**
-     * Открыть папку.
-     */
     public function openFolder(int $folderId): void
     {
         if (!$folderId) {

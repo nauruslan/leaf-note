@@ -2,259 +2,311 @@
 
 namespace App\Livewire;
 
-use App\Models\Folder;
+use App\Livewire\Traits\WithFavorite;
+use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
 use App\Models\Safe;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class EditChecklist extends Component
 {
+    use WithFavorite;
+    use WithFolderSafeSelection;
+
+    private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
+
     public ?int $noteId = null;
     public string $title = '';
     public ?int $folderId = null;
     public ?int $safeId = null;
-    public bool $is_favorite = false;
-    public $content = '';
-    public $folders = [];
-    public $safes = [];
-    public ?Note $checklist = null;
-    public bool $isLoaded = false;
+    public string $content = '';
     public bool $confirmingDeletion = false;
-    private bool $isSaving = false;
+    public bool $isSaving = false;
 
+    private ?Note $cachedChecklist = null;
 
-    protected $listeners = [
-        'updateFolderId' => 'setFolderId',
-        'updateSafeId' => 'setSafeId',
-        'checklistUpdated' => 'onChecklistUpdated',
-        'openChecklist' => 'openChecklist',
-        'navigateTo' => 'handleNavigateTo',
-        'checklistLoaded' => 'handleChecklistLoaded',
-        'checklistContentReady' => 'handleContentReady',
-    ];
-
-    public function mount(?int $noteId = null, ?int $folderId = null): void
+    protected function rules(): array
     {
-        $this->noteId = $noteId;
-        $this->folders = Folder::forUser(Auth::user())
-            ->active()
-            ->orderBy('title')
-            ->get();
-
-        $this->safes = Safe::where('user_id', Auth::id())
-            ->get()
-            ->map(fn($safe) => ['value' => $safe->id, 'text' => 'Сейф']);
-
-        if ($this->noteId) {
-            $this->loadChecklist();
-        }
+        return [
+            'title' => 'required|string|max:255',
+        ];
     }
 
-    public function handleContentReady($content): void
+    public function mount(?int $noteId = null, ?int $folderId = null): RedirectResponse|null
     {
-        if ($this->isSaving) {
+        $this->noteId = $noteId;
+
+        if ($noteId === null) {
+            return redirect()->route('dashboard')->with('notification', [
+                'title' => 'Внимание',
+                'content' => 'Список не найден. Вы будете перенаправлены на главную страницу.',
+                'type' => 'warning',
+            ]);
+        }
+
+        $this->cachedChecklist = Note::where('user_id', Auth::id())
+            ->where('type', Note::TYPE_CHECKLIST)
+            ->find($noteId);
+
+        if (!$this->cachedChecklist) {
+            return redirect()->route('dashboard')->with('notification', [
+                'title' => 'Внимание',
+                'content' => 'Список не найден. Вы будете перенаправлены на главную страницу.',
+                'type' => 'warning',
+            ]);
+        }
+
+        $this->title = $this->cachedChecklist->title;
+        $this->folderId = $this->cachedChecklist->folder_id;
+        $this->safeId = $this->cachedChecklist->safe_id;
+        $this->content = $this->normalizeContent($this->cachedChecklist->payload);
+
+        $this->dispatch('checklistLoaded', content: $this->content);
+
+        return null;
+    }
+
+    #[Computed]
+    public function checklist(): ?Note
+    {
+        return $this->noteId
+            ? Note::where('user_id', Auth::id())
+                ->where('type', Note::TYPE_CHECKLIST)
+                ->find($this->noteId)
+            : null;
+    }
+
+    public function cancel(): void
+    {
+        $this->dispatch('navigateTo', 'dashboard', null, false);
+    }
+
+    public function toggleDeleteModal(): void
+    {
+        if ($this->noteId === null) {
+            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось найти список для удаления', type: 'danger');
             return;
         }
-        $this->isSaving = true;
 
-        $this->content = $content;
-        $this->performSave();
+        $this->confirmingDeletion = ! $this->confirmingDeletion;
     }
 
-    public function handleNavigateTo(string $section, ?int $noteId = null): void
+    public function delete(): void
     {
-        if ($section === 'checklist' && $noteId) {
-            $this->openChecklist($folderId);
+        if (!$this->noteId) {
+            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось найти список', type: 'danger');
+            return;
         }
+
+        $checklist = Note::where('user_id', Auth::id())
+            ->where('type', Note::TYPE_CHECKLIST)
+            ->find($this->noteId);
+
+        if (!$checklist || !$checklist->moveToTrash()) {
+            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось удалить список.', type: 'danger');
+            return;
+        }
+
+        $this->dispatch('navigateTo', 'dashboard');
     }
 
-    public function openChecklist($noteId): void
+    public function saveWithLocation(): void
     {
-        $this->noteId = $noteId;
-        $this->loadChecklist();
+        if ($this->isSafeSelected($this->folderId)) {
+            $this->safeId = $this->folderId;
+            $this->folderId = null;
+        }
+
+        $this->save();
     }
 
-    public function loadChecklist(): void
+    public function save(): void
     {
         if (!$this->noteId) {
             return;
         }
 
-        $this->checklist = Note::where('user_id', Auth::id())
-            ->find($this->noteId);
+        try {
+            $this->validateOnly('title');
+        } catch (\Illuminate\Validation\ValidationException) {
+            $this->dispatch('showError', 'Название обязательно и не должно превышать 255 символов');
+            return;
+        }
 
-        if ($this->checklist) {
-            $this->title = $this->checklist->title;
-            $this->folderId = $this->checklist->folder_id;
-            $this->safeId = $this->checklist->safe_id;
-            $this->is_favorite = (bool) $this->checklist->is_favorite;
-            $this->content = $this->checklist->payload;
-            $this->isLoaded = true;
+        try {
+            // Перезагружаем из БД если кэш пуст (например, при пересоздании компонента)
+            if (!$this->cachedChecklist) {
+                $this->cachedChecklist = Note::where('user_id', Auth::id())
+                    ->where('type', Note::TYPE_CHECKLIST)
+                    ->find($this->noteId);
+            }
 
-            $this->dispatch('checklistLoaded', content: $this->content);
+            if (!$this->cachedChecklist) {
+                $this->dispatch('notification', title: 'Ошибка', content: 'Список не найден', type: 'danger');
+                return;
+            }
+
+            $this->updateTitle($this->cachedChecklist);
+            $this->updateContent($this->cachedChecklist);
+            $this->updateLocation($this->cachedChecklist);
+
+            $this->cachedChecklist->save();
+
+            $this->dispatch('navigateTo', 'dashboard');
+        } catch (\Throwable $e) {
+            report($e);
+            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось сохранить список', type: 'danger');
         }
     }
 
-    public function setFolderId($id): void
+    public function updatedFolderId(): void
     {
-        $this->folderId = $id;
+        $this->autoSave();
     }
 
-    public function setSafeId($id): void
+    #[On('updateSafeId')]
+    public function setSafeId(int $id): void
     {
         $this->safeId = $id;
+        $this->folderId = null;
+        $this->autoSave();
     }
 
-    public function setContent($content): void
+    public function updatedSafeId(): void
     {
-        $this->content = $content;
+        $this->autoSave();
     }
 
+    public function updatedTitle(): void
+    {
+        $this->autoSave();
+    }
+
+    public function updatedContent(): void
+    {
+        $this->autoSave();
+    }
+
+    #[On('checklistUpdated')]
     public function onChecklistUpdated(): void
     {
         $this->dispatch('navigateTo', 'dashboard');
     }
 
-    public function cancel(): void
+    #[On('triggerAutoSave')]
+    public function autoSave(): void
     {
-        $this->js('localStorage.clear()');
-        $this->dispatch('navigateTo', 'dashboard', null, false);
-    }
-
-    public function confirmDelete(): void
-    {
-        if (!$this->checklist) {
-            $this->dispatch('showError', 'Список не найден');
+        if (!$this->noteId) {
             return;
         }
 
-        if ($this->checklist->is_favorite) {
-            $this->checklist->update(['is_favorite' => false]);
-        }
-
-        if ($this->checklist->moveToTrash()) {
-            $this->dispatch('checklistUpdated');
-            $this->dispatch('navigateTo', 'dashboard');
-        } else {
-            $this->dispatch('showError', 'Не удалось удалить список');
-        }
-    }
-
-    public function confirmDeletion(): void
-    {
-        $this->confirmingDeletion = true;
-    }
-
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-    }
-
-    public function openDeleteModal(): void
-    {
-        // Для обратной совместимости
-        $this->confirmDeletion();
-    }
-
-
-    public function prepareAndSave()
-    {
-        $this->js('localStorage.clear()');
-
-        $isSafe = collect($this->safes)->contains('value', $this->folderId);
-
-        if ($isSafe) {
+        // Если выбранный folderId является сейфом, перемещаем его в safeId
+        if ($this->folderId && $this->isSafeSelected($this->folderId)) {
             $this->safeId = $this->folderId;
             $this->folderId = null;
         }
 
-        $this->dispatch('getChecklistContent');
-    }
-
-    public function performSave()
-    {
-        if (is_array($this->content) && count($this->content) === 1) {
-            $this->content = reset($this->content);
-        }
-
-        if (is_string($this->content) && !empty($this->content)) {
-            try {
-                $decoded = json_decode($this->content, true, 512, JSON_THROW_ON_ERROR);
-                if (is_string($decoded)) {
-                    $decoded = json_decode($decoded, true, 512, JSON_THROW_ON_ERROR);
-                }
-                $this->content = $decoded;
-            } catch (\JsonException $e) {
-                logger()->error('[EditChecklist] JSON decode error', ['error' => $e->getMessage()]);
-                $this->content = null;
-            }
-        } else {
-            logger()->warning('[EditChecklist] No content or empty content');
-        }
-
-        $this->saveToDatabase();
-    }
-
-    private function saveToDatabase(): void
-    {
         try {
-            $this->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required',
-            ]);
-
-            if (!$this->checklist) {
-                $this->dispatch('showError', 'Список не найден');
-                return;
-            }
-
-            $this->checklist->title = $this->title;
-            $this->checklist->payload = $this->content;
-            $this->checklist->is_favorite = $this->is_favorite;
-
-            if ($this->folderId !== null) {
-                $this->checklist->folder_id = $this->folderId;
-                $this->checklist->safe_id = null;
-                $this->checklist->archive_id = null;
-            } elseif ($this->safeId !== null) {
-                $this->checklist->safe_id = $this->safeId;
-                $this->checklist->folder_id = null;
-                $this->checklist->archive_id = null;
-            }
-
-            $this->checklist->save();
-
-            $this->isSaving = false;
-
-            $this->dispatch('checklistUpdated');
-            $this->dispatch('navigateTo', 'dashboard');
-
-        } catch (\Throwable $e) {
-            report($e);
-            $this->dispatch('showError', 'Не удалось сохранить список');
-            $this->isSaving = false;
-        }
-    }
-
-    public function toggleFavorite(): void
-    {
-        if (!$this->checklist) {
+            $this->validateOnly('title');
+        } catch (\Illuminate\Validation\ValidationException) {
+            // При автосохранении не показываем ошибку, просто пропускаем
             return;
         }
 
-        $wasFavorite = $this->is_favorite;
-        $this->is_favorite = !$this->is_favorite;
+        try {
+            // Перезагружаем из БД если кэш пуст
+            if (!$this->cachedChecklist) {
+                $this->cachedChecklist = Note::where('user_id', Auth::id())
+                    ->where('type', Note::TYPE_CHECKLIST)
+                    ->find($this->noteId);
+            }
 
-        // Диспатчим событие для обновления sidebar
-        $this->dispatch('favoriteToggled',
-            noteId: $this->checklist->id,
-            isFavorite: $this->is_favorite,
-            wasFavorite: $wasFavorite
-        );
+            if (!$this->cachedChecklist) {
+                return;
+            }
+
+            $this->updateTitle($this->cachedChecklist);
+            $this->updateContent($this->cachedChecklist);
+            $this->updateLocation($this->cachedChecklist);
+
+            $this->cachedChecklist->save();
+
+            // Можно диспатчить событие для UI, что автосохранение прошло успешно
+            // $this->dispatch('autosaveCompleted');
+        } catch (\Throwable $e) {
+            report($e);
+            // При автосохранении не показываем ошибку пользователю
+        }
     }
 
-    public function render()
+    private function normalizeContent(mixed $content): string
+    {
+        if (is_string($content) && $content === '') {
+            return self::EMPTY_CHECKLIST_STRUCTURE;
+        }
+
+        if (! is_string($content)) {
+            if (is_array($content) || is_object($content)) {
+                $content = json_encode($content);
+            } else {
+                return self::EMPTY_CHECKLIST_STRUCTURE;
+            }
+        }
+
+        try {
+            $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+            if (! is_array($decoded) || empty($decoded)) {
+                return self::EMPTY_CHECKLIST_STRUCTURE;
+            }
+
+            return json_encode($decoded, JSON_UNESCAPED_UNICODE);
+        } catch (\JsonException) {
+            return self::EMPTY_CHECKLIST_STRUCTURE;
+        }
+    }
+
+    private function updateTitle(Note $checklist): void
+    {
+        $checklist->title = trim($this->title);
+    }
+
+    private function updateContent(Note $checklist): void
+    {
+        $checklist->payload = $this->content;
+    }
+
+    private function updateLocation(Note $checklist): void
+    {
+        if ($this->folderId !== null) {
+            $checklist->folder_id = $this->folderId;
+            $checklist->safe_id = null;
+            $checklist->archive_id = null;
+        } elseif ($this->safeId !== null) {
+            $checklist->safe_id = $this->safeId;
+            $checklist->folder_id = null;
+            $checklist->archive_id = null;
+        } else {
+            $checklist->folder_id = null;
+            $checklist->safe_id = null;
+            $checklist->archive_id = null;
+        }
+    }
+
+    private function isSafeSelected(?int $selectedId): bool
+    {
+        if ($selectedId === null) {
+            return false;
+        }
+
+        return Safe::where('user_id', Auth::id())->where('id', $selectedId)->exists();
+    }
+
+    public function render(): \Illuminate\View\View
     {
         return view('livewire.edit-checklist');
     }
