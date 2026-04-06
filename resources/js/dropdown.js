@@ -1,5 +1,3 @@
-/* global Event, CustomEvent, console */
-
 class Dropdown {
     constructor(container) {
         this.container = container;
@@ -8,7 +6,6 @@ class Dropdown {
         this.dropdown = container.querySelector('.custom-select-dropdown');
         this.items = container.querySelectorAll('.custom-select-item');
         this.value = null;
-        // Находим скрытый input внутри того же контейнера dropdown
         const dropdownContainer = container.closest('[data-dropdown-container]');
         this.hiddenInput = dropdownContainer
             ? dropdownContainer.querySelector('[data-dropdown-input]')

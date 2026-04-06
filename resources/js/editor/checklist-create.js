@@ -1,6 +1,9 @@
 import { ChecklistEditor } from './checklist-editor';
+import { initChecklistProgressBar } from './checklist-progress';
+
 // Приватное состояние модуля (замыкание)
 let editorInstance = null;
+let progressBarInstance = null;
 let lastContent = null;
 
 function updateTaskCount(count) {
@@ -14,14 +17,17 @@ function updateTaskCount(count) {
 function initCreateChecklistEditor(initialData = null) {
     const container = document.getElementById('create-checklist-editor');
     if (!container) {
-        console.error('[CreateChecklistEditor] Element #create-checklist-editor not found');
         return null;
     }
 
-    // Уничтожаем существующий редактор
+    // Уничтожаем существующий редактор и прогресс-бар
     if (editorInstance) {
         editorInstance.destroy();
         editorInstance = null;
+    }
+    if (progressBarInstance) {
+        progressBarInstance.destroy();
+        progressBarInstance = null;
     }
 
     // Очищаем последние данные перед инициализацией
@@ -35,8 +41,23 @@ function initCreateChecklistEditor(initialData = null) {
             updateTaskCount(editorInstance.getData().length);
             // Сохраняем последние данные в замыкании
             lastContent = json;
+            // Обновляем прогресс-бар
+            if (progressBarInstance) {
+                progressBarInstance.update();
+            }
+            // Обновляем скрытый input для синхронизации с Livewire
+            const contentInput = document.getElementById('checklist-content-input');
+            if (contentInput) {
+                contentInput.value = JSON.stringify(json);
+                // Триггерим событие input для Livewire
+                // eslint-disable-next-line no-undef
+                contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         },
     });
+
+    // Инициализируем прогресс-бар
+    progressBarInstance = initChecklistProgressBar(editorInstance, 'checklist-progress-bar');
 
     // Сохраняем начальные данные
     lastContent = editorInstance.toJSON();
@@ -56,15 +77,11 @@ function destroyCreateEditor() {
         editorInstance.destroy();
         editorInstance = null;
     }
-    lastContent = null;
-}
-
-// Отправляет контент в Livewire через событие (только если редактор существует)
-function sendContentToLivewire() {
-    if (typeof Livewire !== 'undefined' && editorInstance) {
-        const content = getCreateEditorContent();
-        Livewire.dispatch('checklistContentReady', { content: JSON.stringify(content) });
+    if (progressBarInstance) {
+        progressBarInstance.destroy();
+        progressBarInstance = null;
     }
+    lastContent = null;
 }
 
 // Автоматическая инициализация редактора создания
@@ -89,6 +106,10 @@ const checklistObserver = new MutationObserver((mutations) => {
                     if (editorInstance) {
                         editorInstance.destroy();
                         editorInstance = null;
+                    }
+                    if (progressBarInstance) {
+                        progressBarInstance.destroy();
+                        progressBarInstance = null;
                     }
                     lastContent = null;
                 }
@@ -123,17 +144,17 @@ if (document.readyState === 'loading') {
 
 // Обработка событий Livewire
 if (typeof Livewire !== 'undefined') {
-    Livewire.hook('component.init', ({ component }) => {
-        setTimeout(() => {
-            autoInitCreateEditor();
-        }, 50);
+    Livewire.hook('component.init', () => {
+        setTimeout(autoInitCreateEditor, 50);
     });
 
     // Слушаем запрос на получение контента от PHP (только если редактор существует)
     Livewire.on('getChecklistContent', () => {
         const container = document.getElementById('create-checklist-editor');
         if (container && editorInstance) {
-            sendContentToLivewire();
+            // Отправляем контент через событие (для обратной совместимости)
+            const content = getCreateEditorContent();
+            Livewire.dispatch('checklistContentReady', { content: JSON.stringify(content) });
         }
     });
 
@@ -143,9 +164,4 @@ if (typeof Livewire !== 'undefined') {
     });
 }
 
-export {
-    destroyCreateEditor,
-    getCreateEditorContent,
-    initCreateChecklistEditor,
-    sendContentToLivewire,
-};
+export { destroyCreateEditor, getCreateEditorContent, initCreateChecklistEditor };

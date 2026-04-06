@@ -6,7 +6,7 @@ use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 
 
-// Трейт для работы с избранным.
+// Трейт для работы с избранным
 trait WithFavorite
 {
     public function toggleFavorite(int $noteId): void

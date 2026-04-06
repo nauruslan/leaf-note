@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 
 /**
- * Трейт для подгрузки списков папок и сейфов.
+ * Трейт для подгрузки списка папок и сейфа
  *
  * @property int|null $folderId
  * @property int|null $safeId
