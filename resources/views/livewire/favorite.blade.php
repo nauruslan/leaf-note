@@ -72,9 +72,10 @@
     </div>
 
     <!-- Content Section -->
-    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
+    <div
+        class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
         @forelse($this->notes as $note)
-            <x-card :note="$note" />
+            <x-card :item="$note" :color="$note->icon_color_class" />
         @empty
             @if ($search)
                 <x-no-data icon="search-x" title="Совпадений не найдено"

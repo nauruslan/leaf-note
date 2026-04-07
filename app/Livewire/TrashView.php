@@ -19,6 +19,8 @@ class TrashView extends Component
     use WithSearch;
     use WithFiltering;
 
+    public $section='trash';
+
     // Свойства для модального окна подтверждения удаления
     public bool $confirmingDeletion = false;
     public ?int $pendingDeleteId = null;

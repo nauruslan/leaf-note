@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithSearch;
 use App\Livewire\Traits\WithComponentPagination;
@@ -17,7 +16,6 @@ class ArchiveView extends Component
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
-    use WithFavorite;
 
     #[Computed]
     public function notes(): LengthAwarePaginator

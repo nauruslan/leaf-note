@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Livewire\Traits\WithComponentPagination;
-use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Folder;
@@ -19,7 +18,6 @@ class FolderView extends Component
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
-    use WithFavorite;
 
     public string $section = 'folder';
     public ?int $folderId = null;

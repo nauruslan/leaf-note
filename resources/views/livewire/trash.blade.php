@@ -76,7 +76,8 @@
     </div>
 
     <!-- Content Section -->
-    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
+    <div
+        class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
         @php
             $showNotes = $filter === 'all' || $filter === 'notes' || $filter === 'checklists';
             $showFolders = $filter === 'all' || $filter === 'folders';
@@ -89,13 +90,13 @@
         @if ($hasResults)
             @if ($showFolders)
                 @foreach ($this->trashedFolders as $folder)
-                    <x-card-folder-trash :item="$folder" type="folder" />
+                    <x-card :item="$folder" :section="$section" type="folder" />
                 @endforeach
             @endif
 
             @if ($showNotes)
                 @foreach ($this->trashedNotes as $note)
-                    <x-card-note-trash :item="$note" />
+                    <x-card :item="$note" :color="$note->icon_color_class" :section="$section" />
                 @endforeach
             @endif
         @endif

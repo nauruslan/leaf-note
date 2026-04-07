@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Livewire\Traits\WithComponentPagination;
-use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
@@ -19,7 +18,6 @@ class SafeView extends Component
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
-    use WithFavorite;
 
     public bool $confirmingPassword = false;
     public string $password = '';
