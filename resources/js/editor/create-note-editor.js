@@ -34,8 +34,12 @@ export function initCreateNoteEditor() {
             const contentInput = document.getElementById('note-content-input');
             if (contentInput) {
                 contentInput.value = JSON.stringify(json);
-                // Триггерим событие input для Livewire
-                contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                // Триггерим событие input для Livewire с debounce
+                clearTimeout(window.createNoteUpdateTimeout);
+                window.createNoteUpdateTimeout = setTimeout(() => {
+                    contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    // Можно добавить индикатор автосохранения, если потребуется
+                }, 300);
             }
         },
     });

@@ -24,7 +24,7 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown :options="$folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$safes" selected="{{ $folderId ?? $safeId }}"
+                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes" selected="{{ $folderId ?? $safeId }}"
                             wireModel="folderId" live width="150px" />
                     </div>
 
@@ -39,9 +39,13 @@
                 <!-- Right Block: Actions -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
                     <!-- Save Button -->
-                    <x-button-save wire:click.prevent="save" wire:loading.attr="disabled">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Сохранить
+                    <x-button-save wire:click.prevent="saveWithLocation" wire:loading.attr="disabled"
+                        wire:loading.class="opacity-50 cursor-not-allowed">
+                        <span wire:loading>Сохранение...</span>
+                        <span wire:loading.remove class="flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Сохранить
+                        </span>
                     </x-button-save>
 
                     <!-- Cancel Button -->
@@ -215,16 +219,18 @@
             </div>
             <!-- Note Title Input -->
             <div class="px-6 pt-6 pb-2 border-b border-gray-100">
-                <input type="text" wire:model="title" placeholder="Название заметки"
+                <input type="text" wire:model.live.debounce.300ms="title" placeholder="Название заметки"
                     class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
             </div>
             <!-- TipTap Editor Content Area (ignored) -->
             <div wire:ignore>
                 <div class="flex-grow p-6">
-                    <div id="note-view-editor" data-content="{{ json_encode($content) }}"
+                    <div id="note-view-editor" data-content='@json($content ? json_decode($content, true) : [])'
                         class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
                     </div>
                 </div>
+                <!-- Hidden input for Livewire content synchronization -->
+                <input type="hidden" id="note-view-content-input" wire:model.live.debounce.300ms="content">
             </div>
 
             <!-- Footer Info (ignored) -->
@@ -237,6 +243,8 @@
                         <span>Изменено: {{ $note?->updated_at?->translatedFormat('d F Y') }}</span>
                         <span>•</span>
                         <span data-char-count>0 символов</span>
+                        <span>•</span>
+                        <span id="autosave-indicator" class="hidden text-green-600">Автосохранено</span>
                     </div>
                 </div>
             </div>

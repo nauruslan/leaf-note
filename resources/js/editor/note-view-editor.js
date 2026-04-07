@@ -1,4 +1,4 @@
-import { initNoteEditor, sendContentToLivewire, getEditorContent } from './note-editor';
+import { initNoteEditor, sendContentToLivewire } from './note-editor';
 
 let originalImagePaths = [];
 let newImagePaths = [];
@@ -8,7 +8,7 @@ export function initNoteViewEditor(content = '') {
     originalImagePaths = [];
     newImagePaths = [];
     originalContent = content;
-    
+
     const editor = initNoteEditor({
         elementId: 'note-view-editor',
         content: content,
@@ -19,8 +19,24 @@ export function initNoteViewEditor(content = '') {
                 newImagePaths.push(imagePath);
             }
         },
+        onUpdate: (editor) => {
+            // Сохраняем последние данные в замыкании
+            const json = editor.getJSON();
+            // Обновляем скрытый input для синхронизации с Livewire
+            const contentInput = document.getElementById('note-view-content-input');
+            if (contentInput) {
+                contentInput.value = JSON.stringify(json);
+                // Триггерим событие input для Livewire с debounce
+                clearTimeout(window.noteViewUpdateTimeout);
+                window.noteViewUpdateTimeout = setTimeout(() => {
+                    contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    // Показываем индикатор автосохранения
+                    showAutosaveIndicator();
+                }, 300);
+            }
+        },
     });
-    
+
     return editor;
 }
 
@@ -28,7 +44,7 @@ export function setOriginalContent(content, imagePaths) {
     originalContent = content;
     originalImagePaths = imagePaths || [];
     newImagePaths = [];
-    
+
     const editorElement = document.querySelector('#note-view-editor');
     if (editorElement && editorElement._editor) {
         editorElement._editor.commands.setContent(content);
@@ -48,9 +64,9 @@ export function restoreOriginalState() {
     if (!editorElement || !editorElement._editor || !originalContent) {
         return Promise.resolve();
     }
-    
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    
+
     const deletePromises = newImagePaths.map((path) => {
         return fetch('/notes/delete-image', {
             method: 'DELETE',
@@ -64,7 +80,7 @@ export function restoreOriginalState() {
             console.error('[NoteViewEditor] Ошибка удаления нового изображения:', path, error);
         });
     });
-    
+
     return Promise.all(deletePromises).then(() => {
         editorElement._editor.commands.setContent(originalContent);
         newImagePaths = [];
@@ -74,7 +90,7 @@ export function restoreOriginalState() {
 export function extractImagePathsFromContent(content) {
     const paths = [];
     if (!content || !content.content) return paths;
-    
+
     function traverse(node) {
         if (!node) return;
         if (node.type === 'image' && node.attrs?.path) {
@@ -84,7 +100,7 @@ export function extractImagePathsFromContent(content) {
             node.content.forEach(traverse);
         }
     }
-    
+
     traverse(content);
     return paths;
 }
@@ -158,3 +174,16 @@ Livewire.on('noteLoaded', (data) => {
 document.addEventListener('restore-note-original-state', () => {
     restoreOriginalState();
 });
+
+function showAutosaveIndicator() {
+    const indicator = document.getElementById('autosave-indicator');
+    if (!indicator) return;
+
+    indicator.classList.remove('hidden');
+    indicator.textContent = 'Автосохранено';
+    indicator.classList.add('text-green-600');
+
+    setTimeout(() => {
+        indicator.classList.add('hidden');
+    }, 3000);
+}

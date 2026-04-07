@@ -27,6 +27,7 @@ class CreateNoteView extends Component
     public ?int $noteId = null;
 
     private ?Note $cachedNote = null;
+    private array $originalImagePaths = [];
 
     protected function rules(): array
     {
@@ -38,6 +39,16 @@ class CreateNoteView extends Component
     public function mount(): void
     {
         $this->content = self::EMPTY_NOTE_STRUCTURE;
+
+        // Если заметка уже создана (например, после автосохранения), загружаем оригинальные пути изображений
+        if ($this->noteId) {
+            $note = Note::where('user_id', Auth::id())
+                ->where('type', Note::TYPE_NOTE)
+                ->find($this->noteId);
+            if ($note && $note->payload) {
+                $this->originalImagePaths = $this->extractImagePathsFromPayload($note->payload);
+            }
+        }
 
         $presetSafeId = StateManager::get('preset_safe_id');
         if ($presetSafeId) {
@@ -98,10 +109,21 @@ class CreateNoteView extends Component
                     return;
                 }
 
+                // Удаление изображений, которые больше не используются
+                $currentImagePaths = $this->extractImagePathsFromPayload($this->content);
+                // Получаем оригинальные пути из БД (из сохраненного payload)
+                $originalImagePathsFromDb = $this->extractImagePathsFromPayload($this->cachedNote->payload);
+                $removedImagePaths = array_diff($originalImagePathsFromDb, $currentImagePaths);
+
+                $this->deleteImagesFromStorage($removedImagePaths);
+
                 $this->updateTitle($this->cachedNote);
                 $this->updateContent($this->cachedNote);
                 $this->updateLocation($this->cachedNote);
                 $this->cachedNote->save();
+
+                // Обновляем оригинальные пути изображений для текущего запроса
+                $this->originalImagePaths = $currentImagePaths;
             } else {
                 // Создаем новую заметку
                 $note = new Note();
@@ -126,6 +148,8 @@ class CreateNoteView extends Component
                 $note->save();
                 $this->noteId = $note->id;
                 $this->cachedNote = $note;
+                // Инициализируем оригинальные пути изображений после создания
+                $this->originalImagePaths = $this->extractImagePathsFromPayload($this->content);
             }
 
             $this->dispatch('noteCreated');
@@ -206,10 +230,21 @@ class CreateNoteView extends Component
                     return;
                 }
 
+                // Удаление изображений, которые больше не используются
+                $currentImagePaths = $this->extractImagePathsFromPayload($this->content);
+                // Получаем оригинальные пути из БД (из сохраненного payload)
+                $originalImagePathsFromDb = $this->extractImagePathsFromPayload($this->cachedNote->payload);
+                $removedImagePaths = array_diff($originalImagePathsFromDb, $currentImagePaths);
+
+                $this->deleteImagesFromStorage($removedImagePaths);
+
                 $this->updateTitle($this->cachedNote);
                 $this->updateContent($this->cachedNote);
                 $this->updateLocation($this->cachedNote);
                 $this->cachedNote->save();
+
+                // Обновляем оригинальные пути изображений для текущего запроса
+                $this->originalImagePaths = $currentImagePaths;
             } else {
                 // Создаем новую заметку
                 $note = new Note();
@@ -237,10 +272,65 @@ class CreateNoteView extends Component
                 // Сохраняем ID созданной заметки для будущих обновлений
                 $this->noteId = $note->id;
                 $this->cachedNote = $note;
+                // Инициализируем оригинальные пути изображений после создания
+                $this->originalImagePaths = $this->extractImagePathsFromPayload($this->content);
             }
         } catch (\Throwable $e) {
             report($e);
             // При автосохранении не показываем ошибку пользователю
+        }
+    }
+
+    private function extractImagePathsFromPayload($payload): array
+    {
+        if (is_string($payload)) {
+            $payload = json_decode($payload, true);
+        }
+
+        if (!is_array($payload) || !isset($payload['content'])) {
+            return [];
+        }
+
+        $paths = [];
+        $this->traverseContent($payload['content'], $paths);
+
+        return array_values(array_unique($paths));
+    }
+
+    private function traverseContent($nodes, &$paths): void
+    {
+        if (!is_array($nodes)) {
+            return;
+        }
+
+        foreach ($nodes as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+
+            if (($node['type'] ?? null) === 'image' && isset($node['attrs']['path'])) {
+                $paths[] = $node['attrs']['path'];
+            }
+
+            if (isset($node['content']) && is_array($node['content'])) {
+                $this->traverseContent($node['content'], $paths);
+            }
+        }
+    }
+
+    private function deleteImagesFromStorage(array $paths): void
+    {
+        foreach ($paths as $path) {
+            try {
+                $cleanPath = str_replace('..', '', $path);
+
+                if (str_starts_with($cleanPath, 'notes/') &&
+                    \Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($cleanPath);
+                }
+            } catch (\Exception $e) {
+                report($e);
+            }
         }
     }
 
