@@ -50,7 +50,6 @@ function initCreateChecklistEditor(initialData = null) {
             if (contentInput) {
                 contentInput.value = JSON.stringify(json);
                 // Триггерим событие input для Livewire
-                // eslint-disable-next-line no-undef
                 contentInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
         },

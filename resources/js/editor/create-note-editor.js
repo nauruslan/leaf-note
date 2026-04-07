@@ -1,14 +1,20 @@
-import {
-    destroyNoteEditor,
-    getEditorContent,
-    initNoteEditor,
-    sendContentToLivewire,
-} from './note-editor';
+import { destroyNoteEditor, initNoteEditor } from './note-editor';
 
+// Приватное состояние модуля (замыкание)
+let editorInstance = null;
 let uploadedImages = [];
+let lastContent = null;
 
 export function initCreateNoteEditor() {
     uploadedImages = [];
+
+    // Уничтожаем существующий редактор
+    if (editorInstance) {
+        editorInstance.destroy();
+        editorInstance = null;
+    }
+
+    lastContent = null;
 
     const editor = initNoteEditor({
         elementId: 'create-note-editor',
@@ -20,22 +26,47 @@ export function initCreateNoteEditor() {
                 uploadedImages.push(imagePath);
             }
         },
+        onUpdate: (editor) => {
+            // Сохраняем последние данные в замыкании
+            const json = editor.getJSON();
+            lastContent = json;
+            // Обновляем скрытый input для синхронизации с Livewire
+            const contentInput = document.getElementById('note-content-input');
+            if (contentInput) {
+                contentInput.value = JSON.stringify(json);
+                // Триггерим событие input для Livewire
+                contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        },
     });
+
+    editorInstance = editor;
+
+    // Сохраняем начальные данные
+    lastContent = editor.getJSON();
 
     return editor;
 }
 
 export function destroyCreateNoteEditor() {
     destroyNoteEditor('create-note-editor');
+    if (editorInstance) {
+        editorInstance.destroy();
+        editorInstance = null;
+    }
     uploadedImages = [];
+    lastContent = null;
 }
 
 export function getCreateNoteEditorContent() {
-    return getEditorContent('create-note-editor');
+    return lastContent || (editorInstance ? editorInstance.getJSON() : null);
 }
 
 export function sendCreateNoteContentToLivewire() {
-    sendContentToLivewire('create-note-editor');
+    const content = getCreateNoteEditorContent();
+    if (content) {
+        Livewire.dispatch('noteContentReady', { content: JSON.stringify(content) });
+    }
 }
 
 export function deleteAllUploadedImages() {
@@ -75,20 +106,39 @@ export function deleteAllUploadedImages() {
 }
 
 function autoInitCreateNoteEditor() {
-    const editorElement = document.querySelector('#create-note-editor');
-    if (editorElement && !editorElement._editor) {
-        initCreateNoteEditor();
+    const container = document.getElementById('create-note-editor');
+    if (container) {
+        if (!editorInstance) {
+            initCreateNoteEditor();
+        }
     }
 }
 
+// MutationObserver для отслеживания появления и удаления элементов редактора
 const createNoteObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
+        for (const node of mutation.removedNodes) {
             if (node.nodeType === 1) {
                 if (
                     node.id === 'create-note-editor' ||
                     node.querySelector?.('#create-note-editor')
                 ) {
+                    if (editorInstance) {
+                        editorInstance.destroy();
+                        editorInstance = null;
+                    }
+                    lastContent = null;
+                }
+            }
+        }
+
+        for (const node of mutation.addedNodes) {
+            if (node.nodeType === 1) {
+                if (node.id === 'create-note-editor') {
+                    setTimeout(autoInitCreateNoteEditor, 50);
+                    return;
+                }
+                if (node.querySelector?.('#create-note-editor')) {
                     setTimeout(autoInitCreateNoteEditor, 50);
                     return;
                 }
@@ -97,6 +147,7 @@ const createNoteObserver = new MutationObserver((mutations) => {
     }
 });
 
+// Инициализация при загрузке страницы
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         createNoteObserver.observe(document.body, { childList: true, subtree: true });

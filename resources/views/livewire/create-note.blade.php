@@ -10,17 +10,6 @@
                     </h1>
                     <p class="text-sm text-gray-500 mt-0.5">Создание новой заметки</p>
                 </div>
-
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <input type="text" placeholder="Поиск шаблонов..."
-                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 transition-all">
-                </div>
             </div>
         </div>
     </header>
@@ -35,27 +24,28 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown wireModel="folderId" :options="$folders
-                            ->map(function ($folder) {
-                                return ['value' => $folder->id, 'text' => $folder->title];
-                            })
-                            ->toArray()" :safes="$safes"
-                            selected="{{ $folderId }}" width="150px" />
+                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" selected="{{ $folderId ?? $safeId }}"
+                            wireModel="folderId" live width="150px" />
                     </div>
 
                     <!-- Favorite -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Избранное:</span>
-                        <x-star :active="$is_favorite" wire:click="toggleFavorite" size="30px" />
+                        <x-star :active="$is_favorite" size="30px" wire:click.debounce.500ms="toggleFavorite" />
                     </div>
                 </div>
 
                 <!-- Right Block: Actions -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
+
                     <!-- Save Button -->
-                    <x-button-save wire:click.prevent="save" wire:loading.attr="disabled">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Сохранить
+                    <x-button-save wire:click.prevent="saveWithLocation" wire:loading.attr="disabled"
+                        wire:loading.class="opacity-50 cursor-not-allowed">
+                        <span wire:loading>Сохранение...</span>
+                        <span wire:loading.remove class="flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Сохранить
+                        </span>
                     </x-button-save>
 
                     <!-- Cancel Button -->
@@ -225,7 +215,7 @@
             </div>
             <!-- Note Title Input (without ignore, because it uses wire:model) -->
             <div class="px-6 pt-6 pb-2 border-b border-gray-100">
-                <input type="text" wire:model="title" placeholder="Название заметки"
+                <input type="text" wire:model.live.debounce.300ms="title" placeholder="Название заметки"
                     class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
             </div>
             <!-- TipTap Editor Content Area (ignored) -->
@@ -236,6 +226,9 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Hidden input for content synchronization -->
+            <input type="hidden" wire:model.live.debounce.500ms="content" id="note-content-input">
 
             <!-- Footer Info (ignored) -->
             <div wire:ignore>
