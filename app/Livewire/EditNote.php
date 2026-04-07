@@ -2,14 +2,17 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class EditNote extends Component
 {
+    use WithFavorite;
     use WithFolderSafeSelection;
 
     private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
@@ -82,6 +85,7 @@ class EditNote extends Component
         }
 
         $this->cachedNote = $note;
+        $this->note = $note;
         $this->title = $note->title;
         $this->folderId = $note->folder_id;
         $this->safeId = $note->safe_id;
@@ -262,6 +266,7 @@ class EditNote extends Component
             $this->updateTitle($this->cachedNote);
             $this->updateContent($this->cachedNote);
             $this->updateLocation($this->cachedNote);
+            $this->updateFavorite($this->cachedNote);
 
             $this->cachedNote->save();
 
@@ -387,6 +392,11 @@ class EditNote extends Component
         }
     }
 
+    private function updateFavorite(Note $note): void
+    {
+        $note->is_favorite = $this->is_favorite;
+    }
+
     private function isSafeSelected(?int $folderId): bool
     {
         if ($folderId === null) {
@@ -413,18 +423,39 @@ class EditNote extends Component
 
     public function toggleFavorite(): void
     {
-        if (!$this->note) {
+        if (!$this->noteId) {
             return;
         }
 
-        $wasFavorite = $this->is_favorite;
-        $this->is_favorite = !$this->is_favorite;
+        // Вызываем метод трейта WithFavorite с явным указанием трейта
+        // чтобы избежать рекурсии
+        $note = $this->callTraitToggleFavorite($this->noteId);
 
-        $this->dispatch('favoriteToggled',
-            noteId: $this->note->id,
-            isFavorite: $this->is_favorite,
-            wasFavorite: $wasFavorite
-        );
+        // Обновляем локальное свойство на основе нового состояния из БД
+        if ($note) {
+            $this->is_favorite = $note->is_favorite;
+        }
+
+        // Вызываем автосохранение для сохранения изменения в БД
+        $this->autoSave();
+    }
+
+    private function callTraitToggleFavorite(int $noteId): ?\App\Models\Note
+    {
+        // Явный вызов метода из трейта WithFavorite
+        $note = \App\Models\Note::where('user_id', \Illuminate\Support\Facades\Auth::id())->find($noteId);
+
+        if ($note) {
+            $note->toggleFavorite();
+            if ($note->is_favorite) {
+                $this->dispatch('notification', title: 'Успешно', content: 'Добавлено в избранное', type: 'success');
+            } else {
+                $this->dispatch('notification', title: 'Успешно', content: 'Удалено из избранного', type: 'success');
+            }
+            $this->dispatch('refreshSidebar');
+        }
+
+        return $note;
     }
 
     private function deleteImagesFromStorage(array $paths): void
@@ -441,6 +472,16 @@ class EditNote extends Component
                 report($e);
             }
         }
+    }
+
+    #[Computed]
+    public function note(): ?Note
+    {
+        return $this->noteId
+            ? Note::where('user_id', Auth::id())
+                ->where('type', Note::TYPE_NOTE)
+                ->find($this->noteId)
+            : null;
     }
 
     public function render()

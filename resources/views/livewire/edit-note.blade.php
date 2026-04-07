@@ -238,9 +238,9 @@
                 <div
                     class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
                     <div class="flex items-center gap-4">
-                        <span>Создано: {{ $note?->created_at?->translatedFormat('d F Y') }}</span>
+                        <span>Создано: {{ $this->note?->created_at?->translatedFormat('d F Y') }}</span>
                         <span>•</span>
-                        <span>Изменено: {{ $note?->updated_at?->translatedFormat('d F Y') }}</span>
+                        <span>Изменено: {{ $this->note?->updated_at?->translatedFormat('d F Y') }}</span>
                         <span>•</span>
                         <span data-char-count>0 символов</span>
                         <span>•</span>

@@ -8,6 +8,7 @@ use App\Models\Note;
 use App\Models\Safe;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -73,7 +74,39 @@ class CreateNoteView extends Component
 
     public function toggleFavorite(): void
     {
-        $this->is_favorite = !$this->is_favorite;
+        // Если заметка уже создана, обновляем в БД и синхронизируем состояние
+        if ($this->noteId) {
+            // Используем метод из трейта WithFavorite через явный вызов
+            $note = $this->callTraitToggleFavorite($this->noteId);
+            if ($note) {
+                // Синхронизируем локальное свойство с состоянием из БД
+                $this->is_favorite = $note->is_favorite;
+            }
+        } else {
+            // Иначе просто меняем локальное свойство, которое сохранится при создании заметки
+            $this->is_favorite = !$this->is_favorite;
+
+            // Вызываем автосохранение, если выполнены условия (есть папка/сейф и заголовок)
+            $this->autoSave();
+        }
+    }
+
+    private function callTraitToggleFavorite(int $noteId): ?\App\Models\Note
+    {
+        // Явный вызов метода из трейта WithFavorite
+        $note = \App\Models\Note::where('user_id', \Illuminate\Support\Facades\Auth::id())->find($noteId);
+
+        if ($note) {
+            $note->toggleFavorite();
+            if ($note->is_favorite) {
+                $this->dispatch('notification', title: 'Успешно', content: 'Добавлено в избранное', type: 'success');
+            } else {
+                $this->dispatch('notification', title: 'Успешно', content: 'Удалено из избранного', type: 'success');
+            }
+            $this->dispatch('refreshSidebar');
+        }
+
+        return $note;
     }
 
     public function saveWithLocation(): void
@@ -120,6 +153,7 @@ class CreateNoteView extends Component
                 $this->updateTitle($this->cachedNote);
                 $this->updateContent($this->cachedNote);
                 $this->updateLocation($this->cachedNote);
+                $this->updateFavorite($this->cachedNote);
                 $this->cachedNote->save();
 
                 // Обновляем оригинальные пути изображений для текущего запроса
@@ -241,6 +275,7 @@ class CreateNoteView extends Component
                 $this->updateTitle($this->cachedNote);
                 $this->updateContent($this->cachedNote);
                 $this->updateLocation($this->cachedNote);
+                $this->updateFavorite($this->cachedNote);
                 $this->cachedNote->save();
 
                 // Обновляем оригинальные пути изображений для текущего запроса
@@ -388,6 +423,11 @@ class CreateNoteView extends Component
         }
     }
 
+    private function updateFavorite(Note $note): void
+    {
+        $note->is_favorite = $this->is_favorite;
+    }
+
     private function isSafeSelected(?int $selectedId): bool
     {
         if ($selectedId === null) {
@@ -395,6 +435,16 @@ class CreateNoteView extends Component
         }
 
         return Safe::where('user_id', Auth::id())->where('id', $selectedId)->exists();
+    }
+
+    #[Computed]
+    public function note(): ?Note
+    {
+        return $this->noteId
+            ? Note::where('user_id', Auth::id())
+                ->where('type', Note::TYPE_NOTE)
+                ->find($this->noteId)
+            : null;
     }
 
     public function render(): \Illuminate\View\View

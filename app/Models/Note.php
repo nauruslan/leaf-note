@@ -343,20 +343,22 @@ class Note extends Model
     public function getIconColorClassAttribute(): string
     {
         return match($this->color) {
-            'red' => 'fill-red-500',
-            'orange' => 'fill-orange-500',
-            'yellow' => 'fill-yellow-500',
-            'green' => 'fill-green-500',
-            'blue' => 'fill-blue-500',
-            'indigo' => 'fill-indigo-500',
-            'purple' => 'fill-purple-500',
-            'pink' => 'fill-pink-500',
-            'gray' => 'fill-gray-500',
-            'black' => 'fill-gray-900',
-            'white', 'default' => 'fill-black-500',
-            default => 'fill-black-500',
+            'red' => 'red-500',
+            'orange' => 'orange-500',
+            'yellow' => 'yellow-500',
+            'green' => 'green-500',
+            'blue' => 'blue-500',
+            'indigo' => 'indigo-500',
+            'purple' => 'purple-500',
+            'pink' => 'pink-500',
+            'gray' => 'gray-500',
+            'black' => 'black',
+            'white' => 'white',
+            'default' => 'white',
         };
     }
+
+
 
     public function getTypeIconAttribute(): string
     {
