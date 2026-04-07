@@ -217,6 +217,8 @@ class EditChecklist extends Component
             return;
         }
 
+        $this->isSaving = true;
+
         try {
             // Перезагружаем из БД если кэш пуст
             if (!$this->cachedChecklist) {
@@ -226,6 +228,7 @@ class EditChecklist extends Component
             }
 
             if (!$this->cachedChecklist) {
+                $this->isSaving = false;
                 return;
             }
 
@@ -240,6 +243,8 @@ class EditChecklist extends Component
         } catch (\Throwable $e) {
             report($e);
             // При автосохранении не показываем ошибку пользователю
+        } finally {
+            $this->isSaving = false;
         }
     }
 

@@ -29,6 +29,7 @@ class EditNote extends Component
 
     public ?int $pendingFolderId = null;
     public bool $is_favorite = false;
+    public bool $isSaving = false;
 
     private ?Note $cachedNote = null;
 
@@ -246,6 +247,8 @@ class EditNote extends Component
             return;
         }
 
+        $this->isSaving = true;
+
         try {
             // Перезагружаем из БД если кэш пуст
             if (!$this->cachedNote) {
@@ -255,6 +258,7 @@ class EditNote extends Component
             }
 
             if (!$this->cachedNote) {
+                $this->isSaving = false;
                 return;
             }
 
@@ -278,6 +282,8 @@ class EditNote extends Component
         } catch (\Throwable $e) {
             report($e);
             // При автосохранении не показываем ошибку пользователю
+        } finally {
+            $this->isSaving = false;
         }
     }
 

@@ -251,6 +251,8 @@ class CreateNoteView extends Component
             return;
         }
 
+        $this->isSaving = true;
+
         try {
             // Если заметка уже создана, обновляем ее
             if ($this->noteId) {
@@ -261,6 +263,7 @@ class CreateNoteView extends Component
                 }
 
                 if (!$this->cachedNote) {
+                    $this->isSaving = false;
                     return;
                 }
 
@@ -299,6 +302,7 @@ class CreateNoteView extends Component
                     $note->archive_id = null;
                 } else {
                     // Не должно происходить, т.к. проверка выше
+                    $this->isSaving = false;
                     return;
                 }
 
@@ -313,6 +317,8 @@ class CreateNoteView extends Component
         } catch (\Throwable $e) {
             report($e);
             // При автосохранении не показываем ошибку пользователю
+        } finally {
+            $this->isSaving = false;
         }
     }
 
