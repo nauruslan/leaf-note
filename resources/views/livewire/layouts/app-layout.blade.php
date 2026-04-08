@@ -18,7 +18,4 @@
         {{-- Footer --}}
         <livewire:footer key="footer-{{ $componentKey }}" />
     </div>
-
-    {{-- Notification --}}
-    <livewire:notification />
 </div>
