@@ -4,10 +4,11 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithComponentPagination;
 use App\Livewire\Traits\WithFiltering;
+use App\Livewire\Traits\WithNoteCreating;
+use App\Livewire\Traits\WithNoteOpening;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
 use App\Models\Safe;
-use App\Services\StateManager;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -18,6 +19,8 @@ class SafeView extends Component
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
+    use WithNoteCreating;
+    use WithNoteOpening;
 
     public bool $confirmingPassword = false;
     public string $password = '';
@@ -135,41 +138,6 @@ class SafeView extends Component
         return $query->paginate($this->perPage, ['*'], 'page', $this->page);
     }
 
-    public function updated($property): void
-    {
-        if (in_array($property, ['search', 'filter', 'sort'])) {
-            $this->resetPagination();
-        }
-    }
-
-    public function createNote(): void
-    {
-        if ($this->safe) {
-            StateManager::set('preset_safe_id', $this->safe->id);
-        }
-        $this->dispatch('navigateTo', 'create-note');
-    }
-
-    public function createChecklist(): void
-    {
-        if ($this->safe) {
-            StateManager::set('preset_safe_id', $this->safe->id);
-        }
-        $this->dispatch('navigateTo', 'create-checklist');
-    }
-
-
-    public function openItem(int $noteId): void
-    {
-        $note = Note::where('user_id', Auth::id())->find($noteId);
-
-        if (!$note) {
-            return;
-        }
-
-        $section = $note->type === Note::TYPE_CHECKLIST ? 'edit-checklist' : 'edit-note';
-        $this->dispatch('navigateTo', section: $section, noteId: $noteId);
-    }
 
     public function render()
     {

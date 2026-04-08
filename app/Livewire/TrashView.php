@@ -36,13 +36,6 @@ class TrashView extends Component
     public bool $confirmingRestoreAll = false;
     public bool $confirmingEmptyTrash = false;
 
-    public function updated($property): void
-    {
-        if (in_array($property, ['search', 'filter', 'sort'])) {
-            $this->resetPagination();
-        }
-    }
-
     #[On('restoreItem')]
     public function handleRestoreItem(int $id, string $type): void
     {
@@ -134,8 +127,6 @@ class TrashView extends Component
 
         $this->closeModal();
     }
-
-
 
     // Заметки, принадлежащие папкам, отображаются внутри папок
     #[Computed]
@@ -282,7 +273,6 @@ class TrashView extends Component
         $this->dispatch('refreshSidebar');
     }
 
-
     // Восстановить одну папку.
     public function restoreFolder(int $folderId): void
     {
@@ -340,7 +330,6 @@ class TrashView extends Component
 
         $this->dispatch('refreshSidebar');
     }
-
 
     public function render()
     {

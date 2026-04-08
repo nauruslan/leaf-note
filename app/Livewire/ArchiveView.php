@@ -2,9 +2,11 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithFiltering;
-use App\Livewire\Traits\WithSearch;
 use App\Livewire\Traits\WithComponentPagination;
+use App\Livewire\Traits\WithFiltering;
+use App\Livewire\Traits\WithNoteCreating;
+use App\Livewire\Traits\WithNoteOpening;
+use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +18,9 @@ class ArchiveView extends Component
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
+    use WithNoteCreating;
+    use WithNoteOpening;
+
 
     #[Computed]
     public function notes(): LengthAwarePaginator
@@ -40,35 +45,6 @@ class ArchiveView extends Component
         return $query->paginate($this->perPage, ['*'], 'page', $this->page);
     }
 
-
-    public function updated($property): void
-    {
-        if (in_array($property, ['search', 'filter', 'sort'])) {
-            $this->resetPagination();
-        }
-    }
-
-    public function openItem(int $noteId): void
-    {
-        $note = Note::where('user_id', Auth::id())->find($noteId);
-
-        if (!$note) {
-            return;
-        }
-
-        $section = $note->type === Note::TYPE_CHECKLIST ? 'edit-checklist' : 'edit-note';
-        $this->dispatch('navigateTo', section: $section, noteId: $noteId);
-    }
-
-    public function createNote(): void
-    {
-        $this->dispatch('navigateTo', 'create-note');
-    }
-
-    public function createChecklist(): void
-    {
-        $this->dispatch('navigateTo', 'create-checklist');
-    }
 
     public function render()
     {

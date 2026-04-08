@@ -2,9 +2,12 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithFiltering;
-use App\Livewire\Traits\WithSearch;
 use App\Livewire\Traits\WithComponentPagination;
+use App\Livewire\Traits\WithFiltering;
+use App\Livewire\Traits\WithFolderOpening;
+use App\Livewire\Traits\WithNoteCreating;
+use App\Livewire\Traits\WithNoteOpening;
+use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +19,9 @@ class FavoriteView extends Component
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
+    use WithNoteCreating;
+    use WithNoteOpening;
+    use WithFolderOpening;
 
     #[Computed]
     public function notes(): LengthAwarePaginator
@@ -41,55 +47,6 @@ class FavoriteView extends Component
 
         // Пагинация
         return $query->paginate($this->perPage, ['*'], 'page', $this->page);
-    }
-
-    /**
-     * Сбросить пагинацию при изменении любого из параметров: search, filter, sort.
-     */
-    public function updated($property): void
-    {
-        if (in_array($property, ['search', 'filter', 'sort'])) {
-            $this->resetPagination();
-        }
-    }
-
-    public function createNote(): void
-    {
-        $this->dispatch('navigateTo', 'create-note');
-    }
-
-    public function createChecklist(): void
-    {
-        $this->dispatch('navigateTo', 'create-checklist');
-    }
-
-
-    /**
-     * Внутренний метод для открытия заметки или чеклиста.
-     */
-    public function openItem(int $noteId): void
-    {
-        $note = Note::where('user_id', Auth::id())->find($noteId);
-
-        if (!$note) {
-            return;
-        }
-
-        $section = $note->type === Note::TYPE_CHECKLIST ? 'edit-checklist' : 'edit-note';
-        $this->dispatch('navigateTo', section: $section, noteId: $noteId);
-    }
-
-    /**
-     * Открыть папку.
-     */
-    public function openFolder(int $folderId): void
-    {
-        if (!$folderId) {
-            return;
-        }
-
-        $this->dispatch('stateUpdated', section: 'folder', folderId: $folderId);
-        $this->dispatch('navigateTo', section: 'folder', folderId: $folderId);
     }
 
     public function render()

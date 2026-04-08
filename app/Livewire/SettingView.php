@@ -9,13 +9,13 @@ class SettingView extends Component
     public function saveSettings()
     {
         // Логика сохранения настроек
-        $this->dispatch('notify', ['message' => 'Настройки сохранены', 'type' => 'success']);
+        $this->dispatch('notification', title: 'Успешно', content: 'Настройки сохранены', type: 'success');
     }
 
     public function resetSettings()
     {
         // Логика сброса настроек
-        $this->dispatch('notify', ['message' => 'Настройки сброшены', 'type' => 'warning']);
+        $this->dispatch('notification', title: 'Успешно', content: 'Настройки сброшены', type: 'warning');
     }
 
     public function render()

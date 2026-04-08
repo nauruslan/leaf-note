@@ -78,4 +78,12 @@ trait WithComponentPagination
     {
         return ['page', 'perPage'];
     }
+
+    // Сбросить пагинацию при изменении любого из параметров: search, filter, sort.
+    public function updated($property): void
+    {
+        if (in_array($property, ['search', 'filter', 'sort'])) {
+            $this->resetPagination();
+        }
+    }
 }
