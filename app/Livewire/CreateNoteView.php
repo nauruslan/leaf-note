@@ -14,8 +14,8 @@ use Livewire\Component;
 
 class CreateNoteView extends Component
 {
-    use WithFavorite;
     use WithFolderSafeSelection;
+    use WithFavorite;
 
     private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
 
@@ -70,43 +70,6 @@ class CreateNoteView extends Component
     {
         $this->dispatch('deleteUploadedImages');
         $this->dispatch('navigateTo', 'dashboard');
-    }
-
-    public function toggleFavorite(): void
-    {
-        // Если заметка уже создана, обновляем в БД и синхронизируем состояние
-        if ($this->noteId) {
-            // Используем метод из трейта WithFavorite через явный вызов
-            $note = $this->callTraitToggleFavorite($this->noteId);
-            if ($note) {
-                // Синхронизируем локальное свойство с состоянием из БД
-                $this->is_favorite = $note->is_favorite;
-            }
-        } else {
-            // Иначе просто меняем локальное свойство, которое сохранится при создании заметки
-            $this->is_favorite = !$this->is_favorite;
-
-            // Вызываем автосохранение, если выполнены условия (есть папка/сейф и заголовок)
-            $this->autoSave();
-        }
-    }
-
-    private function callTraitToggleFavorite(int $noteId): ?\App\Models\Note
-    {
-        // Явный вызов метода из трейта WithFavorite
-        $note = \App\Models\Note::where('user_id', \Illuminate\Support\Facades\Auth::id())->find($noteId);
-
-        if ($note) {
-            $note->toggleFavorite();
-            if ($note->is_favorite) {
-                $this->dispatch('notification', title: 'Успешно', content: 'Добавлено в избранное', type: 'success');
-            } else {
-                $this->dispatch('notification', title: 'Успешно', content: 'Удалено из избранного', type: 'success');
-            }
-            $this->dispatch('refreshSidebar');
-        }
-
-        return $note;
     }
 
     public function saveWithLocation(): void

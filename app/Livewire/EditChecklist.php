@@ -14,8 +14,8 @@ use Livewire\Component;
 
 class EditChecklist extends Component
 {
-    use WithFavorite;
     use WithFolderSafeSelection;
+    use WithFavorite;
 
     private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
 
@@ -26,6 +26,7 @@ class EditChecklist extends Component
     public string $content = '';
     public bool $confirmingDeletion = false;
     public bool $isSaving = false;
+    public bool $is_favorite = false;
 
     private ?Note $cachedChecklist = null;
 
@@ -63,6 +64,7 @@ class EditChecklist extends Component
         $this->title = $this->cachedChecklist->title;
         $this->folderId = $this->cachedChecklist->folder_id;
         $this->safeId = $this->cachedChecklist->safe_id;
+        $this->is_favorite = (bool) $this->cachedChecklist->is_favorite;
         $this->content = $this->normalizeContent($this->cachedChecklist->payload);
 
         $this->dispatch('checklistLoaded', content: $this->content);

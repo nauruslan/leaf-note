@@ -13,8 +13,8 @@ use Livewire\Component;
 
 class CreateChecklistView extends Component
 {
-    use WithFavorite;
     use WithFolderSafeSelection;
+    use WithFavorite;
 
     private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
 
@@ -59,11 +59,6 @@ class CreateChecklistView extends Component
     {
         $this->dispatch('deleteUploadedImages');
         $this->dispatch('navigateTo', 'dashboard');
-    }
-
-    public function toggleFavorite(): void
-    {
-        $this->is_favorite = !$this->is_favorite;
     }
 
     public function saveWithLocation(): void

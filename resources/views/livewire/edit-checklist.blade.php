@@ -32,8 +32,13 @@
                     <!-- Favorite -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Избранное:</span>
-                        <x-star :active="$this->checklist->is_favorite" size="30px"
-                            wire:click.debounce.500ms="toggleFavorite({{ $this->checklist->id }})" />
+                        <x-dropdown
+                            :options="[['value' => '1', 'text' => 'Да'], ['value' => '0', 'text' => 'Нет']]"
+                            selected="{{ $is_favorite ? '1' : '0' }}"
+                            wireModel="is_favorite"
+                            live
+                            width="80px"
+                        />
                     </div>
                 </div>
 
