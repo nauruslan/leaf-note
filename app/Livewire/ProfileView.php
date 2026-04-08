@@ -13,6 +13,9 @@ use Livewire\Component;
 
 class ProfileView extends Component
 {
+
+    public $heading='Настройки профиля';
+    public $subheading='Управление вашими личными данными и настройками';
     // Личные данные
     public string $name = '';
     public string $surname = '';

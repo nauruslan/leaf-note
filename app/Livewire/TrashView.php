@@ -10,7 +10,6 @@ use App\Models\Note;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\On;
 use Livewire\Component;
 
 class TrashView extends Component
@@ -19,7 +18,8 @@ class TrashView extends Component
     use WithSearch;
     use WithFiltering;
 
-    public $section='trash';
+    public $section = 'trash';
+    public $heading = 'Корзина';
 
     // Свойства для модального окна подтверждения удаления
     public bool $confirmingDeletion = false;
@@ -36,8 +36,7 @@ class TrashView extends Component
     public bool $confirmingRestoreAll = false;
     public bool $confirmingEmptyTrash = false;
 
-    #[On('restoreItem')]
-    public function handleRestoreItem(int $id, string $type): void
+    public function restoreItem(int $id, string $type): void
     {
         $this->confirmingRestore = true;
         $this->pendingRestoreId = $id;
@@ -54,16 +53,14 @@ class TrashView extends Component
         }
     }
 
-    #[On('deleteItem')]
-    public function handleDeleteItem(int $id, string $type): void
+    public function deleteItem(int $id, string $type): void
     {
         $this->confirmingDeletion = true;
         $this->pendingDeleteId = $id;
         $this->pendingDeleteType = $type;
     }
 
-    #[On('confirmRestoreAll')]
-    public function handleConfirmRestoreAll(): void
+    public function confirmRestoreAll(): void
     {
         $this->confirmingRestoreAll = true;
     }
@@ -73,8 +70,7 @@ class TrashView extends Component
         $this->confirmingRestoreAll = false;
     }
 
-    #[On('confirmEmptyTrash')]
-    public function handleConfirmEmptyTrash(): void
+    public function confirmEmptyTrash(): void
     {
         $this->confirmingEmptyTrash = true;
     }

@@ -22,6 +22,9 @@ class SafeView extends Component
     use WithNoteCreating;
     use WithNoteOpening;
 
+    public $heading='Сейф';
+    public $subheading='Защищённые заметки';
+
     public bool $confirmingPassword = false;
     public string $password = '';
     public bool $isUnlocked = false;

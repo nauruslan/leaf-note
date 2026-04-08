@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
+use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
@@ -14,6 +15,8 @@ class EditNote extends Component
 {
     use WithFolderSafeSelection;
     use WithFavorite;
+
+    public $heading='Редактирование заметки';
 
     private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
 
@@ -446,6 +449,15 @@ class EditNote extends Component
                 ->where('type', Note::TYPE_NOTE)
                 ->find($this->noteId)
             : null;
+    }
+
+    public function back(): void
+    {
+        $previousSection = StateManager::get('previous_section', 'dashboard');
+        $previousFolderId = StateManager::get('previous_folderId');
+        $previousNoteId = StateManager::get('previous_noteId');
+
+        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render()

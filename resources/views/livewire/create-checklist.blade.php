@@ -1,25 +1,12 @@
 <div>
     <!-- Header Section -->
-    <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
-        <div class="bg-white rounded-b-xl shadow-md p-5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1
-                        class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        Создание списка задач
-                    </h1>
-                    <p class="text-sm text-gray-500 mt-0.5">Создайте новый список задач</p>
-                </div>
-            </div>
-        </div>
-    </header>
-
+    <x-header :heading="$heading" :subheading="$subheading" />
     <!-- ControlPanel Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="bg-white rounded-xl shadow-md p-5 border border-gray-100">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
-                <!-- Left Block: Main Settings -->
+                <!-- Left Block: Actions starting from left -->
                 <div class="flex flex-wrap items-center gap-3">
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
@@ -34,26 +21,6 @@
                         <x-dropdown :options="[['value' => '1', 'text' => 'Да'], ['value' => '0', 'text' => 'Нет']]" selected="{{ $is_favorite ? '1' : '0' }}" wireModel="is_favorite"
                             live width="80px" />
                     </div>
-                </div>
-
-                <!-- Right Block: Actions -->
-                <div class="flex flex-wrap items-center gap-3 justify-end">
-
-                    <!-- Save Button -->
-                    <x-button-save wire:click.prevent="saveWithLocation" wire:loading.attr="disabled"
-                        wire:loading.class="opacity-50 cursor-not-allowed">
-                        <span wire:loading>Сохранение...</span>
-                        <span wire:loading.remove class="flex items-center gap-2">
-                            <i data-lucide="save" class="w-4 h-4"></i>
-                            Сохранить
-                        </span>
-                    </x-button-save>
-
-                    <!-- Cancel Button -->
-                    <x-button-cancel wire:click.prevent="cancel" wire:loading.attr="disabled">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                        Отменить
-                    </x-button-cancel>
                 </div>
             </div>
         </div>

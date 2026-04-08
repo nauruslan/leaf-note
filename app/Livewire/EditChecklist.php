@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
 use App\Models\Safe;
+use App\Services\StateManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -16,6 +17,8 @@ class EditChecklist extends Component
 {
     use WithFolderSafeSelection;
     use WithFavorite;
+
+    public $heading='Создать заметку';
 
     private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
 
@@ -311,6 +314,15 @@ class EditChecklist extends Component
         }
 
         return Safe::where('user_id', Auth::id())->where('id', $selectedId)->exists();
+    }
+
+    public function back(): void
+    {
+        $previousSection = StateManager::get('previous_section', 'dashboard');
+        $previousFolderId = StateManager::get('previous_folderId');
+        $previousNoteId = StateManager::get('previous_noteId');
+
+        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render(): \Illuminate\View\View

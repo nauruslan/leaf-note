@@ -17,6 +17,9 @@ class CreateNoteView extends Component
     use WithFolderSafeSelection;
     use WithFavorite;
 
+    public $heading='Редактирование списка задач';
+    public $subheading='Создайте новую заметку';
+
     private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
 
     public string $title = '';
@@ -414,6 +417,15 @@ class CreateNoteView extends Component
                 ->where('type', Note::TYPE_NOTE)
                 ->find($this->noteId)
             : null;
+    }
+
+    public function back(): void
+    {
+        $previousSection = StateManager::get('previous_section', 'dashboard');
+        $previousFolderId = StateManager::get('previous_folderId');
+        $previousNoteId = StateManager::get('previous_noteId');
+
+        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render(): \Illuminate\View\View

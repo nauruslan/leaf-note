@@ -5,10 +5,11 @@ use App\Models\Folder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
-use App\Livewire\NavigationSidebar;
 
 class CreateFolderView extends Component
 {
+    public $heading='Создать папку';
+    public $subheading='Создайте новую папку для организации заметок';
 
     public string $title = '';
     public string $color = 'white';
@@ -64,11 +65,6 @@ class CreateFolderView extends Component
             report($e);
             $this->dispatch('notify', ['message' => 'Ошибка при создании папки: ' . $e->getMessage(), 'type' => 'error']);
         }
-    }
-
-    public function cancel()
-    {
-        $this->dispatch('navigate', ['section' => 'dashboard']);
     }
 
     public function render()

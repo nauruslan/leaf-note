@@ -1,13 +1,6 @@
 <div>
     <!-- Header Section -->
-    <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-b-xl shadow-md p-5">
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Создание папки
-            </h1>
-            <p class="text-sm text-gray-500 mt-0.5">Создайте новую папку для организации заметок</p>
-        </div>
-    </header>
+    <x-header :heading="$heading" :subheading="$subheading" />
 
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 py-6">
@@ -50,9 +43,6 @@
                                 wire:key="{{ $key }}"
                                 class="relative w-8 h-8 rounded-full {{ $color['bg'] }} border-2 {{ $key === $this->color ? 'border-white ring-2 ring-offset-2 ring-indigo-500' : $color['border'] }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ring-indigo-500"
                                 title="{{ $color['label'] }}" aria-label="{{ $color['label'] }}">
-                                <!-- Leaf Component -->
-                                <x-leaf class="w-5 h-5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                                    :fill="$key === 'white' ? '#000000' : '#ffffff'" />
                             </button>
                         @endforeach
                     </div>
@@ -61,30 +51,7 @@
                 <!-- Кнопки действий -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
                     <!-- Save Button -->
-                    <x-button-save wire:click.prevent="save" wire:loading.attr="disabled">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" data-lucide="save" aria-hidden="true"
-                            class="lucide lucide-save w-4 h-4">
-                            <path
-                                d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z">
-                            </path>
-                            <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path>
-                            <path d="M7 3v4a1 1 0 0 0 1 1h7"></path>
-                        </svg>
-                        Сохранить
-                    </x-button-save>
-
-                    <!-- Cancel Button -->
-                    <x-button-cancel wire:click.prevent="cancel" wire:loading.attr="disabled">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4">
-                            <path d="M18 6 6 18"></path>
-                            <path d="m6 6 12 12"></path>
-                        </svg>
-                        Отмена
-                    </x-button-cancel>
+                    <x-button-save wire:click.prevent="save" wire:loading.attr="disabled" />
                 </div>
             </form>
         </div>

@@ -1,41 +1,15 @@
 <div>
     <!-- Header Section -->
-    <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 ">
-        <div class="bg-white rounded-b-xl shadow-md p-5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1
-                        class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        Корзина
-                    </h1>
-                    <p class="text-sm text-gray-500 mt-0.5">
-                        {{ $this->totalCount > 0 ? 'Удалённые заметки и папки' : 'Корзина пуста' }}
-                    </p>
-                </div>
-
-                <x-search wireModel="search" width="w-64" />
-            </div>
-        </div>
-    </header>
-
+    <x-header :heading="$heading" :subheading="$this->totalCount > 0 ? 'Удалённые заметки и папки' : 'Корзина пуста'" showSearch />
     <!-- ControlPanel Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="bg-white rounded-xl shadow-md p-5">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <!-- Left Block: Actions -->
                 <div class="flex flex-wrap items-center gap-3">
-                    <button wire:click="$dispatch('confirmRestoreAll')"
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                        Восстановить всё
-                    </button>
-                    <button wire:click="$dispatch('confirmEmptyTrash')"
-                        class="bg-white border border-gray-300 hover:bg-red-50 text-red-600 font-medium py-2.5 px-5 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        Очистить корзину
-                    </button>
+                    <x-button-restore-all wire:click="confirmRestoreAll" />
+                    <x-button-delete-all wire:click="confirmEmptyTrash" />
                 </div>
-
                 <!-- Right Block: Filters -->
                 <div class="flex flex-wrap items-center gap-4 justify-end">
                     <!-- Показать Dropdown -->
@@ -48,7 +22,6 @@
                         ]" selected="{{ $perPage }}" wireModel="perPage" live
                             width="80px" />
                     </div>
-
                     <!-- Фильтр Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Фильтр:</span>
@@ -60,7 +33,6 @@
                         ]" selected="{{ $filter }}" wireModel="filter" live
                             width="100px" />
                     </div>
-
                     <!-- Сортировка Dropdown -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Сортировка:</span>
@@ -74,7 +46,6 @@
             </div>
         </div>
     </div>
-
     <!-- Content Section -->
     <div
         class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
@@ -86,7 +57,6 @@
             $hasResults = $hasFolders || $hasNotes;
             $isSearching = !empty($search);
         @endphp
-
         @if ($hasResults)
             @if ($showFolders)
                 @foreach ($this->trashedFolders as $folder)
@@ -100,39 +70,32 @@
                 @endforeach
             @endif
         @endif
-
         {{-- Пустое состояние --}}
         @if ($this->totalCount === 0)
             <x-no-data icon="trash" title="Корзина пуста" description="Удалённые файлы будут отображаться здесь" />
         @endif
-
         {{-- Нет результатов поиска --}}
         @if (!$hasResults && $this->totalCount > 0 && $isSearching)
             <x-no-data icon="search-x" title="Совпадений не найдено"
                 description="Попробуйте изменить поисковый запрос" />
         @endif
     </div>
-
     @if ($hasResults && $this->trashedNotes->hasPages())
         <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">
             {{ $this->trashedNotes->links('livewire.pagination') }}
         </div>
     @endif
-
     <!-- Модальное окно подтверждения восстановления одного элемента -->
     <x-modal-confirm :show="$confirmingRestore" title="Восстановить?" :description="$restoreDescription" confirmText="Восстановить"
         cancelText="Отмена" confirmMethod="confirmRestore" cancelMethod="closeModal" confirmColor="indigo" />
-
     <!-- Модальное окно подтверждения удаления одного элемента -->
     <x-modal-confirm :show="$confirmingDeletion" title="Удалить навсегда?"
         description="Это действие необратимо. Элемент будет удален безвозвратно." confirmText="Удалить"
         cancelText="Отмена" confirmMethod="confirmDelete" cancelMethod="closeModal" confirmColor="red" />
-
     <!-- Модальное окно подтверждения восстановления всех элементов -->
     <x-modal-confirm :show="$confirmingRestoreAll" title="Восстановить всё?"
         description="Все удалённые элементы будут восстановлены" confirmText="Восстановить" cancelText="Отмена"
         confirmMethod="restoreAll" cancelMethod="closeRestoreAllModal" confirmColor="indigo" />
-
     <!-- Модальное окно подтверждения очистки корзины -->
     <x-modal-confirm :show="$confirmingEmptyTrash" title="Очистить корзину?"
         description="Все элементы в корзине будут удалены безвозвратно. Это действие необратимо." confirmText="Очистить"

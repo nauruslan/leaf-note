@@ -40,7 +40,7 @@
 
     <div wire:ignore>
         <div class="custom-select" id="{{ $id }}" style="width: {{ $width }}" data-dropdown>
-            <div class="custom-select-trigger" data-dropdown-trigger>
+            <div class="custom-select-trigger h-10" data-dropdown-trigger>
                 <span class="custom-select-label">{{ $selectedText }}</span>
                 <span style="font-size: 10px; opacity: 0.6">▼</span>
             </div>

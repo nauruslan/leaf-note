@@ -21,7 +21,7 @@
 
     <input type="text" id="{{ $id }}" name="{{ $inputName }}" placeholder="{{ $placeholder }}"
         wire:model.live.debounce.{{ $debounce }}ms="{{ $wireModel }}"
-        class="pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full transition-all"
+        class="h-10 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full transition-all"
         autocomplete="off" data-search-input>
 
     <!-- Крестик очистки -->

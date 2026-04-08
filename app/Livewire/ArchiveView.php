@@ -21,6 +21,9 @@ class ArchiveView extends Component
     use WithNoteCreating;
     use WithNoteOpening;
 
+    public $heading = 'Архив';
+    public $subheading = 'Заметки и списки помещенные в архив';
+
 
     #[Computed]
     public function notes(): LengthAwarePaginator

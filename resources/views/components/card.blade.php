@@ -28,17 +28,8 @@
         </div>
 
         <div class="flex justify-between border-t border-amber-400/50 pt-4 mt-auto">
-            <button wire:click="$dispatch('restoreItem', { id: {{ $item->id }}, type: '{{ $type }}' })"
-                class="bg-white hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                <span>Восстановить</span>
-            </button>
-
-            <button wire:click="$dispatch('deleteItem', { id: {{ $item->id }}, type: '{{ $type }}' })"
-                class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                <span>Удалить</span>
-            </button>
+            <x-button-restore wire:click="restoreItem({{ $item->id }}, 'note')" />
+            <x-button-delete wire:click="deleteItem({{ $item->id }}, 'note')" />
         </div>
     </div>
 @else
@@ -78,58 +69,39 @@
 
         @if ($section === 'trash')
             <div class="flex justify-between border-t border-gray-200 pt-4 mt-auto">
-                <button wire:click="$dispatch('restoreItem', { id: {{ $item->id }}, type: 'note' })"
-                    class="bg-white border border-gray-300 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                    <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                    <span>Восстановить</span>
-                </button>
-
-                <button wire:click="$dispatch('deleteItem', { id: {{ $item->id }}, type: 'note' })"
-                    class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    <span>Удалить</span>
-                </button>
+                <x-button-restore wire:click="restoreItem({{ $item->id }}, 'note')" />
+                <x-button-delete wire:click="deleteItem({{ $item->id }}, 'note')" />
             </div>
         @else
             <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
                 @if ($item->isInFolder() && $section === 'folder')
-                    <div
-                        class="bg-white border border-gray-300 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2">
-                        <i data-lucide="{{ $item->folder ? $item->folder->icon : '' }}" class="w-4 h-4"></i>
+                    <x-note-location>
+                        <i data-lucide="{{ $item->folder->icon ?? '' }}" class="w-4 h-4"></i>
                         {{ $item->folder->title }}
-                    </div>
+                    </x-note-location>
                 @elseif ($item->isInFolder())
-                    <button wire:click="openFolder({{ $item->folder_id }})"
-                        class="bg-white border border-gray-300 hover:700 font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-2">
-                        <i data-lucide="{{ $item->folder ? $item->folder->icon : '' }}" class="w-4 h-4"></i>
+                    <x-note-location button wire:click="openFolder({{ $item->folder_id }})">
+                        <i data-lucide="{{ $item->folder->icon ?? '' }}" class="w-4 h-4"></i>
                         {{ $item->folder->title }}
-                    </button>
+                    </x-note-location>
                 @elseif ($item->isInArchive())
-                    <div
-                        class="bg-white border border-gray-300 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2">
+                    <x-note-location>
                         <i data-lucide="archive" class="w-4 h-4"></i>
                         Архив
-                    </div>
+                    </x-note-location>
                 @elseif ($item->isInSafe())
-                    <div
-                        class="bg-white border border-gray-300 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2">
+                    <x-note-location>
                         <i data-lucide="lock" class="w-4 h-4"></i>
                         Сейф
-                    </div>
+                    </x-note-location>
                 @else
-                    <div
-                        class="bg-white border border-gray-300 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-gray-500">
+                    <x-note-location>
                         <i data-lucide="inbox" class="w-4 h-4"></i>
                         Без папки
-                    </div>
+                    </x-note-location>
                 @endif
 
-
-                <button wire:click="openNote({{ $item->id }})"
-                    class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
-                    <span>Открыть</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </button>
+                <x-button-open-note wire:click="openNote({{ $item->id }})" />
 
             </div>
         @endif

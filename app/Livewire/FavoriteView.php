@@ -23,6 +23,9 @@ class FavoriteView extends Component
     use WithNoteOpening;
     use WithFolderOpening;
 
+    public $heading='Избранное';
+    public $subheading='Ваши избранные заметки и списки';
+
     #[Computed]
     public function notes(): LengthAwarePaginator
     {

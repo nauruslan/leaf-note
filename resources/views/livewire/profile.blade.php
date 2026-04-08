@@ -1,19 +1,10 @@
 <div>
     <!-- Header Section -->
-    <header class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-b-xl shadow-md p-5">
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Настройки профиля
-            </h1>
-            <p class="text-sm text-gray-500 mt-0.5">Управление вашими личными данными и настройками</p>
-        </div>
-    </header>
-
+    <x-header :heading='$heading' :subheading='$subheading' />
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 py-6">
         <div class="bg-white rounded-xl shadow-md p-6">
             <form wire:submit.prevent="saveProfile" class="space-y-8">
-
                 <!-- Секция: Личные данные -->
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -33,7 +24,6 @@
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-
                         <!-- Фамилия -->
                         <div>
                             <label for="surname" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -46,7 +36,6 @@
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-
                         <!-- Email -->
                         <div class="md:col-span-2">
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -61,10 +50,8 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Разделитель -->
                 <div class="border-t border-gray-200"></div>
-
                 <!-- Секция: Статистика -->
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -107,17 +94,14 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Разделитель -->
                 <div class="border-t border-gray-200"></div>
-
                 <!-- Секция: Настройки -->
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i>
                         Настройки
                     </h3>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Уведомления -->
                         <div>
@@ -131,7 +115,6 @@
                             ]" selected="{{ $notificationsEnabled ? '1' : '0' }}"
                                 wireModel="notificationsEnabled" width="180px" />
                         </div>
-
                         <!-- Автоматическое удаление корзины -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -149,17 +132,14 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Разделитель -->
                 <div class="border-t border-gray-200"></div>
-
                 <!-- Секция: Смена пароля -->
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <i data-lucide="key" class="w-5 h-5 text-indigo-600"></i>
                         Смена пароля
                     </h3>
-
                     <!-- Текущий пароль -->
                     <div class="mb-4">
                         <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -172,7 +152,6 @@
                             <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-
                     <!-- Новый пароль -->
                     <div class="mb-4">
                         <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -185,7 +164,6 @@
                             <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-
                     <!-- Подтверждение пароля -->
                     <div class="mb-4">
                         <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -199,17 +177,14 @@
                         @enderror
                     </div>
                 </div>
-
                 <!-- Разделитель -->
                 <div class="border-t border-gray-200"></div>
-
                 <!-- Секция: Пароль сейфа -->
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <i data-lucide="lock" class="w-5 h-5 text-indigo-600"></i>
                         Пароль сейфа
                     </h3>
-
                     @if ($hasSafePassword)
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                             <div class="flex items-center gap-2">
@@ -217,7 +192,6 @@
                                 <p class="text-sm text-green-800">Пароль сейфа установлен</p>
                             </div>
                         </div>
-
                         <!-- Текущий пароль сейфа -->
                         <div class="mb-4">
                             <label for="safeCurrentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -238,7 +212,6 @@
                             </div>
                         </div>
                     @endif
-
                     <!-- Новый пароль сейфа -->
                     <div class="mb-4">
                         <label for="safePassword" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -251,7 +224,6 @@
                             <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-
                     <!-- Подтверждение пароля сейфа -->
                     <div class="mb-4">
                         <label for="safeConfirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -264,31 +236,17 @@
                             <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-
                     @if ($hasSafePassword)
                         <div class="mt-4">
-                            <x-button-delete wire:click.prevent="removeSafePassword" wire:loading.attr="disabled">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                Удалить пароль сейфа
-                            </x-button-delete>
+                            <x-button-delete wire:click.prevent="removeSafePassword" wire:loading.attr="disabled" />
                         </div>
                     @endif
                 </div>
-
                 <!-- Разделитель -->
                 <div class="border-t border-gray-200"></div>
-
                 <!-- Кнопки действий -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
-                    <x-button-save wire:click.prevent="saveProfile" wire:loading.attr="disabled">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Сохранить
-                    </x-button-save>
-
-                    <x-button-cancel wire:click.prevent="cancel" wire:loading.attr="disabled">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                        Отмена
-                    </x-button-cancel>
+                    <x-button-save wire:click.prevent="saveProfile" wire:loading.attr="disabled" />
                 </div>
             </form>
         </div>

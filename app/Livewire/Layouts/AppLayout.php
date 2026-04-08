@@ -26,6 +26,10 @@ class AppLayout extends Component
 
     public function navigateTo(string $section, ?int $folderId=null, ?int $noteId=null): void
     {
+        // Сохраняем текущую секцию как предыдущую перед переходом
+        StateManager::set('previous_section', $this->section);
+        StateManager::set('previous_folderId', $this->folderId);
+        StateManager::set('previous_noteId', $this->noteId);
 
         StateManager::set('section', $section);
         StateManager::set('folderId', $folderId);

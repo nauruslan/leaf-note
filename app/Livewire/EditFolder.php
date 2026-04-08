@@ -8,6 +8,8 @@ use Livewire\Component;
 
 class EditFolder extends Component
 {
+    public $heading='Редактирование папки';
+
     public ?int $folderId = null;
     public string $title = '';
     public string $color = 'white';

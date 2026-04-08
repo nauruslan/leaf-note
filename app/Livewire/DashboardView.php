@@ -23,6 +23,9 @@ class DashboardView extends Component
     use WithNoteOpening;
     use WithFolderOpening;
 
+    public $heading='Главная доска';
+    public $subheading='Все ваши заметки и списки в одном месте';
+
     #[Computed]
     public function notes(): LengthAwarePaginator
     {

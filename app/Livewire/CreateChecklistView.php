@@ -18,6 +18,9 @@ class CreateChecklistView extends Component
 
     private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
 
+    public $heading='Создать список';
+    public $subheading='Создайте новый список задач';
+
     public string $title = '';
     public ?int $folderId = null;
     public ?int $safeId = null;
@@ -307,6 +310,15 @@ class CreateChecklistView extends Component
         }
 
         return Safe::where('user_id', Auth::id())->where('id', $selectedId)->exists();
+    }
+
+    public function back(): void
+    {
+        $previousSection = StateManager::get('previous_section', 'dashboard');
+        $previousFolderId = StateManager::get('previous_folderId');
+        $previousNoteId = StateManager::get('previous_noteId');
+
+        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render(): \Illuminate\View\View
