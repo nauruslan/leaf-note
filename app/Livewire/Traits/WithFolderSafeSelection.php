@@ -31,8 +31,19 @@ trait WithFolderSafeSelection
         return Safe::where('user_id', Auth::id())
             ->get()
             ->map(fn (Safe $safe): array => [
-                'value' => $safe->id,
+                'value' => 'safe_' . $safe->id,
                 'text'  => $safe->name ?? "Сейф",
+            ]);
+    }
+
+    #[Computed]
+    public function archives(): Collection
+    {
+        return \App\Models\Archive::where('user_id', Auth::id())
+            ->get()
+            ->map(fn (\App\Models\Archive $archive): array => [
+                'value' => 'archive_' . $archive->id,
+                'text'  => $archive->name ?? "Архив",
             ]);
     }
 }

@@ -54,24 +54,38 @@ class EditFolder extends Component
     public function save()
     {
         try {
+            // Если передан folderId, но папка не загружена, попробуем загрузить
+            if ($this->folderId && !$this->folder) {
+                $this->folder = Folder::where('user_id', Auth::id())
+                    ->where('id', $this->folderId)
+                    ->active()
+                    ->first();
+
+                if (!$this->folder) {
+                    throw new \Exception('Папка не найдена или у вас нет прав на её редактирование.');
+                }
+            }
+
             $rules = [
                 'title' => [
                     'required',
                     'string',
                     'max:255',
-                    Rule::unique('folders')->where('user_id', Auth::id())->whereNull('trash_id'),
                 ],
                 'color' => ['required', 'string', 'in:' . implode(',', array_keys(Folder::COLORS))],
                 'icon' => ['required', 'string', 'in:' . implode(',', array_keys(Folder::ICONS))],
             ];
 
-            // Если редактируем существующую папку, игнорируем её ID в правиле unique
+            // Динамически добавляем правило unique с игнорированием ID редактируемой папки
+            $uniqueRule = Rule::unique('folders')
+                ->where('user_id', Auth::id())
+                ->whereNull('trash_id');
+
             if ($this->folder) {
-                $rules['title'][3] = Rule::unique('folders')
-                    ->where('user_id', Auth::id())
-                    ->whereNull('trash_id')
-                    ->ignore($this->folder->id);
+                $uniqueRule->ignore($this->folder->id);
             }
+
+            $rules['title'][] = $uniqueRule;
 
             $this->validate($rules);
 
@@ -82,6 +96,7 @@ class EditFolder extends Component
                 $this->folder->icon = $this->icon;
                 $this->folder->save();
                 $message = 'Папка успешно обновлена';
+                $event = 'folderUpdated';
             } else {
                 // Создание новой папки
                 $folder = new Folder();
@@ -91,10 +106,11 @@ class EditFolder extends Component
                 $folder->user_id = Auth::id();
                 $folder->save();
                 $message = 'Папка успешно создана';
+                $event = 'folderCreated';
             }
 
             $this->dispatch('notify', ['message' => $message, 'type' => 'success']);
-            $this->dispatch('folderCreated');
+            $this->dispatch($event);
             $this->dispatch('navigateTo', section: 'dashboard');
         } catch (\Throwable $e) {
             report($e);

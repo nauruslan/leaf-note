@@ -16,7 +16,7 @@ export function initChecklistProgressBar(
                     <h4 class="text-sm font-medium text-gray-700 mb-1">Прогресс выполнения</h4>
                     <p class="progress-text text-xs text-gray-500">0 из 0 задач выполнено</p>
                 </div>
-                <div class="relative w-[80px] h-[80px]">
+                <div class="relative w-[220px] h-[220px]">
                     <svg viewBox="0 0 100 100" class="w-full h-full" style="transform: rotate(-90deg); display: block;">
                         <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8" stroke-linecap="round" />
                         <circle class="progress-circle" cx="50" cy="50" r="45" fill="none" stroke-width="8" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="283" style="transition: stroke-dashoffset 0.5s ease, stroke 1.5s ease;" />

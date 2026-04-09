@@ -51,13 +51,15 @@
         @forelse($this->notes as $note)
             <x-card :item="$note" :color="$note->icon_color_class" />
         @empty
-            @if ($search)
-                <x-no-data icon="search-x" title="Совпадений не найдено"
-                    description="Попробуйте изменить поисковый запрос" />
-            @else
-                <x-no-data icon="file-text" title="Заметок пока нет"
-                    description="Создайте первую заметку, чтобы увидеть её здесь" />
-            @endif
+            <div class="col-span-full">
+                @if ($search)
+                    <x-no-data icon="search-x" title="Совпадений не найдено"
+                        description="Попробуйте изменить поисковый запрос" />
+                @else
+                    <x-no-data icon="file-text" title="Заметок пока нет"
+                        description="Создайте первую заметку, чтобы увидеть её здесь" />
+                @endif
+            </div>
         @endforelse
     </div>
     @if ($this->notes->hasPages())

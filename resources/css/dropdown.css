@@ -22,6 +22,18 @@
     background: #f3f4f6;
 }
 
+.custom-select.disabled .custom-select-trigger {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.custom-select.disabled .custom-select-trigger:hover {
+    background: #f9fafb;
+}
+
 .custom-select-dropdown {
     position: absolute;
     top: calc(100% + 4px);

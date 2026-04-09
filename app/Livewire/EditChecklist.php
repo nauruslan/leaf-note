@@ -26,6 +26,9 @@ class EditChecklist extends Component
     public string $title = '';
     public ?int $folderId = null;
     public ?int $safeId = null;
+    public ?int $archiveId = null;
+    public ?int $dropdownFolderId = null;
+    public ?string $dropdownValue = null;
     public string $content = '';
     public bool $confirmingDeletion = false;
     public bool $isSaving = false;
@@ -67,8 +70,18 @@ class EditChecklist extends Component
         $this->title = $this->cachedChecklist->title;
         $this->folderId = $this->cachedChecklist->folder_id;
         $this->safeId = $this->cachedChecklist->safe_id;
+        $this->archiveId = $this->cachedChecklist->archive_id;
         $this->is_favorite = (bool) $this->cachedChecklist->is_favorite;
         $this->content = $this->normalizeContent($this->cachedChecklist->payload);
+
+        // Инициализируем dropdownValue в зависимости от того, где находится список
+        if ($this->safeId) {
+            $this->dropdownValue = 'safe_' . $this->safeId;
+        } elseif ($this->archiveId) {
+            $this->dropdownValue = 'archive_' . $this->archiveId;
+        } elseif ($this->folderId) {
+            $this->dropdownValue = (string) $this->folderId;
+        }
 
         $this->dispatch('checklistLoaded', content: $this->content);
 
@@ -90,14 +103,41 @@ class EditChecklist extends Component
         $this->dispatch('navigateTo', 'dashboard', null, false);
     }
 
-    public function toggleDeleteModal(): void
+    public function confirmDelete(): void
     {
-        if ($this->noteId === null) {
-            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось найти список для удаления', type: 'danger');
+        $checklist = $this->checklist();
+
+        if (!$checklist) {
+            $this->dispatch('notification', title: 'Ошибка', content: 'Список не найден', type: 'danger');
             return;
         }
 
-        $this->confirmingDeletion = ! $this->confirmingDeletion;
+        if ($checklist->is_favorite) {
+            $checklist->toggleFavorite();
+        }
+
+        if (!$checklist->moveToTrash()) {
+            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось удалить список', type: 'danger');
+            return;
+        }
+
+        $this->dispatch('checklistUpdated');
+        $this->dispatch('navigateTo', 'dashboard');
+    }
+
+    public function confirmDeletion(): void
+    {
+        $this->confirmingDeletion = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->confirmingDeletion = false;
+    }
+
+    public function openDeleteModal(): void
+    {
+        $this->confirmDeletion();
     }
 
     public function delete(): void
@@ -143,7 +183,6 @@ class EditChecklist extends Component
         }
 
         try {
-            // Перезагружаем из БД если кэш пуст (например, при пересоздании компонента)
             if (!$this->cachedChecklist) {
                 $this->cachedChecklist = Note::where('user_id', Auth::id())
                     ->where('type', Note::TYPE_CHECKLIST)
@@ -168,8 +207,19 @@ class EditChecklist extends Component
         }
     }
 
-    public function updatedFolderId(): void
+    public function updatedDropdownValue(): void
     {
+        if (is_string($this->dropdownValue)) {
+            if (str_starts_with($this->dropdownValue, 'safe_')) {
+                $this->safeId = (int) substr($this->dropdownValue, 5);
+                $this->folderId = null;
+                $this->archiveId = null;
+            } elseif (str_starts_with($this->dropdownValue, 'archive_')) {
+                $this->archiveId = (int) substr($this->dropdownValue, 8);
+                $this->folderId = null;
+                $this->safeId = null;
+            }
+        }
         $this->autoSave();
     }
 
@@ -178,6 +228,16 @@ class EditChecklist extends Component
     {
         $this->safeId = $id;
         $this->folderId = null;
+        $this->archiveId = null;
+        $this->autoSave();
+    }
+
+    #[On('updateArchiveId')]
+    public function setArchiveId(int $id): void
+    {
+        $this->archiveId = $id;
+        $this->folderId = null;
+        $this->safeId = null;
         $this->autoSave();
     }
 
@@ -209,12 +269,6 @@ class EditChecklist extends Component
             return;
         }
 
-        // Если выбранный folderId является сейфом, перемещаем его в safeId
-        if ($this->folderId && $this->isSafeSelected($this->folderId)) {
-            $this->safeId = $this->folderId;
-            $this->folderId = null;
-        }
-
         try {
             $this->validateOnly('title');
         } catch (\Illuminate\Validation\ValidationException) {
@@ -244,7 +298,6 @@ class EditChecklist extends Component
             $this->cachedChecklist->save();
 
             // Можно диспатчить событие для UI, что автосохранение прошло успешно
-            // $this->dispatch('autosaveCompleted');
         } catch (\Throwable $e) {
             report($e);
             // При автосохранении не показываем ошибку пользователю
@@ -300,6 +353,10 @@ class EditChecklist extends Component
             $checklist->safe_id = $this->safeId;
             $checklist->folder_id = null;
             $checklist->archive_id = null;
+        } elseif ($this->archiveId !== null) {
+            $checklist->archive_id = $this->archiveId;
+            $checklist->folder_id = null;
+            $checklist->safe_id = null;
         } else {
             $checklist->folder_id = null;
             $checklist->safe_id = null;
@@ -313,7 +370,18 @@ class EditChecklist extends Component
             return false;
         }
 
-        return Safe::where('user_id', Auth::id())->where('id', $selectedId)->exists();
+        // Проверяем с префиксом safe_
+        return collect($this->safes)->contains('value', 'safe_' . $selectedId);
+    }
+
+    private function isArchiveSelected(?int $selectedId): bool
+    {
+        if ($selectedId === null) {
+            return false;
+        }
+
+        // Проверяем с префиксом archive_
+        return collect($this->archives)->contains('value', 'archive_' . $selectedId);
     }
 
     public function back(): void

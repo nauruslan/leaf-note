@@ -11,6 +11,9 @@ class Dropdown {
             ? dropdownContainer.querySelector('[data-dropdown-input]')
             : null;
 
+        // Сохраняем экземпляр на элементе для внешнего доступа
+        container.dropdownInstance = this;
+
         this.init();
     }
 
@@ -25,6 +28,11 @@ class Dropdown {
         this.items.forEach((item) => {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
+                // Если dropdown disabled, не выбираем
+                if (this.container.hasAttribute('data-disabled')) {
+                    console.log('Dropdown item click ignored because dropdown is disabled');
+                    return;
+                }
                 this.select(item);
             });
         });
@@ -58,9 +66,24 @@ class Dropdown {
         if (this.hiddenInput && this.value) {
             this.hiddenInput.value = this.value;
         }
+
+        // Если этот dropdown отвечает за выбор папки/сейфа/архива (не избранное), обновляем состояние favorite
+        if (!this.container.hasAttribute('data-dropdown-favorite')) {
+            const isSafe = selectedItem && selectedItem.dataset.safe === 'true';
+            const isArchive = selectedItem && selectedItem.dataset.archive === 'true';
+            this.updateFavoriteDropdownState(isSafe || isArchive);
+        }
     }
 
     toggle() {
+        console.log(
+            'Dropdown toggle called, data-disabled?',
+            this.container.hasAttribute('data-disabled'),
+        );
+        if (this.container.hasAttribute('data-disabled')) {
+            console.log('Dropdown is disabled, ignoring toggle');
+            return;
+        }
         const display = window.getComputedStyle(this.dropdown).display;
         if (display === 'block') {
             this.close();
@@ -78,6 +101,12 @@ class Dropdown {
     }
 
     select(item) {
+        console.log(
+            'Dropdown select called',
+            item.dataset.value,
+            item.dataset.safe,
+            item.dataset.archive,
+        );
         // Удаляем класс selected у всех элементов
         this.items.forEach((i) => i.classList.remove('selected'));
         // Добавляем выбранному элементу
@@ -104,6 +133,8 @@ class Dropdown {
 
         // Генерируем пользовательское событие
         const isSafe = item.dataset.safe === 'true';
+        const isArchive = item.dataset.archive === 'true';
+        console.log('isSafe:', isSafe, 'isArchive:', isArchive);
         this.container.dispatchEvent(
             new CustomEvent('dropdown-change', {
                 detail: {
@@ -111,17 +142,52 @@ class Dropdown {
                     text: item.textContent,
                     element: this.container,
                     isSafe: isSafe,
+                    isArchive: isArchive,
                 },
             }),
         );
 
         // Если выбран safe, генерируем событие для Livewire
         if (isSafe) {
+            const safeId = this.value.replace('safe_', '');
             const event = new CustomEvent('update-safe-id', {
-                detail: { id: this.value },
+                detail: { id: safeId },
             });
             document.dispatchEvent(event);
         }
+
+        // Если выбран archive, генерируем событие для Livewire
+        if (isArchive) {
+            const archiveId = this.value.replace('archive_', '');
+            const event = new CustomEvent('update-archive-id', {
+                detail: { id: archiveId },
+            });
+            document.dispatchEvent(event);
+        }
+
+        // Обновляем состояние dropdown "Избранное"
+        this.updateFavoriteDropdownState(isSafe || isArchive);
+    }
+
+    updateFavoriteDropdownState(disabled) {
+        // Находим все dropdown "Избранное" на странице
+        const favoriteDropdowns = document.querySelectorAll(
+            '.custom-select[data-dropdown-favorite]',
+        );
+        favoriteDropdowns.forEach((dropdown) => {
+            if (disabled) {
+                dropdown.setAttribute('data-disabled', 'true');
+                dropdown.classList.add('disabled');
+                // Закрываем dropdown, если он открыт
+                const dropdownInstance = dropdown.dropdownInstance;
+                if (dropdownInstance && dropdownInstance.dropdown.style.display === 'block') {
+                    dropdownInstance.close();
+                }
+            } else {
+                dropdown.removeAttribute('data-disabled');
+                dropdown.classList.remove('disabled');
+            }
+        });
     }
 
     getValue() {

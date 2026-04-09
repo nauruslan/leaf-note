@@ -10,14 +10,15 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" selected="{{ $folderId ?? $safeId }}"
-                            wireModel="folderId" live width="150px" />
+                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" :archives="$this->archives->toArray()"
+                            selected="{{ $dropdownValue ?? ($folderId ?? (($safeId ? 'safe_' . $safeId : null) ?? ($archiveId ? 'archive_' . $archiveId : null))) }}"
+                            wireModel="dropdownValue" live width="150px" />
                     </div>
                     <!-- Favorite -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Избранное:</span>
                         <x-dropdown :options="[['value' => '1', 'text' => 'Да'], ['value' => '0', 'text' => 'Нет']]" selected="{{ $is_favorite ? '1' : '0' }}" wireModel="is_favorite"
-                            live width="80px" />
+                            live width="80px" data-dropdown-favorite />
                     </div>
                 </div>
             </div>
@@ -189,9 +190,9 @@
                         class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
                     </div>
                 </div>
-                <!-- Hidden input for Livewire content synchronization -->
-                <input type="hidden" id="note-view-content-input" wire:model.live.debounce.300ms="content">
             </div>
+            <!-- Hidden input for Livewire content synchronization -->
+            <input type="hidden" id="note-view-content-input" wire:model.live.debounce.300ms="content">
             <!-- Footer Info -->
             <div
                 class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
@@ -248,6 +249,11 @@
             });
             document.addEventListener('update-safe-id', (e) => {
                 Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id
+                });
+            });
+            document.addEventListener('update-archive-id', (e) => {
+                Livewire.dispatch('updateArchiveId', {
                     id: e.detail.id
                 });
             });

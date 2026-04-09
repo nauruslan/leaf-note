@@ -4,7 +4,7 @@
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 py-6">
         <div class="bg-white rounded-xl shadow-md p-6">
-            <form wire:submit.prevent="createFolder" class="space-y-8">
+            <form wire:submit.prevent="save" class="space-y-8">
                 <!-- Название папки -->
                 <div class="h-[70px]">
                     <label for="folder-title" class="block text-lg font-medium text-gray-700 mb-1.5">

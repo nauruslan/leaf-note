@@ -9,6 +9,7 @@ use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class EditNote extends Component
@@ -24,6 +25,8 @@ class EditNote extends Component
     public string $title = '';
     public ?int $folderId = null;
     public ?int $safeId = null;
+    public ?int $archiveId = null;
+    public ?string $dropdownValue = null;  // Для обработки строковых значений из dropdown
     public $content = '';
     public ?Note $note = null;
     public bool $isLoaded = false;
@@ -46,6 +49,7 @@ class EditNote extends Component
     protected $listeners = [
         'updateFolderId' => 'setFolderId',
         'updateSafeId' => 'setSafeId',
+        'updateArchiveId' => 'setArchiveId',
         'noteUpdated' => 'onNoteUpdated',
         'saveNote' => 'triggerSave',
         'editorContent' => 'setContent',
@@ -56,7 +60,8 @@ class EditNote extends Component
 
     public function mount(?int $noteId = null, ?int $folderId = null): void
     {
-        $this->noteId = $noteId ?? $folderId;
+        $this->noteId = $noteId;
+        $this->folderId = $folderId;
 
         if ($this->noteId) {
             $this->loadNote();
@@ -93,10 +98,20 @@ class EditNote extends Component
         $this->title = $note->title;
         $this->folderId = $note->folder_id;
         $this->safeId = $note->safe_id;
+        $this->archiveId = $note->archive_id;
         $this->is_favorite = (bool) $note->is_favorite;
-        $this->content = $note->payload; // Оригинальная JSON строка
+        $this->content = $note->payload;
         $this->originalImagePaths = $this->extractImagePathsFromPayload($note->payload);
         $this->isLoaded = true;
+
+        // Инициализируем dropdownValue в зависимости от того, где находится заметка
+        if ($this->safeId) {
+            $this->dropdownValue = 'safe_' . $this->safeId;
+        } elseif ($this->archiveId) {
+            $this->dropdownValue = 'archive_' . $this->archiveId;
+        } elseif ($this->folderId) {
+            $this->dropdownValue = (string) $this->folderId;
+        }
 
         $this->dispatch('noteLoaded',
             content: $this->content,
@@ -209,6 +224,24 @@ class EditNote extends Component
         $this->performSave();
     }
 
+    #[On('updateSafeId')]
+    public function setSafeId(int $id): void
+    {
+        $this->safeId = $id;
+        $this->folderId = null;
+        $this->archiveId = null;
+        $this->autoSave();
+    }
+
+    #[On('updateArchiveId')]
+    public function setArchiveId(int $id): void
+    {
+        $this->archiveId = $id;
+        $this->folderId = null;
+        $this->safeId = null;
+        $this->autoSave();
+    }
+
     public function updatedTitle(): void
     {
         $this->autoSave();
@@ -216,13 +249,35 @@ class EditNote extends Component
 
     public function updatedContent(): void
     {
-        // Нормализуем контент перед автосохранением
         $this->content = $this->normalizeContent($this->content);
         $this->autoSave();
     }
 
     public function updatedFolderId(): void
     {
+        // Этот метод теперь может не использоваться, если dropdown использует dropdownValue
+        // Но оставляем для обратной совместимости
+        $this->autoSave();
+    }
+
+    public function updatedDropdownValue(): void
+    {
+        // Обработка префиксов safe_ и archive_
+        if (is_string($this->dropdownValue)) {
+            if (str_starts_with($this->dropdownValue, 'safe_')) {
+                $this->safeId = (int) substr($this->dropdownValue, 5);
+                $this->folderId = null;
+                $this->archiveId = null;
+            } elseif (str_starts_with($this->dropdownValue, 'archive_')) {
+                $this->archiveId = (int) substr($this->dropdownValue, 8);
+                $this->folderId = null;
+                $this->safeId = null;
+            } elseif (is_numeric($this->dropdownValue)) {
+                $this->folderId = (int) $this->dropdownValue;
+                $this->safeId = null;
+                $this->archiveId = null;
+            }
+        }
         $this->autoSave();
     }
 
@@ -231,17 +286,15 @@ class EditNote extends Component
         $this->autoSave();
     }
 
+    #[On('triggerAutoSave')]
     public function autoSave(): void
     {
         if (!$this->noteId) {
             return;
         }
 
-        // Если выбранный folderId является сейфом, перемещаем его в safeId
-        if ($this->folderId && $this->isSafeSelected($this->folderId)) {
-            $this->safeId = $this->folderId;
-            $this->folderId = null;
-        }
+        // Логика обработки префиксов safe_ и archive_ теперь находится в updatedDropdownValue()
+        // Здесь оставляем только сохранение текущих значений
 
         try {
             $this->validateOnly('title');
@@ -394,11 +447,20 @@ class EditNote extends Component
             $note->safe_id = $this->safeId;
             $note->folder_id = null;
             $note->archive_id = null;
+        } elseif ($this->archiveId !== null) {
+            $note->archive_id = $this->archiveId;
+            $note->folder_id = null;
+            $note->safe_id = null;
         } else {
             $note->folder_id = null;
             $note->safe_id = null;
             $note->archive_id = null;
         }
+    }
+
+    private function updateFavorite(Note $note): void
+    {
+        $note->is_favorite = $this->is_favorite;
     }
 
     private function isSafeSelected(?int $folderId): bool
@@ -407,7 +469,16 @@ class EditNote extends Component
             return false;
         }
 
-        return collect($this->safes)->contains('value', $folderId);
+        return collect($this->safes)->contains('value', 'safe_' . $folderId);
+    }
+
+    private function isArchiveSelected(?int $folderId): bool
+    {
+        if ($folderId === null) {
+            return false;
+        }
+
+        return collect($this->archives)->contains('value', 'archive_' . $folderId);
     }
 
     public function saveWithLocation(): void

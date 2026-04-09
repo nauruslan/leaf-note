@@ -24,6 +24,7 @@ class CreateChecklistView extends Component
     public string $title = '';
     public ?int $folderId = null;
     public ?int $safeId = null;
+    public ?int $archiveId = null;
     public bool $is_favorite = false;
     public string $content = '';
     public bool $confirmingDeletion = false;
@@ -137,6 +138,18 @@ class CreateChecklistView extends Component
 
     public function updatedFolderId(): void
     {
+        // Обработка префиксов safe_ и archive_
+        if (is_string($this->folderId)) {
+            if (str_starts_with($this->folderId, 'safe_')) {
+                $this->safeId = (int) substr($this->folderId, 5);
+                $this->folderId = null;
+                $this->archiveId = null;
+            } elseif (str_starts_with($this->folderId, 'archive_')) {
+                $this->archiveId = (int) substr($this->folderId, 8);
+                $this->folderId = null;
+                $this->safeId = null;
+            }
+        }
         $this->autoSave();
     }
 
@@ -145,6 +158,16 @@ class CreateChecklistView extends Component
     {
         $this->safeId = $id;
         $this->folderId = null;
+        $this->archiveId = null;
+        $this->autoSave();
+    }
+
+    #[On('updateArchiveId')]
+    public function setArchiveId(int $id): void
+    {
+        $this->archiveId = $id;
+        $this->folderId = null;
+        $this->safeId = null;
         $this->autoSave();
     }
 
@@ -178,10 +201,16 @@ class CreateChecklistView extends Component
             $this->folderId = null;
         }
 
+        // Если выбранный folderId является архивом, перемещаем его в archiveId
+        if ($this->folderId && $this->isArchiveSelected($this->folderId)) {
+            $this->archiveId = $this->folderId;
+            $this->folderId = null;
+        }
+
         // Условия автосохранения:
-        // 1. Должна быть выбрана папка (folderId) ИЛИ сейф (safeId)
+        // 1. Должна быть выбрана папка (folderId) ИЛИ сейф (safeId) ИЛИ архив (archiveId)
         // 2. Title должен иметь длину хотя бы 1 символ
-        if (($this->folderId === null && $this->safeId === null) || trim($this->title) === '') {
+        if (($this->folderId === null && $this->safeId === null && $this->archiveId === null) || trim($this->title) === '') {
             return;
         }
 
@@ -296,6 +325,10 @@ class CreateChecklistView extends Component
             $note->safe_id = $this->safeId;
             $note->folder_id = null;
             $note->archive_id = null;
+        } elseif ($this->archiveId !== null) {
+            $note->archive_id = $this->archiveId;
+            $note->folder_id = null;
+            $note->safe_id = null;
         } else {
             $note->folder_id = null;
             $note->safe_id = null;
@@ -309,7 +342,18 @@ class CreateChecklistView extends Component
             return false;
         }
 
-        return Safe::where('user_id', Auth::id())->where('id', $selectedId)->exists();
+        // Проверяем с префиксом safe_
+        return collect($this->safes)->contains('value', 'safe_' . $selectedId);
+    }
+
+    private function isArchiveSelected(?int $selectedId): bool
+    {
+        if ($selectedId === null) {
+            return false;
+        }
+
+        // Проверяем с префиксом archive_
+        return collect($this->archives)->contains('value', 'archive_' . $selectedId);
     }
 
     public function back(): void

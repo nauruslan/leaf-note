@@ -216,6 +216,7 @@ class TrashView extends Component
 
         // Обновляем сайдбар
         $this->dispatch('refreshSidebar');
+        $this->closeEmptyTrashModal();
     }
 
     // Восстановить всё - заметки в архив, папки восстанавливаются вместе с заметками.
@@ -254,6 +255,7 @@ class TrashView extends Component
 
         // Обновляем сайдбар
         $this->dispatch('refreshSidebar');
+        $this->closeRestoreAllModal();
     }
 
     // Восстановить одну заметку.

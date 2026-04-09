@@ -28,8 +28,8 @@
         </div>
 
         <div class="flex justify-between border-t border-amber-400/50 pt-4 mt-auto">
-            <x-button-restore wire:click="restoreItem({{ $item->id }}, 'note')" />
-            <x-button-delete wire:click="deleteItem({{ $item->id }}, 'note')" />
+            <x-button-restore wire:click="restoreItem({{ $item->id }}, 'folder')" />
+            <x-button-delete wire:click="deleteItem({{ $item->id }}, 'folder')" />
         </div>
     </div>
 @else

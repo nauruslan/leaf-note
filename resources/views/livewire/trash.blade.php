@@ -57,28 +57,37 @@
             $hasResults = $hasFolders || $hasNotes;
             $isSearching = !empty($search);
         @endphp
-        @if ($hasResults)
-            @if ($showFolders)
-                @foreach ($this->trashedFolders as $folder)
-                    <x-card :item="$folder" :section="$section" type="folder" />
-                @endforeach
-            @endif
+        @php
+            $itemsToShow = collect();
+            if ($showFolders) {
+                $itemsToShow = $itemsToShow->merge(
+                    $this->trashedFolders->map(fn($folder) => (object) ['type' => 'folder', 'data' => $folder]),
+                );
+            }
+            if ($showNotes) {
+                $itemsToShow = $itemsToShow->merge(
+                    $this->trashedNotes->map(fn($note) => (object) ['type' => 'note', 'data' => $note]),
+                );
+            }
+        @endphp
 
-            @if ($showNotes)
-                @foreach ($this->trashedNotes as $note)
-                    <x-card :item="$note" :color="$note->icon_color_class" :section="$section" />
-                @endforeach
+        @forelse($itemsToShow as $item)
+            @if ($item->type === 'folder')
+                <x-card :item="$item->data" :section="$section" type="folder" />
+            @else
+                <x-card :item="$item->data" :color="$item->data->icon_color_class" :section="$section" />
             @endif
-        @endif
-        {{-- Пустое состояние --}}
-        @if ($this->totalCount === 0)
-            <x-no-data icon="trash" title="Корзина пуста" description="Удалённые файлы будут отображаться здесь" />
-        @endif
-        {{-- Нет результатов поиска --}}
-        @if (!$hasResults && $this->totalCount > 0 && $isSearching)
-            <x-no-data icon="search-x" title="Совпадений не найдено"
-                description="Попробуйте изменить поисковый запрос" />
-        @endif
+        @empty
+            <div class="col-span-full">
+                @if ($this->totalCount === 0)
+                    <x-no-data icon="trash" title="Корзина пуста"
+                        description="Удалённые файлы будут отображаться здесь" />
+                @elseif (!$hasResults && $this->totalCount > 0 && $isSearching)
+                    <x-no-data icon="search-x" title="Совпадений не найдено"
+                        description="Попробуйте изменить поисковый запрос" />
+                @endif
+            </div>
+        @endforelse
     </div>
     @if ($hasResults && $this->trashedNotes->hasPages())
         <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6">

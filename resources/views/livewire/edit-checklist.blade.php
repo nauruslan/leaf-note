@@ -10,14 +10,14 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" selected="{{ $folderId ?? $safeId }}"
-                            wireModel="folderId" live width="150px" />
+                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" :archives="$this->archives->toArray()" selected="{{ $folderId ?? ($safeId ? 'safe_' . $safeId : null) ?? ($archiveId ? 'archive_' . $archiveId : null) }}"
+                            wireModel="dropdownValue" live width="150px" />
                     </div>
                     <!-- Favorite -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Избранное:</span>
                         <x-dropdown :options="[['value' => '1', 'text' => 'Да'], ['value' => '0', 'text' => 'Нет']]" selected="{{ $is_favorite ? '1' : '0' }}" wireModel="is_favorite"
-                            live width="80px" />
+                            live width="80px" data-dropdown-favorite />
                     </div>
                 </div>
             </div>
@@ -32,8 +32,6 @@
                 <input type="text" wire:model.live.debounce.300ms="title" placeholder="Название списка"
                     class="p-0 w-full text-2xl font-bold text-gray-900 placeholder-gray-400 border-none focus:outline-none focus:ring-0 bg-transparent">
             </div>
-
-
             <!-- Progress -->
             <div wire:ignore>
                 <div id="checklist-progress-bar" class="px-6 py-4 border-b border-gray-200 flex justify-center">
@@ -83,13 +81,18 @@
 
         <!-- Delete Confirmation Modal -->
         <x-modal-delete :confirmingDeletion="$confirmingDeletion" title="Удалить список?" description="Список будет перемещен в корзину"
-            closeMethod="toggleDeleteModal" deleteMethod="delete" />
+            closeMethod="closeModal" deleteMethod="confirmDelete" />
     </div>
 
     @script
         <script>
             document.addEventListener('update-safe-id', (e) => {
                 Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id
+                });
+            });
+            document.addEventListener('update-archive-id', (e) => {
+                Livewire.dispatch('updateArchiveId', {
                     id: e.detail.id
                 });
             });
