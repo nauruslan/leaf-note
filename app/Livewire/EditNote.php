@@ -26,7 +26,7 @@ class EditNote extends Component
     public ?int $folderId = null;
     public ?int $safeId = null;
     public ?int $archiveId = null;
-    public ?string $dropdownValue = null;  // Для обработки строковых значений из dropdown
+    public ?string $dropdownValue = null;
     public $content = '';
     public ?Note $note = null;
     public bool $isLoaded = false;
@@ -292,9 +292,6 @@ class EditNote extends Component
         if (!$this->noteId) {
             return;
         }
-
-        // Логика обработки префиксов safe_ и archive_ теперь находится в updatedDropdownValue()
-        // Здесь оставляем только сохранение текущих значений
 
         try {
             $this->validateOnly('title');

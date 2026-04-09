@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
-use App\Models\Safe;
 use App\Services\StateManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;

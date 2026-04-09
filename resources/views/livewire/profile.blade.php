@@ -134,121 +134,128 @@
                 </div>
                 <!-- Разделитель -->
                 <div class="border-t border-gray-200"></div>
-                <!-- Секция: Смена пароля -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <i data-lucide="key" class="w-5 h-5 text-indigo-600"></i>
-                        Смена пароля
-                    </h3>
-                    <!-- Текущий пароль -->
-                    <div class="mb-4">
-                        <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                            Текущий пароль
-                        </label>
-                        <input type="password" id="currentPassword" wire:model="currentPassword"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                            placeholder="Введите текущий пароль">
-                        @error('currentPassword')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <!-- Новый пароль -->
-                    <div class="mb-4">
-                        <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                            Новый пароль
-                        </label>
-                        <input type="password" id="newPassword" wire:model="newPassword"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                            placeholder="Минимум 8 символов">
-                        @error('newPassword')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <!-- Подтверждение пароля -->
-                    <div class="mb-4">
-                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                            Подтверждение пароля
-                        </label>
-                        <input type="password" id="confirmPassword" wire:model="confirmPassword"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                            placeholder="Повторите новый пароль">
-                        @error('confirmPassword')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-                <!-- Разделитель -->
-                <div class="border-t border-gray-200"></div>
-                <!-- Секция: Пароль сейфа -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <i data-lucide="lock" class="w-5 h-5 text-indigo-600"></i>
-                        Пароль сейфа
-                    </h3>
-                    @if ($hasSafePassword)
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
-                                <p class="text-sm text-green-800">Пароль сейфа установлен</p>
-                            </div>
-                        </div>
-                        <!-- Текущий пароль сейфа -->
+                <!-- Flex контейнер для паролей -->
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <!-- Секция: Смена пароля -->
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="key" class="w-5 h-5 text-indigo-600"></i>
+                            Сменить пароль профиля
+                        </h3>
+                        <!-- Текущий пароль -->
                         <div class="mb-4">
-                            <label for="safeCurrentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                Текущий пароль сейфа
+                            <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Текущий пароль
                             </label>
-                            <input type="password" id="safeCurrentPassword" wire:model="safeCurrentPassword"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                                placeholder="Введите текущий пароль сейфа">
-                            @error('safeCurrentPassword')
+                            <input type="password" id="currentPassword" wire:model="currentPassword"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                placeholder="Введите текущий пароль">
+                            @error('currentPassword')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                    @else
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="info" class="w-5 h-5 text-gray-600"></i>
-                                <p class="text-sm text-gray-600">Установите пароль для защиты ваших заметок в сейфе</p>
+                        <!-- Новый пароль -->
+                        <div class="mb-4">
+                            <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Новый пароль
+                            </label>
+                            <input type="password" id="newPassword" wire:model="newPassword"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                placeholder="Минимум 8 символов">
+                            @error('newPassword')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <!-- Подтверждение пароля -->
+                        <div class="mb-4">
+                            <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Подтверждение пароля
+                            </label>
+                            <input type="password" id="confirmPassword" wire:model="confirmPassword"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                placeholder="Повторите новый пароль">
+                            @error('confirmPassword')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                    <!-- Секция: Пароль сейфа -->
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="lock" class="w-5 h-5 text-indigo-600"></i>
+                            {{ $hasSafePassword ? 'Пароль сейфа установлен' : 'Пароль сейфа' }}
+                        </h3>
+                        @if ($hasSafePassword)
+                            <!-- Текущий пароль сейфа -->
+                            <div class="mb-4">
+                                <label for="safeCurrentPassword"
+                                    class="block text-sm font-medium text-gray-700 mb-1.5">
+                                    Текущий пароль сейфа
+                                </label>
+                                <input type="password" id="safeCurrentPassword" wire:model="safeCurrentPassword"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                    placeholder="Введите текущий пароль сейфа">
+                                @error('safeCurrentPassword')
+                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
+                        @else
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                    Информация
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                        <i data-lucide="info" class="w-5 h-5 text-gray-500"></i>
+                                    </div>
+                                    <input type="text" disabled readonly
+                                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-600 cursor-not-allowed pr-10 h-11 transition-shadow"
+                                        value="Установите пароль для защиты ваших заметок в сейфе">
+                                </div>
+                            </div>
+                        @endif
+                        <!-- Новый пароль сейфа -->
+                        <div class="mb-4">
+                            <label for="safePassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                {{ $hasSafePassword ? 'Новый пароль сейфа' : 'Создать пароль сейфа' }}
+                            </label>
+                            <input type="password" id="safePassword" wire:model="safePassword"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                placeholder="Минимум 4 символа">
+                            @error('safePassword')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
-                    @endif
-                    <!-- Новый пароль сейфа -->
-                    <div class="mb-4">
-                        <label for="safePassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                            {{ $hasSafePassword ? 'Новый пароль сейфа' : 'Создать пароль сейфа' }}
-                        </label>
-                        <input type="password" id="safePassword" wire:model="safePassword"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                            placeholder="Минимум 4 символа">
-                        @error('safePassword')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <!-- Подтверждение пароля сейфа -->
-                    <div class="mb-4">
-                        <label for="safeConfirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                            Подтверждение пароля сейфа
-                        </label>
-                        <input type="password" id="safeConfirmPassword" wire:model="safeConfirmPassword"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                            placeholder="Повторите пароль">
-                        @error('safeConfirmPassword')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    @if ($hasSafePassword)
-                        <div class="mt-4">
-                            <x-button-delete wire:click.prevent="removeSafePassword" wire:loading.attr="disabled" />
+                        <!-- Подтверждение пароля сейфа -->
+                        <div class="mb-4">
+                            <label for="safeConfirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                {{ $hasSafePassword ? 'Подтверждение нового пароля' : 'Подтверждение пароля сейфа' }}
+                            </label>
+                            <input type="password" id="safeConfirmPassword" wire:model="safeConfirmPassword"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                placeholder="Повторите пароль">
+                            @error('safeConfirmPassword')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
-                    @endif
+                    </div>
                 </div>
                 <!-- Разделитель -->
                 <div class="border-t border-gray-200"></div>
                 <!-- Кнопки действий -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
+                    @if ($hasSafePassword)
+                        <x-button-reset-password-safe wire:click.prevent="confirmResetSafePassword"
+                            wire:loading.attr="disabled" />
+                    @endif
                     <x-button-save wire:click.prevent="saveProfile" wire:loading.attr="disabled" />
                 </div>
             </form>
         </div>
     </div>
+    <!-- Модальное окно подтверждения сброса пароля сейфа -->
+    <x-modal-confirm :show="$confirmingResetSafePassword" title="Сбросить пароль сейфа?"
+        description="Вход в сейф будет осуществляться без необходимости ввода пароля." confirmText="OK"
+        cancelText="Отмена" confirmMethod="removeSafePassword" cancelMethod="closeResetSafePasswordModal"
+        confirmColor="indigo" />
 </div>

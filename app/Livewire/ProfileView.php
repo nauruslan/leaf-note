@@ -43,6 +43,9 @@ class ProfileView extends Component
     // Состояние
     public bool $hasSafePassword = false;
 
+    // Состояние модального окна сброса пароля сейфа
+    public bool $confirmingResetSafePassword = false;
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -230,6 +233,8 @@ class ProfileView extends Component
     // Удалить пароль сейфа
     public function removeSafePassword(): void
     {
+        $this->closeResetSafePasswordModal();
+
         $user = Auth::user();
 
         $safe = Safe::where('user_id', $user->id)->first();
@@ -251,6 +256,18 @@ class ProfileView extends Component
     {
         $this->mount();
         $this->dispatch('notify', ['message' => 'Изменения отменены', 'type' => 'info']);
+    }
+
+    // Открыть модальное окно подтверждения сброса пароля сейфа
+    public function confirmResetSafePassword(): void
+    {
+        $this->confirmingResetSafePassword = true;
+    }
+
+    // Закрыть модальное окно подтверждения сброса пароля сейфа
+    public function closeResetSafePasswordModal(): void
+    {
+        $this->confirmingResetSafePassword = false;
     }
 
     public function render()
