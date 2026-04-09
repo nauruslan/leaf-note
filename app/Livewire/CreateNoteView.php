@@ -17,8 +17,8 @@ class CreateNoteView extends Component
     use WithFolderSafeSelection;
     use WithFavorite;
 
-    public $heading='Редактирование списка задач';
-    public $subheading='Создайте новую заметку';
+    public $heading='Создать заметку';
+    public $section='create-note';
 
     private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
 

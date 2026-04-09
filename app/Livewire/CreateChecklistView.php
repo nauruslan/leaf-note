@@ -18,8 +18,8 @@ class CreateChecklistView extends Component
 
     private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
 
-    public $heading='Создать список';
-    public $subheading='Создайте новый список задач';
+    public $heading = 'Создать список';
+    public $section = 'create-checklist';
 
     public string $title = '';
     public ?int $folderId = null;

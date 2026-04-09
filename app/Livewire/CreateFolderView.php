@@ -2,6 +2,7 @@
 namespace App\Livewire;
 
 use App\Models\Folder;
+use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -9,12 +10,11 @@ use Livewire\Component;
 class CreateFolderView extends Component
 {
     public $heading='Создать папку';
-    public $subheading='Создайте новую папку для организации заметок';
+    public $section='create-folder';
 
     public string $title = '';
     public string $color = 'white';
     public string $icon='folder';
-
 
     public function getColorsProperty(): array
     {
@@ -65,6 +65,15 @@ class CreateFolderView extends Component
             report($e);
             $this->dispatch('notify', ['message' => 'Ошибка при создании папки: ' . $e->getMessage(), 'type' => 'error']);
         }
+    }
+
+    public function back(): void
+    {
+        $previousSection = StateManager::get('previous_section', 'dashboard');
+        $previousFolderId = StateManager::get('previous_folderId');
+        $previousNoteId = StateManager::get('previous_noteId');
+
+        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render()

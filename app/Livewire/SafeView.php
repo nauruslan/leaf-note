@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithNoteOpening;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
 use App\Models\Safe;
+use App\Services\StateManager;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -22,8 +23,9 @@ class SafeView extends Component
     use WithNoteCreating;
     use WithNoteOpening;
 
-    public $heading='Сейф';
-    public $subheading='Защищённые заметки';
+    public $heading = 'Сейф';
+    public $subheading = 'Защищённые заметки';
+    public $section = 'safe';
 
     public bool $confirmingPassword = false;
     public string $password = '';
@@ -46,6 +48,16 @@ class SafeView extends Component
             $this->showUnprotectedModal = true;
             $this->isUnlocked = true;
             $this->confirmingPassword = false;
+            return;
+        }
+
+        // Проверяем, разблокирован ли сейф через сессию
+        $safeUnlocked = StateManager::get('safe_unlocked', false);
+        if ($safeUnlocked) {
+            // Сейф уже разблокирован (пользователь ввёл пароль ранее и не покидал safe-контекст)
+            $this->isUnlocked = true;
+            $this->confirmingPassword = false;
+            $this->errorMessage = null;
             return;
         }
 
@@ -91,6 +103,7 @@ class SafeView extends Component
 
         if ($this->safe->verifyPassword($this->password)) {
             $this->safe->recordSuccessfulAccess();
+            StateManager::set('safe_unlocked', true);
             $this->isUnlocked = true;
             $this->confirmingPassword = false;
             $this->password = '';

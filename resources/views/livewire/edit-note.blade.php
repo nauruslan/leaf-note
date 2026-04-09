@@ -1,23 +1,16 @@
 <div>
     <!-- Header Section -->
-    <x-header :heading="$heading" :subheading="$title" />
+    <x-header :heading="$title" :section='$section' />
     <!-- ControlPanel Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="bg-white rounded-xl shadow-md p-5 border border-gray-100">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                <!-- Left Block: Main Settings -->
-                <div class="flex flex-wrap items-center gap-3 justify-end">
-                    <!-- Back Button -->
-                    <x-button-back wire:click.prevent="back" wire:loading.attr="disabled" />
-                    <!-- Delete Button -->
-                    <x-button-delete wire:click.prevent="confirmDeletion" wire:loading.attr="disabled" />
-                </div>
-                <!-- Right Block: Actions -->
+                <!-- Actions Block: Now starts from the left -->
                 <div class="flex flex-wrap items-center gap-3">
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes" selected="{{ $folderId ?? $safeId }}"
+                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" selected="{{ $folderId ?? $safeId }}"
                             wireModel="folderId" live width="150px" />
                     </div>
                     <!-- Favorite -->

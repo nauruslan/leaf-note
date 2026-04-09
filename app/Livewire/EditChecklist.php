@@ -18,7 +18,7 @@ class EditChecklist extends Component
     use WithFolderSafeSelection;
     use WithFavorite;
 
-    public $heading='Создать заметку';
+    public $section='edit-checklist';
 
     private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
 

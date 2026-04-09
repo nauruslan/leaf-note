@@ -1,6 +1,6 @@
 <div>
     <!-- Header Section -->
-    <x-header :heading="$heading" :subheading="$subheading" />
+    <x-header :heading="$heading" :section="$section" />
 
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 py-6">

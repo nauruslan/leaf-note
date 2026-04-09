@@ -16,7 +16,7 @@ class EditNote extends Component
     use WithFolderSafeSelection;
     use WithFavorite;
 
-    public $heading='Редактирование заметки';
+    public $section='edit-note';
 
     private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
 
@@ -456,6 +456,13 @@ class EditNote extends Component
         $previousSection = StateManager::get('previous_section', 'dashboard');
         $previousFolderId = StateManager::get('previous_folderId');
         $previousNoteId = StateManager::get('previous_noteId');
+
+        // Если предыдущая секция - сейф, возвращаемся в сейф
+        if ($previousSection === 'safe') {
+            $previousSection = 'safe';
+            $previousFolderId = null;
+            $previousNoteId = null;
+        }
 
         $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
