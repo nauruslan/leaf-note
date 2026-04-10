@@ -42,12 +42,11 @@ class ArchiveView extends Component
         $query = $this->applySorting($query);
 
         // Применяем поиск
-        $query = $this->applySearch($query, ['title', 'payload']);
+        $query = $this->applySearch($query, ['title', 'search_content']);
 
         // Пагинация
         return $query->paginate($this->perPage, ['*'], 'page', $this->page);
     }
-
 
     public function render()
     {

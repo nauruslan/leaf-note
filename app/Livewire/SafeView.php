@@ -150,7 +150,7 @@ class SafeView extends Component
 
         $query = $this->applySorting($query);
 
-        $query = $this->applySearch($query, ['title', 'payload']);
+        $query = $this->applySearch($query, ['title', 'search_content']);
 
         return $query->paginate($this->perPage, ['*'], 'page', $this->page);
     }

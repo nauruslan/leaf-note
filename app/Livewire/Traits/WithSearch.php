@@ -5,10 +5,10 @@ namespace App\Livewire\Traits;
 /**
  * Трейт для поиска по заметкам.
  * Используется совместно с WithServerPagination.
- * 
+ *
  * Публичные свойства:
  * - search: string - поисковый запрос
- * 
+ *
  * Требует наличия WithServerPagination трейта.
  */
 trait WithSearch
@@ -17,13 +17,13 @@ trait WithSearch
 
     /**
      * Применить поисковый запрос к builder-у.
-     * 
+     *
      * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param array $columns - колонки для поиска (по умолчанию ['title', 'payload'])
+     * @param array $columns - колонки для поиска (по умолчанию ['title', 'search_content'])
      * @param int $minLength - минимальная длина для поиска
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    protected function applySearch($query, array $columns = ['title', 'payload'], int $minLength = 2)
+    protected function applySearch($query, array $columns = ['title', 'search_content'], int $minLength = 1)
     {
         if (strlen(trim($this->search)) < $minLength) {
             return $query;
@@ -44,9 +44,7 @@ trait WithSearch
         });
     }
 
-    /**
-     * Сбросить поиск
-     */
+    // Сбросить поиск
     public function resetSearch(): void
     {
         $this->search = '';

@@ -146,7 +146,7 @@ class TrashView extends Component
             ->with('folder');
 
         // Применяем поиск
-        $query = $this->applySearch($query, ['title', 'payload']);
+        $query = $this->applySearch($query, ['title', 'search_content']);
 
         // Применяем сортировку
         $query = $this->applySort($query, $sortMap, $sortDirections);

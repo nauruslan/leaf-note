@@ -23,6 +23,7 @@ class Note extends Model
         'title',
         'type',
         'payload',
+        'search_content',
         'is_favorite',
     ];
 
@@ -34,6 +35,13 @@ class Note extends Model
 
     protected static function booted(): void
     {
+        // Автоматическое заполнение search_content из payload при создании и обновлении
+        static::saving(function (Note $note) {
+            if ($note->isDirty('payload')) {
+                $note->search_content = $note->extractTextFromPayload();
+            }
+        });
+
         static::updating(function (Note $note) {
             // Move to trash
             if (
@@ -248,7 +256,7 @@ class Note extends Model
         return \Illuminate\Support\Str::limit($text, 150);
     }
 
-    private function extractTextFromPayload(): string
+    public function extractTextFromPayload(): string
     {
         if (is_string($this->payload)) {
             $data = json_decode($this->payload, true);
@@ -357,8 +365,6 @@ class Note extends Model
             'default' => 'white',
         };
     }
-
-
 
     public function getTypeIconAttribute(): string
     {
