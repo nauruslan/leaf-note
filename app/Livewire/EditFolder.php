@@ -131,6 +131,7 @@ class EditFolder extends Component
     public function closeModal()
     {
         $this->confirmingDeletion = false;
+        $this->dispatch('modalClosed');
     }
 
     public function openDeleteModal()

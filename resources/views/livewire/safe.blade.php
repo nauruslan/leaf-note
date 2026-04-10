@@ -1,8 +1,8 @@
 <div>
     {{-- Модальное окно предупреждения о незащищённом сейфе --}}
-    <x-modal-info :show="$showUnprotectedModal" title="Сейф не защищён"
-        description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль." okText="Ок"
-        okMethod="closeModal" />
+    <x-modal type="info" :show="$showUnprotectedModal" title="Сейф не защищён"
+        description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль."
+        icon="lock" confirmMethod="closeModal" />
     @if ($isUnlocked)
         <!-- Header Section -->
         <x-header :heading="$heading" :subheading="$subheading" showSearch />

@@ -68,7 +68,7 @@
         </div>
     @endif
     <!-- Delete Confirmation Modal -->
-    <x-modal-delete title="Удалить папку?"
-        description="Папка будет перемещена в корзину. Вы сможете восстановить её позже." :confirmingDeletion="$confirmingDeletion"
-        closeMethod="closeModal" deleteMethod="deleteFolder" />
+    <x-modal type="delete" title="Удалить папку?"
+        description="Папка будет перемещена в корзину. Вы сможете восстановить её позже." :show="$confirmingDeletion"
+        confirmMethod="deleteFolder" cancelMethod="closeModal" />
 </div>

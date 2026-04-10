@@ -68,6 +68,7 @@ class TrashView extends Component
     public function closeRestoreAllModal(): void
     {
         $this->confirmingRestoreAll = false;
+        $this->dispatch('modalClosed');
     }
 
     public function confirmEmptyTrash(): void
@@ -78,6 +79,7 @@ class TrashView extends Component
     public function closeEmptyTrashModal(): void
     {
         $this->confirmingEmptyTrash = false;
+        $this->dispatch('modalClosed');
     }
 
     public function closeModal(): void
@@ -89,6 +91,7 @@ class TrashView extends Component
         $this->pendingRestoreId = null;
         $this->pendingRestoreType = null;
         $this->restoreDescription = '';
+        $this->dispatch('modalClosed');
     }
 
     public function confirmRestore(): void

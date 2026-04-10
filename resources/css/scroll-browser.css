@@ -19,3 +19,8 @@ html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover {
     background-color: rgba(129, 140, 248, 0.7);
 }
+
+/* Блокировка скролла при открытом модальном окне */
+html.modal-open {
+    overflow: hidden !important;
+}

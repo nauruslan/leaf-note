@@ -132,6 +132,7 @@ class SafeView extends Component
     public function closeModal(): void
     {
         $this->showUnprotectedModal = false;
+        $this->dispatch('modalClosed');
     }
 
     #[Computed]

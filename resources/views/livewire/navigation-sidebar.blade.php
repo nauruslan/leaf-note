@@ -102,13 +102,18 @@
                     </li>
 
                     <li>
-                        <x-sidebar-item icon="log-out" label="Выйти" wireClick="logout" :active="$section === 'logout'"
+                        <x-sidebar-item icon="log-out" label="Выйти" wireClick="confirmLogout" :active="$section === 'logout'"
                             :isExpanded="$isExpanded" />
                     </li>
                 </ul>
             </li>
         </ul>
     </nav>
+
+    <!-- Модальное окно подтверждения выхода -->
+    <x-modal type="confirm" :show="$confirmingLogout" title="Вы хотите выйти из аккаунта?"
+        description="Требуется подтверждение" icon="log-out" confirmText="Выйти" confirmMethod="logout"
+        cancelMethod="closeLogoutModal" />
 </aside>
 @script
     <script>

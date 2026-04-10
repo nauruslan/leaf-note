@@ -95,18 +95,18 @@
         </div>
     @endif
     <!-- Модальное окно подтверждения восстановления одного элемента -->
-    <x-modal-confirm :show="$confirmingRestore" title="Восстановить?" :description="$restoreDescription" confirmText="Восстановить"
-        cancelText="Отмена" confirmMethod="confirmRestore" cancelMethod="closeModal" confirmColor="indigo" />
+    <x-modal type="restore" :show="$confirmingRestore" title="Восстановить?" :description="$restoreDescription" confirmMethod="confirmRestore"
+        cancelMethod="closeModal" />
     <!-- Модальное окно подтверждения удаления одного элемента -->
-    <x-modal-confirm :show="$confirmingDeletion" title="Удалить навсегда?"
-        description="Это действие необратимо. Элемент будет удален безвозвратно." confirmText="Удалить"
-        cancelText="Отмена" confirmMethod="confirmDelete" cancelMethod="closeModal" confirmColor="red" />
+    <x-modal type="delete" :show="$confirmingDeletion" title="Удалить навсегда?"
+        description="Это действие необратимо. Элемент будет удален безвозвратно." confirmMethod="confirmDelete"
+        cancelMethod="closeModal" />
     <!-- Модальное окно подтверждения восстановления всех элементов -->
-    <x-modal-confirm :show="$confirmingRestoreAll" title="Восстановить всё?"
-        description="Все удалённые элементы будут восстановлены" confirmText="Восстановить" cancelText="Отмена"
-        confirmMethod="restoreAll" cancelMethod="closeRestoreAllModal" confirmColor="indigo" />
+    <x-modal type="restore" :show="$confirmingRestoreAll" title="Восстановить всё?"
+        description="Все удалённые элементы будут восстановлены" confirmMethod="restoreAll"
+        cancelMethod="closeRestoreAllModal" />
     <!-- Модальное окно подтверждения очистки корзины -->
-    <x-modal-confirm :show="$confirmingEmptyTrash" title="Очистить корзину?"
-        description="Все элементы в корзине будут удалены безвозвратно. Это действие необратимо." confirmText="Очистить"
-        cancelText="Отмена" confirmMethod="emptyTrash" cancelMethod="closeEmptyTrashModal" confirmColor="red" />
+    <x-modal type="delete" :show="$confirmingEmptyTrash" title="Очистить корзину?"
+        description="Все элементы в корзине будут удалены безвозвратно. Это действие необратимо."
+        confirmMethod="emptyTrash" cancelMethod="closeEmptyTrashModal" />
 </div>

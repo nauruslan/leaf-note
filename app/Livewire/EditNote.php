@@ -197,6 +197,7 @@ class EditNote extends Component
     public function closeModal(): void
     {
         $this->confirmingDeletion = false;
+        $this->dispatch('modalClosed');
     }
 
     public function openDeleteModal(): void

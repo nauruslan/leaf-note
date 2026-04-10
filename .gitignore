@@ -8,6 +8,7 @@ Thumbs.db
 ### IDE ###
 .idea/
 .continue/
+.qwen/
 .roo/
 .nova/
 .fleet/

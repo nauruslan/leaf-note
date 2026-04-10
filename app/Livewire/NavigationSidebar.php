@@ -17,6 +17,7 @@ class NavigationSidebar extends Component
     public string $section = 'dashboard';
     public ?int $folderId = null;
     public bool $isExpanded = false;
+    public bool $confirmingLogout = false;
 
 
     protected $listeners = [
@@ -166,8 +167,20 @@ class NavigationSidebar extends Component
         $this->isExpanded = false;
     }
 
+    public function confirmLogout(): void
+    {
+        $this->confirmingLogout = true;
+    }
+
+    public function closeLogoutModal(): void
+    {
+        $this->confirmingLogout = false;
+        $this->dispatch('modalClosed');
+    }
+
     public function logout()
     {
+        $this->closeLogoutModal();
         $this->js("localStorage.removeItem('sidebar_scroll')");
 
         app(Logout::class)();

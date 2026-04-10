@@ -238,8 +238,8 @@
             </div>
         </div>
         <!-- Delete Confirmation Modal -->
-        <x-modal-delete :confirmingDeletion="$confirmingDeletion" title="Удалить заметку?" description="Заметка будет перемещена в корзину"
-            closeMethod="closeModal" deleteMethod="confirmDelete" />
+        <x-modal type="delete" :show="$confirmingDeletion" title="Удалить заметку?" description="Заметка будет перемещена в корзину"
+            confirmMethod="confirmDelete" cancelMethod="closeModal" />
     </div>
 
     @script

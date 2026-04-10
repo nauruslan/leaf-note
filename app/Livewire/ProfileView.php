@@ -268,6 +268,7 @@ class ProfileView extends Component
     public function closeResetSafePasswordModal(): void
     {
         $this->confirmingResetSafePassword = false;
+        $this->dispatch('modalClosed');
     }
 
     public function render()

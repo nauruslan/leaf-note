@@ -254,8 +254,7 @@
         </div>
     </div>
     <!-- Модальное окно подтверждения сброса пароля сейфа -->
-    <x-modal-confirm :show="$confirmingResetSafePassword" title="Сбросить пароль сейфа?"
-        description="Вход в сейф будет осуществляться без необходимости ввода пароля." confirmText="OK"
-        cancelText="Отмена" confirmMethod="removeSafePassword" cancelMethod="closeResetSafePasswordModal"
-        confirmColor="indigo" />
+    <x-modal type="confirm" :show="$confirmingResetSafePassword" title="Сбросить пароль сейфа?"
+        description="Вход в сейф будет осуществляться без необходимости ввода пароля." icon="lock"
+        confirmText="Сбросить" confirmMethod="removeSafePassword" cancelMethod="closeResetSafePasswordModal" />
 </div>

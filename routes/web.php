@@ -9,11 +9,18 @@ Route::get('/clear-session', function() {
     return redirect()->route('login');
 });
 
+// Главная страница (требует аутентификации и верификации)
 Route::view('/', 'layouts.app')->middleware(['auth', 'verified'])->name('app');
 
-Route::post('/notes/upload-image', [NoteImageController::class, 'upload'])->name('notes.upload-image');
+// Загрузка изображения
+Route::post('/notes/upload-image', [NoteImageController::class, 'upload'])
+    ->name('notes.upload-image')
+    ->middleware('throttle:6,1'); // Дополнительно: защита от спама (опционально)
 
-Route::delete('/notes/delete-image', [NoteImageController::class, 'delete'])->name('notes.delete-image');
+// Удаление изображения
+Route::delete('/notes/delete-image', [NoteImageController::class, 'delete'])
+    ->name('notes.delete-image')
+    ->middleware('throttle:6,1'); // Дополнительно: защита от спама (опционально)
 
-
+// Подключение маршрутов из auth.php
 require __DIR__.'/auth.php';
