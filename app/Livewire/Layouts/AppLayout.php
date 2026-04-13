@@ -31,8 +31,7 @@ class AppLayout extends Component
         StateManager::set('previous_folderId', $this->folderId);
         StateManager::set('previous_noteId', $this->noteId);
 
-        // Если покидаем контекст сейфа (переход из safe-секции в не-safe-секцию),
-        // сбрасываем флаг разблокировки, чтобы требовать пароль при следующем входе в сейф.
+        // Если покидаем контекст сейфа (переход из safe-секции в другую секцию),
         // Safe-контекст: safe, edit-note, edit-checklist, create-note, create-checklist
         $safeContextSections = ['safe', 'edit-note', 'edit-checklist', 'create-note', 'create-checklist'];
         $leavingSafeContext = in_array($this->section, $safeContextSections) && !in_array($section, $safeContextSections);

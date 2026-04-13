@@ -18,7 +18,7 @@
             <!-- Основное меню -->
             <li>
                 <h4
-                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
+                    class="sidebar-section-title px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden transition-all duration-200 {{ $isExpanded ? 'py-2 max-h-10' : 'py-0 max-h-0 group-hover:py-2 group-hover:max-h-10' }}">
                     Основное меню</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
@@ -44,13 +44,11 @@
                 </ul>
             </li>
             <!-- Разделитель -->
-            <li
-                class="my-2 mx-4 h-px bg-gray-200 opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
-            </li>
+            <li class="my-2 mx-4 h-px bg-gray-200"></li>
             <!-- Действия -->
             <li>
                 <h4
-                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
+                    class="sidebar-section-title px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden transition-all duration-200 {{ $isExpanded ? 'py-2 max-h-10' : 'py-0 max-h-0 group-hover:py-2 group-hover:max-h-10' }}">
                     Действия</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
@@ -68,13 +66,11 @@
                 </ul>
             </li>
             <!-- Разделитель -->
-            <li
-                class="my-2 mx-4 h-px bg-gray-200 opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
-            </li>
+            <li class="my-2 mx-4 h-px bg-gray-200"></li>
             <!-- Папки -->
             <li>
                 <h4
-                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
+                    class="sidebar-section-title px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden transition-all duration-200 {{ $isExpanded ? 'py-2 max-h-10' : 'py-0 max-h-0 group-hover:py-2 group-hover:max-h-10' }}">
                     Папки</h4>
                 <ul class="mt-1 space-y-1">
                     @foreach ($this->folders as $folder)
@@ -87,13 +83,11 @@
                 </ul>
             </li>
             <!-- Разделитель -->
-            <li
-                class="my-2 mx-4 h-px bg-gray-200 opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
-            </li>
+            <li class="my-2 mx-4 h-px bg-gray-200"></li>
             <!-- Аккаунт -->
             <li>
                 <h4
-                    class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
+                    class="sidebar-section-title px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden transition-all duration-200 {{ $isExpanded ? 'py-2 max-h-10' : 'py-0 max-h-0 group-hover:py-2 group-hover:max-h-10' }}">
                     Аккаунт</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
@@ -201,6 +195,12 @@
                     el.classList.remove('opacity-100');
                     el.classList.add('opacity-0');
                 });
+
+                // Сворачиваем заголовки секций
+                currentSidebar.querySelectorAll('.sidebar-section-title').forEach(el => {
+                    el.classList.remove('py-2', 'max-h-10');
+                    el.classList.add('py-0', 'max-h-0');
+                });
             }
         }
 
@@ -221,6 +221,12 @@
                 currentSidebar.querySelectorAll('.opacity-0').forEach(el => {
                     el.classList.remove('opacity-0');
                     el.classList.add('opacity-100');
+                });
+
+                // Разворачиваем заголовки секций
+                currentSidebar.querySelectorAll('.sidebar-section-title').forEach(el => {
+                    el.classList.remove('py-0', 'max-h-0');
+                    el.classList.add('py-2', 'max-h-10');
                 });
             }
         }

@@ -44,7 +44,7 @@ class CreateNoteView extends Component
     {
         $this->content = self::EMPTY_NOTE_STRUCTURE;
 
-        // Если заметка уже создана (например, после автосохранения), загружаем оригинальные пути изображений
+        // Если заметка уже создана, загружаем оригинальные пути изображений
         if ($this->noteId) {
             $note = Note::where('user_id', Auth::id())
                 ->where('type', Note::TYPE_NOTE)
