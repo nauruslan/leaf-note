@@ -7,6 +7,7 @@ use App\Models\Archive;
 use App\Models\Safe;
 use App\Models\Folder;
 use App\Models\Note;
+use App\Services\DemoUserService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -23,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'is_demo',
+        'email_verified_at',
         'avatar_path',
         'gender',
         'birth_date',
@@ -130,5 +132,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isDemoUser(): bool
     {
         return (bool) $this->is_demo;
+    }
+
+    /**
+     * Проверка: истёк ли срок действия демо-пользователя.
+     * Считает по created_at + DEMO_LIFETIME_MINUTES.
+     */
+    public function isDemoExpired(): bool
+    {
+        if (!$this->is_demo) {
+            return false;
+        }
+
+        return now()->gte(
+            $this->created_at->addMinutes(DemoUserService::DEMO_LIFETIME_MINUTES)
+        );
     }
 }

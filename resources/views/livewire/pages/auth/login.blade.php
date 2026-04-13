@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Forms\LoginForm;
+use App\Services\DemoUserService;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -28,9 +29,17 @@ new #[Layout('layouts.guest')] class extends Component {
         $this->dispatch('navigateTo', section: 'dashboard');
         $this->redirectIntended(default: route('app', absolute: false));
     }
-    public function loginAsDemo(): void
+
+    /**
+     * Создать демо-пользователя и войти в него.
+     */
+    public function loginAsDemo(DemoUserService $demoUserService): void
     {
-        //    Логика демо-логина
+        $demoUserService->createAndLogin();
+
+        Session::regenerate();
+
+        $this->redirectIntended(default: route('app', absolute: false));
     }
 }; ?>
 
@@ -45,6 +54,12 @@ new #[Layout('layouts.guest')] class extends Component {
         </div>
         <h1 class="text-2xl font-bold text-gray-900">Войдите в свой аккаунт</h1>
     </div>
+
+    @session('status')
+        <div class="mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+            {{ $value }}
+        </div>
+    @endsession
 
     <!-- Login Form -->
     <form wire:submit.prevent="login" class="space-y-6">
@@ -147,14 +162,25 @@ new #[Layout('layouts.guest')] class extends Component {
 
     <!-- Demo & Social Login -->
     <div class="space-y-3">
-        <button wire:click="loginAsDemo"
-            class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
+        <button wire:click="loginAsDemo" wire:loading.attr="disabled"
+            class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
             <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
                 </path>
             </svg>
-            Войти как демо-пользователь
+            <span wire:loading.remove>Войти как демо-пользователь</span>
+            <span wire:loading class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                Создание...
+            </span>
         </button>
 
         <button
@@ -180,7 +206,8 @@ new #[Layout('layouts.guest')] class extends Component {
     <!-- Register Link -->
     <p class="text-center mt-6 text-sm text-gray-600">
         Нет аккаунта?
-        <a href="{{ route('register') }}" class="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+        <a href="{{ route('register') }}"
+            class="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
             Зарегистрироваться
         </a>
     </p>

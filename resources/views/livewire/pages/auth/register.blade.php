@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Services\DemoUserService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -33,59 +34,19 @@ new #[Layout('layouts.guest')] class extends Component {
 
         $this->redirect(route('app', absolute: false), navigate: true);
     }
+
+    /**
+     * Создать демо-пользователя и войти в него.
+     */
+    public function loginAsDemo(DemoUserService $demoUserService): void
+    {
+        $demoUserService->createAndLogin();
+
+        session()->regenerate();
+
+        $this->redirectIntended(default: route('app', absolute: false));
+    }
 }; ?>
-
-{{-- <div>
-    <form wire:submit="register">
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" class="block mt-1 w-full" type="text" name="name" required
-                autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
-
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email"
-                required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full" type="password" name="password"
-                required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                type="password" name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                href="{{ route('login') }}" wire:navigate>
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</div> --}}
-
 
 <div x-data>
     <!-- Header -->
@@ -99,6 +60,12 @@ new #[Layout('layouts.guest')] class extends Component {
         <h1 class="text-2xl font-bold text-gray-900">Создайте аккаунт</h1>
         <p class="text-gray-600 mt-1">Начните организовывать свои заметки</p>
     </div>
+
+    @session('status')
+        <div class="mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+            {{ $value }}
+        </div>
+    @endsession
 
     <!-- Register Form -->
     <form wire:submit.prevent="register" class="space-y-6">
@@ -271,14 +238,25 @@ new #[Layout('layouts.guest')] class extends Component {
 
     <!-- Demo & Social Login -->
     <div class="space-y-3">
-        <button
-            class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
+        <button wire:click="loginAsDemo" wire:loading.attr="disabled"
+            class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
             <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
                 </path>
             </svg>
-            Войти как демо-пользователь
+            <span wire:loading.remove>Войти как демо-пользователь</span>
+            <span wire:loading class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                Создание...
+            </span>
         </button>
 
         <button

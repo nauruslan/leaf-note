@@ -14,6 +14,9 @@ trait WithNoteCreating
         if (isset($this->safe) && $this->safe) {
             StateManager::set('preset_safe_id', $this->safe->id);
         }
+        if (isset($this->archive) && $this->archive) {
+            StateManager::set('preset_archive_id', $this->archive->id);
+        }
         $this->dispatch('navigateTo', 'create-note');
     }
 
@@ -25,6 +28,9 @@ trait WithNoteCreating
         }
         if (isset($this->safe) && $this->safe) {
             StateManager::set('preset_safe_id', $this->safe->id);
+        }
+        if (isset($this->archive) && $this->archive) {
+            StateManager::set('preset_archive_id', $this->archive->id);
         }
         $this->dispatch('navigateTo', 'create-checklist');
     }

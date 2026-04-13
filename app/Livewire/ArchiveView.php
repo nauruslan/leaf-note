@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithNoteCreating;
 use App\Livewire\Traits\WithNoteOpening;
 use App\Livewire\Traits\WithSearch;
+use App\Models\Archive;
 use App\Models\Note;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,13 @@ class ArchiveView extends Component
 
     public $heading = 'Архив';
     public $subheading = 'Заметки и списки помещенные в архив';
+
+    public ?Archive $archive = null;
+
+    public function mount(): void
+    {
+        $this->archive = Archive::where('user_id', Auth::id())->first();
+    }
 
 
     #[Computed]

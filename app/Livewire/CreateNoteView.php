@@ -56,9 +56,15 @@ class CreateNoteView extends Component
 
         $presetSafeId = StateManager::get('preset_safe_id');
         if ($presetSafeId) {
-            $this->folderId = $presetSafeId;
             $this->safeId = $presetSafeId;
             StateManager::remove('preset_safe_id');
+            return;
+        }
+
+        $presetArchiveId = StateManager::get('preset_archive_id');
+        if ($presetArchiveId) {
+            $this->archiveId = $presetArchiveId;
+            StateManager::remove('preset_archive_id');
             return;
         }
 
@@ -79,6 +85,11 @@ class CreateNoteView extends Component
     {
         if ($this->isSafeSelected($this->folderId)) {
             $this->safeId = $this->folderId;
+            $this->folderId = null;
+        }
+
+        if ($this->isArchiveSelected($this->folderId)) {
+            $this->archiveId = $this->folderId;
             $this->folderId = null;
         }
 
@@ -141,6 +152,10 @@ class CreateNoteView extends Component
                     $note->safe_id = $this->safeId;
                     $note->folder_id = null;
                     $note->archive_id = null;
+                } elseif ($this->archiveId !== null) {
+                    $note->archive_id = $this->archiveId;
+                    $note->folder_id = null;
+                    $note->safe_id = null;
                 } else {
                     $note->archive_id = Auth::user()->archive->id;
                 }
@@ -232,9 +247,9 @@ class CreateNoteView extends Component
         }
 
         // Условия автосохранения:
-        // 1. Должна быть выбрана папка (folderId) ИЛИ сейф (safeId)
+        // 1. Должна быть выбрана папка (folderId) ИЛИ сейф (safeId) ИЛИ архив (archiveId)
         // 2. Title должен иметь длину хотя бы 1 символ
-        if (($this->folderId === null && $this->safeId === null) || trim($this->title) === '') {
+        if (($this->folderId === null && $this->safeId === null && $this->archiveId === null) || trim($this->title) === '') {
             return;
         }
 
@@ -294,6 +309,10 @@ class CreateNoteView extends Component
                     $note->safe_id = $this->safeId;
                     $note->folder_id = null;
                     $note->archive_id = null;
+                } elseif ($this->archiveId !== null) {
+                    $note->archive_id = $this->archiveId;
+                    $note->folder_id = null;
+                    $note->safe_id = null;
                 } else {
                     // Не должно происходить, т.к. проверка выше
                     $this->isSaving = false;

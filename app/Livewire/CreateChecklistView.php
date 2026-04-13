@@ -45,9 +45,15 @@ class CreateChecklistView extends Component
 
         $presetSafeId = StateManager::get('preset_safe_id');
         if ($presetSafeId) {
-            $this->folderId = $presetSafeId;
             $this->safeId = $presetSafeId;
             StateManager::remove('preset_safe_id');
+            return;
+        }
+
+        $presetArchiveId = StateManager::get('preset_archive_id');
+        if ($presetArchiveId) {
+            $this->archiveId = $presetArchiveId;
+            StateManager::remove('preset_archive_id');
             return;
         }
 
@@ -68,6 +74,11 @@ class CreateChecklistView extends Component
     {
         if ($this->isSafeSelected($this->folderId)) {
             $this->safeId = $this->folderId;
+            $this->folderId = null;
+        }
+
+        if ($this->isArchiveSelected($this->folderId)) {
+            $this->archiveId = $this->folderId;
             $this->folderId = null;
         }
 
@@ -118,6 +129,10 @@ class CreateChecklistView extends Component
                     $note->safe_id = $this->safeId;
                     $note->folder_id = null;
                     $note->archive_id = null;
+                } elseif ($this->archiveId !== null) {
+                    $note->archive_id = $this->archiveId;
+                    $note->folder_id = null;
+                    $note->safe_id = null;
                 } else {
                     $note->archive_id = Auth::user()->archive->id;
                 }
@@ -257,6 +272,10 @@ class CreateChecklistView extends Component
                     $note->safe_id = $this->safeId;
                     $note->folder_id = null;
                     $note->archive_id = null;
+                } elseif ($this->archiveId !== null) {
+                    $note->archive_id = $this->archiveId;
+                    $note->folder_id = null;
+                    $note->safe_id = null;
                 } else {
                     // Не должно происходить, т.к. проверка выше
                     $this->isSaving = false;
