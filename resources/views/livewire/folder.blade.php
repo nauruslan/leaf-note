@@ -56,8 +56,8 @@
                     <x-no-data icon="search-x" title="Совпадений не найдено"
                         description="Попробуйте изменить поисковый запрос" />
                 @else
-                    <x-no-data icon="file-text" title="Папка пуста"
-                        description="Создайте первую заметку, чтобы увидеть её здесь" />
+                    <x-no-data icon="{{ $this->folder->icon }}" title="Папка пуста"
+                        description="Создайте заметку, чтобы увидеть её здесь" />
                 @endif
             </div>
         @endforelse

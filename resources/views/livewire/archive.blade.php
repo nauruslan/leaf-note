@@ -56,7 +56,7 @@
                     <x-no-data icon="search-x" title="Совпадений не найдено"
                         description="Попробуйте изменить поисковый запрос" />
                 @else
-                    <x-no-data icon="archive" title="Архив пуст"
+                    <x-no-data icon="package" title="Архив пуст"
                         description="Сюда добавляются заметки, которые были восстановлены из корзины" />
                 @endif
             </div>

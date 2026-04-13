@@ -22,7 +22,7 @@
             'buttonsAlign' => 'justify-end',
         ],
         'restore' => [
-            'icon' => 'rotate-ccw',
+            'icon' => 'history',
             'iconBg' => 'bg-indigo-100',
             'iconColor' => 'text-indigo-600',
             'confirmText' => 'Восстановить',

@@ -56,7 +56,7 @@
                     <x-no-data icon="search-x" title="Совпадений не найдено"
                         description="Попробуйте изменить поисковый запрос" />
                 @else
-                    <x-no-data icon="star" title="Избранных заметок пока нет"
+                    <x-no-data icon="star" title="Избранных заметок нет"
                         description="Добавьте заметки в избранное, чтобы видеть их здесь" />
                 @endif
             </div>
