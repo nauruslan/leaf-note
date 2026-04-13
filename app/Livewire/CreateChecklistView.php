@@ -361,6 +361,13 @@ class CreateChecklistView extends Component
         $previousFolderId = StateManager::get('previous_folderId');
         $previousNoteId = StateManager::get('previous_noteId');
 
+        // Если предыдущая секция - сейф, возвращаемся в сейф
+        if ($previousSection === 'safe') {
+            $previousSection = 'safe';
+            $previousFolderId = null;
+            $previousNoteId = null;
+        }
+
         $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 

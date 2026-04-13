@@ -20,5 +20,6 @@ trait WithNoteOpening
 
         $this->dispatch('navigateTo', section: $section, noteId: $noteId);
         $this->dispatch('notification', title: 'Успешно', content: 'Переход к заметке', type: 'success');
+        $this->js('window.scrollTo(0, 0)');
     }
 }
