@@ -218,6 +218,10 @@ class EditChecklist extends Component
                 $this->archiveId = (int) substr($this->dropdownValue, 8);
                 $this->folderId = null;
                 $this->safeId = null;
+            } elseif (is_numeric($this->dropdownValue)) {
+                $this->folderId = (int) $this->dropdownValue;
+                $this->safeId = null;
+                $this->archiveId = null;
             }
         }
         $this->autoSave();

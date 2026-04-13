@@ -50,12 +50,12 @@
     <div
         class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
         @php
-            $showNotes = $filter === 'all' || $filter === 'notes' || $filter === 'checklists';
-            $showFolders = $filter === 'all' || $filter === 'folders';
+            $isSearching = !empty($search);
+            $showNotes = $isSearching || $filter === 'all' || $filter === 'notes' || $filter === 'checklists';
+            $showFolders = $isSearching || $filter === 'all' || $filter === 'folders';
             $hasFolders = $showFolders && $this->trashedFolders->count() > 0;
             $hasNotes = $showNotes && $this->trashedNotes->count() > 0;
             $hasResults = $hasFolders || $hasNotes;
-            $isSearching = !empty($search);
         @endphp
         @php
             $itemsToShow = collect();

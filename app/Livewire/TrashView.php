@@ -21,6 +21,11 @@ class TrashView extends Component
     public $section = 'trash';
     public $heading = 'Корзина';
 
+    public function mount(): void
+    {
+        $this->sort = 'deleted';
+    }
+
     // Свойства для модального окна подтверждения удаления
     public bool $confirmingDeletion = false;
     public ?int $pendingDeleteId = null;
@@ -144,6 +149,16 @@ class TrashView extends Component
             ->whereNotNull('trash_id')
             ->whereNull('folder_id')
             ->with('folder');
+
+        // Применяем фильтр по типу (при поиске показываем все типы)
+        $isSearching = strlen(trim($this->search)) > 0;
+        if (!$isSearching) {
+            if ($this->filter === 'notes') {
+                $query->where('type', Note::TYPE_NOTE);
+            } elseif ($this->filter === 'checklists') {
+                $query->where('type', Note::TYPE_CHECKLIST);
+            }
+        }
 
         // Применяем поиск
         $query = $this->applySearch($query, ['title', 'search_content']);
