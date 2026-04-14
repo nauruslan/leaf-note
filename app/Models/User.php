@@ -77,18 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
         });
 
         static::deleting(function (User $user) {
-            // Вручную удаляем notes и folders перед удалением пользователя,
-            // чтобы избежать ошибку MySQL #1452 (Foreign key constraint fails).
-            //
-            // Проблема: MySQL не может обработать множественные каскадные пути
-            // к одной таблице. При удалении users:
-            //   users → notes (CASCADE) пытается DELETE notes
-            //   users → trashes → notes (SET NULL) пытается UPDATE notes.trash_id
-            // MySQL не может одновременно DELETE и UPDATE одну строку.
-            //
-            // Решение: удаляем notes и folders вручную через Eloquent,
-            // тогда при удалении user CASCADE обработает только
-            // trashes/safes/archives — без конфликтов.
+            // Вручную удаляем notes и folders перед удалением пользователя
             $user->notes()->delete();
             $user->folders()->delete();
         });

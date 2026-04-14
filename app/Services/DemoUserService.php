@@ -11,8 +11,6 @@ class DemoUserService
 {
     /**
      * Время жизни демо-аккаунта в минутах.
-     * Легко настраиваемый параметр — измените это значение,
-     * чтобы увеличить или уменьшить время жизни демо-пользователя.
      * Срок считается от created_at пользователя.
      */
     public const DEMO_LIFETIME_MINUTES = 2;
@@ -27,7 +25,7 @@ class DemoUserService
         $demoNumber = $this->getNextDemoNumber();
 
         $user = User::create([
-            'name' => "demoUser{$demoNumber}",
+            'name' => "demo{$demoNumber}",
             'email' => "demo{$demoNumber}@leafnote-demo.com",
             'password' => Hash::make(Str::random(32)),
             'is_demo' => true,

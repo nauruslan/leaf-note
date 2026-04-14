@@ -6,15 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * Внешний ключ trash_id создается БЕЗ constraint (только индекс),
-     * чтобы избежать ошибку MySQL #1452 (множественные каскадные пути
-     * от users к folders). Целостность данных обеспечивается на уровне приложения.
-     *
-     * FK constraints: user_id → CASCADE (удаляет все папки при удалении пользователя).
-     */
+
     public function up(): void
     {
         Schema::create('folders', function (Blueprint $table) {
@@ -39,9 +31,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('folders');

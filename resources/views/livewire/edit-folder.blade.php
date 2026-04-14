@@ -23,7 +23,8 @@
                     <!-- Иконка папки -->
                     <div class="flex-1">
                         <label class="block text-lg font-medium text-gray-700 mb-2">Иконка папки</label>
-                        <div class="flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div
+                            class="folder-icons-scroll flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto max-h-[160px]">
                             @foreach ($this->icons as $key => $icon)
                                 <button type="button" wire:click="$set('icon', '{{ $key }}')"
                                     wire:key="{{ $key }}"
@@ -38,7 +39,8 @@
                     <!-- Цвет папки -->
                     <div class="flex-1">
                         <label class="block text-lg font-medium text-gray-700 mb-2">Цвет папки</label>
-                        <div class="flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div
+                            class="folder-colors-scroll flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto max-h-[160px]">
                             @foreach ($this->colors as $key => $color)
                                 <button type="button" wire:click="$set('color', '{{ $key }}')"
                                     wire:key="{{ $key }}"
