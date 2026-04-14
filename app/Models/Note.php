@@ -22,23 +22,23 @@ class Note extends Model
         'safe_id',
         'title',
         'type',
-        'payload',
+        'content',
         'search_content',
         'is_favorite',
     ];
 
     protected $casts = [
-        'payload' => 'array',
+        'content' => 'array',
         'is_favorite' => 'boolean',
         'moved_to_trash_at' => 'datetime',
     ];
 
     protected static function booted(): void
     {
-        // Автоматическое заполнение search_content из payload при создании и обновлении
+        // Автоматическое заполнение search_content из content при создании и обновлении
         static::saving(function (Note $note) {
-            if ($note->isDirty('payload')) {
-                $note->search_content = $note->extractTextFromPayload();
+            if ($note->isDirty('content')) {
+                $note->search_content = $note->extractTextFromContent();
             }
         });
 
@@ -242,26 +242,26 @@ class Note extends Model
 
     public function getColorAttribute(): string
     {
-        return $this->folder?->color ?? 'default';
+        return $this->folder?->color ?? 'white';
     }
 
     public function getPreviewAttribute(): string
     {
-        if (empty($this->payload)) {
+        if (empty($this->content)) {
             return '';
         }
 
-        $text = $this->extractTextFromPayload();
+        $text = $this->extractTextFromContent();
 
         return \Illuminate\Support\Str::limit($text, 150);
     }
 
-    public function extractTextFromPayload(): string
+    public function extractTextFromContent(): string
     {
-        if (is_string($this->payload)) {
-            $data = json_decode($this->payload, true);
+        if (is_string($this->content)) {
+            $data = json_decode($this->content, true);
         } else {
-            $data = $this->payload;
+            $data = $this->content;
         }
 
         if (!is_array($data) || !isset($data['content'])) {
@@ -328,42 +328,14 @@ class Note extends Model
         return trim(implode(' ', $texts));
     }
 
-    public function getColorClassAttribute(): string
+    public function getColorHexAttribute(): string
     {
-        $colorMap = [
-            'black' => 'bg-gray-900',
-            'gray' => 'bg-gray-500',
-            'red' => 'bg-red-500',
-            'orange' => 'bg-orange-500',
-            'yellow' => 'bg-yellow-500',
-            'green' => 'bg-green-500',
-            'blue' => 'bg-blue-500',
-            'indigo' => 'bg-indigo-500',
-            'purple' => 'bg-purple-500',
-            'pink' => 'bg-pink-500',
-            'white' => 'bg-white',
-            'default' => 'bg-white',
-        ];
-
-        return $colorMap[$this->color] ?? 'bg-white';
+        return Folder::COLORS[$this->color]['hex'] ?? '#FFFFFF';
     }
 
     public function getIconColorClassAttribute(): string
     {
-        return match($this->color) {
-            'red' => 'red-500',
-            'orange' => 'orange-500',
-            'yellow' => 'yellow-500',
-            'green' => 'green-500',
-            'blue' => 'blue-500',
-            'indigo' => 'indigo-500',
-            'purple' => 'purple-500',
-            'pink' => 'pink-500',
-            'gray' => 'gray-500',
-            'black' => 'black',
-            'white' => 'white',
-            'default' => 'white',
-        };
+        return $this->color_hex;
     }
 
     public function getTypeIconAttribute(): string
@@ -383,7 +355,7 @@ class Note extends Model
 
     public function getChecklistProgress(): array
     {
-        if (!$this->isChecklist() || empty($this->payload)) {
+        if (!$this->isChecklist() || empty($this->content)) {
             return [
                 'completed' => 0,
                 'total' => 0,
@@ -392,9 +364,9 @@ class Note extends Model
             ];
         }
 
-        $data = is_string($this->payload)
-            ? json_decode($this->payload, true)
-            : $this->payload;
+        $data = is_string($this->content)
+            ? json_decode($this->content, true)
+            : $this->content;
 
         if (!is_array($data) || !isset($data['content'])) {
             return [

@@ -15,7 +15,7 @@ class DemoUserService
      * чтобы увеличить или уменьшить время жизни демо-пользователя.
      * Срок считается от created_at пользователя.
      */
-    public const DEMO_LIFETIME_MINUTES = 60;
+    public const DEMO_LIFETIME_MINUTES = 2;
 
     /**
      * Создать демо-пользователя и авторизовать его.
@@ -28,7 +28,6 @@ class DemoUserService
 
         $user = User::create([
             'name' => "demoUser{$demoNumber}",
-            'surname' => 'Demo',
             'email' => "demo{$demoNumber}@leafnote-demo.com",
             'password' => Hash::make(Str::random(32)),
             'is_demo' => true,
@@ -36,6 +35,10 @@ class DemoUserService
         ]);
 
         Auth::login($user);
+
+        // Очищаем состояние навигации от предыдущей сессии,
+        // чтобы новый пользователь начинал с чистого дашборда
+        StateManager::clear();
 
         return $user;
     }

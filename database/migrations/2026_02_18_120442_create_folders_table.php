@@ -8,6 +8,12 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * Внешний ключ trash_id создается БЕЗ constraint (только индекс),
+     * чтобы избежать ошибку MySQL #1452 (множественные каскадные пути
+     * от users к folders). Целостность данных обеспечивается на уровне приложения.
+     *
+     * FK constraints: user_id → CASCADE (удаляет все папки при удалении пользователя).
      */
     public function up(): void
     {
@@ -19,12 +25,10 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('title');
-            $table->string('color')->default('default');
+            $table->string('color')->default('white');
             $table->string('icon')->default('folder');
 
-            $table->foreignId('trash_id')
-                ->nullable()
-                ->constrained();
+            $table->unsignedBigInteger('trash_id')->nullable()->index();
             $table->timestamp('moved_to_trash_at')->nullable();
 
             $table->timestamps();

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
             $table->unsignedInteger('capacity')->default(100);
             $table->unsignedInteger('current_quantity')->default(0);
+            $table->integer('auto_delete_days')->nullable();
             $table->timestamps();
         });
     }

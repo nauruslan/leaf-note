@@ -19,32 +19,36 @@
                     @enderror
                 </div>
 
-                <!-- Иконка папки -->
-                <div>
-                    <label class="block text-lg font-medium text-gray-700 mb-2">Иконка папки</label>
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 h-[70px]">
-                        @foreach ($this->icons as $key => $icon)
-                            <button type="button" wire:click="$set('icon', '{{ $key }}')"
-                                wire:key="{{ $key }}"
-                                class="flex items-center justify-center w-8 h-8 rounded-full bg-white border-2 {{ $key === $this->icon ? 'border-white ring-2 ring-offset-2 ring-indigo-500' : 'border-gray-300' }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                title="{{ $icon['label'] }}" aria-label="{{ $icon['label'] }}">
-                                <i data-lucide="{{ $icon['icon'] }}" class="w-4 h-4 text-gray-700"></i>
-                            </button>
-                        @endforeach
+                <!-- Иконка и Цвет папки на одной строке -->
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- Иконка папки -->
+                    <div class="flex-1">
+                        <label class="block text-lg font-medium text-gray-700 mb-2">Иконка папки</label>
+                        <div class="flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            @foreach ($this->icons as $key => $icon)
+                                <button type="button" wire:click="$set('icon', '{{ $key }}')"
+                                    wire:key="{{ $key }}"
+                                    class="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white border-2 {{ $key === $this->icon ? 'border-white ring-2 ring-offset-2 ring-indigo-500' : 'border-gray-300' }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    title="{{ $icon['label'] }}" aria-label="{{ $icon['label'] }}">
+                                    <i data-lucide="{{ $icon['icon'] }}" class="w-4 h-4 text-gray-700"></i>
+                                </button>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
 
-                <!-- Цвет папки -->
-                <div>
-                    <label class="block text-lg font-medium text-gray-700 mb-2">Цвет папки</label>
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 h-[70px]">
-                        @foreach ($this->colors as $key => $color)
-                            <button type="button" wire:click="$set('color', '{{ $key }}')"
-                                wire:key="{{ $key }}"
-                                class="relative w-8 h-8 rounded-full {{ $color['bg'] }} border-2 {{ $key === $this->color ? 'border-white ring-2 ring-offset-2 ring-indigo-500' : $color['border'] }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ring-indigo-500"
-                                title="{{ $color['label'] }}" aria-label="{{ $color['label'] }}">
-                            </button>
-                        @endforeach
+                    <!-- Цвет папки -->
+                    <div class="flex-1">
+                        <label class="block text-lg font-medium text-gray-700 mb-2">Цвет папки</label>
+                        <div class="flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            @foreach ($this->colors as $key => $color)
+                                <button type="button" wire:click="$set('color', '{{ $key }}')"
+                                    wire:key="{{ $key }}"
+                                    style="background-color: {{ $color['hex'] }}; border-color: {{ $key === $this->color ? '#FFFFFF' : $color['hex'] }};"
+                                    class="relative w-8 h-8 shrink-0 rounded-full border-2 {{ $key === $this->color ? 'ring-2 ring-offset-2 ring-indigo-500' : '' }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ring-indigo-500"
+                                    title="{{ $color['label'] }}" aria-label="{{ $color['label'] }}">
+                                </button>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 

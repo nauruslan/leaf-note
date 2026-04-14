@@ -18,7 +18,6 @@ class ProfileView extends Component
     public $subheading='Управление вашими личными данными и настройками';
     // Личные данные
     public string $name = '';
-    public string $surname = '';
     public string $email = '';
 
     // Настройки
@@ -52,7 +51,6 @@ class ProfileView extends Component
 
         // Личные данные
         $this->name = $user->name ?? '';
-        $this->surname = $user->surname ?? '';
         $this->email = $user->email ?? '';
 
         // Настройки
@@ -108,13 +106,11 @@ class ProfileView extends Component
         // Сохраняем личные данные
         $this->validate([
             'name' => 'required|string|max:255',
-            'surname' => 'required|string|max:255',
             'email' => 'required|email|max:255',
         ]);
 
         $user = Auth::user();
         $user->name = $this->name;
-        $user->surname = $this->surname;
         $user->email = $this->email;
         $user->notifications_enabled = (bool) $this->notificationsEnabled;
         $user->save();

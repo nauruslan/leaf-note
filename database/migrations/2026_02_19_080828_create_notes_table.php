@@ -6,23 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+
     public function up(): void
     {
         Schema::create('notes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('folder_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('trash_id')->nullable()->constrained();
-            $table->foreignId('safe_id')->nullable()->constrained();
-            $table->foreignId('archive_id')->nullable()->constrained();
+            $table->unsignedBigInteger('folder_id')->nullable()->index();
+            $table->unsignedBigInteger('trash_id')->nullable()->index();
+            $table->unsignedBigInteger('safe_id')->nullable()->index();
+            $table->unsignedBigInteger('archive_id')->nullable()->index();
             $table->timestamp('moved_to_trash_at')->nullable();
             $table->string('title');
             $table->string('type');
-            $table->json('payload')->nullable();
-            $table->string('color')->default('default');
+            $table->json('content')->nullable();
+            $table->text('search_content')->nullable();
             $table->boolean('is_favorite')->default(false);
             $table->timestamps();
             $table->index(['user_id', 'folder_id'], 'idx_notes_user_folder');
@@ -36,9 +34,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('notes');

@@ -183,7 +183,7 @@ new #[Layout('layouts.guest')] class extends Component {
             </span>
         </button>
 
-        <button
+        <a href="{{ route('auth.google.redirect') }}"
             class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
             <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -199,8 +199,8 @@ new #[Layout('layouts.guest')] class extends Component {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     fill="#EA4335" />
             </svg>
-            Продолжить с Google
-        </button>
+            Войти через Google
+        </a>
     </div>
 
     <!-- Register Link -->

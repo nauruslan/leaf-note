@@ -49,8 +49,8 @@ class CreateNoteView extends Component
             $note = Note::where('user_id', Auth::id())
                 ->where('type', Note::TYPE_NOTE)
                 ->find($this->noteId);
-            if ($note && $note->payload) {
-                $this->originalImagePaths = $this->extractImagePathsFromPayload($note->payload);
+            if ($note && $note->content) {
+                $this->originalImagePaths = $this->extractImagePathsFromContent($note->content);
             }
         }
 
@@ -120,9 +120,9 @@ class CreateNoteView extends Component
                 }
 
                 // Удаление изображений, которые больше не используются
-                $currentImagePaths = $this->extractImagePathsFromPayload($this->content);
-                // Получаем оригинальные пути из БД (из сохраненного payload)
-                $originalImagePathsFromDb = $this->extractImagePathsFromPayload($this->cachedNote->payload);
+                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
+                // Получаем оригинальные пути из БД (из сохраненного content)
+                $originalImagePathsFromDb = $this->extractImagePathsFromContent($this->cachedNote->content);
                 $removedImagePaths = array_diff($originalImagePathsFromDb, $currentImagePaths);
 
                 $this->deleteImagesFromStorage($removedImagePaths);
@@ -140,7 +140,7 @@ class CreateNoteView extends Component
                 $note = new Note();
                 $note->title = trim($this->title);
                 $note->type = Note::TYPE_NOTE;
-                $note->payload = $this->normalizeContent($this->content);
+                $note->content = $this->normalizeContent($this->content);
                 $note->is_favorite = $this->is_favorite;
                 $note->user_id = Auth::id();
 
@@ -164,7 +164,7 @@ class CreateNoteView extends Component
                 $this->noteId = $note->id;
                 $this->cachedNote = $note;
                 // Инициализируем оригинальные пути изображений после создания
-                $this->originalImagePaths = $this->extractImagePathsFromPayload($this->content);
+                $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
             }
 
             $this->dispatch('noteCreated');
@@ -277,9 +277,9 @@ class CreateNoteView extends Component
                 }
 
                 // Удаление изображений, которые больше не используются
-                $currentImagePaths = $this->extractImagePathsFromPayload($this->content);
-                // Получаем оригинальные пути из БД (из сохраненного payload)
-                $originalImagePathsFromDb = $this->extractImagePathsFromPayload($this->cachedNote->payload);
+                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
+                // Получаем оригинальные пути из БД (из сохраненного content)
+                $originalImagePathsFromDb = $this->extractImagePathsFromContent($this->cachedNote->content);
                 $removedImagePaths = array_diff($originalImagePathsFromDb, $currentImagePaths);
 
                 $this->deleteImagesFromStorage($removedImagePaths);
@@ -297,7 +297,7 @@ class CreateNoteView extends Component
                 $note = new Note();
                 $note->title = trim($this->title);
                 $note->type = Note::TYPE_NOTE;
-                $note->payload = $this->normalizeContent($this->content);
+                $note->content = $this->normalizeContent($this->content);
                 $note->is_favorite = $this->is_favorite;
                 $note->user_id = Auth::id();
 
@@ -325,7 +325,7 @@ class CreateNoteView extends Component
                 $this->noteId = $note->id;
                 $this->cachedNote = $note;
                 // Инициализируем оригинальные пути изображений после создания
-                $this->originalImagePaths = $this->extractImagePathsFromPayload($this->content);
+                $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
             }
         } catch (\Throwable $e) {
             report($e);
@@ -335,18 +335,18 @@ class CreateNoteView extends Component
         }
     }
 
-    private function extractImagePathsFromPayload($payload): array
+    private function extractImagePathsFromContent($content): array
     {
-        if (is_string($payload)) {
-            $payload = json_decode($payload, true);
+        if (is_string($content)) {
+            $content = json_decode($content, true);
         }
 
-        if (!is_array($payload) || !isset($payload['content'])) {
+        if (!is_array($content) || !isset($content['content'])) {
             return [];
         }
 
         $paths = [];
-        $this->traverseContent($payload['content'], $paths);
+        $this->traverseContent($content['content'], $paths);
 
         return array_values(array_unique($paths));
     }
@@ -422,7 +422,7 @@ class CreateNoteView extends Component
 
     private function updateContent(Note $note): void
     {
-        $note->payload = $this->content;
+        $note->content = $this->content;
     }
 
     private function updateLocation(Note $note): void

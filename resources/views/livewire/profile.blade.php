@@ -24,20 +24,8 @@
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                        <!-- Фамилия -->
-                        <div>
-                            <label for="surname" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                Фамилия
-                            </label>
-                            <input type="text" id="surname" wire:model="surname"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                                placeholder="Введите фамилию">
-                            @error('surname')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
                         <!-- Email -->
-                        <div class="md:col-span-2">
+                        <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">
                                 Электронная почта
                             </label>
@@ -140,7 +128,7 @@
                     <div class="flex-1">
                         <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                             <i data-lucide="key" class="w-5 h-5 text-indigo-600"></i>
-                            Сменить пароль профиля
+                            Сменить пароль аккаунта
                         </h3>
                         <!-- Текущий пароль -->
                         <div class="mb-4">
@@ -183,7 +171,12 @@
                     <div class="flex-1">
                         <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                             <i data-lucide="lock" class="w-5 h-5 text-indigo-600"></i>
-                            {{ $hasSafePassword ? 'Пароль сейфа установлен' : 'Пароль сейфа' }}
+                            Пароль сейфа
+                            @if ($hasSafePassword)
+                                <span class="text-indigo-700">установлен</span>
+                            @else
+                                <span class="text-red-600">не установлен</span>
+                            @endif
                         </h3>
                         @if ($hasSafePassword)
                             <!-- Текущий пароль сейфа -->

@@ -100,8 +100,8 @@ class EditNote extends Component
         $this->safeId = $note->safe_id;
         $this->archiveId = $note->archive_id;
         $this->is_favorite = (bool) $note->is_favorite;
-        $this->content = $note->payload;
-        $this->originalImagePaths = $this->extractImagePathsFromPayload($note->payload);
+        $this->content = $note->content;
+        $this->originalImagePaths = $this->extractImagePathsFromContent($note->content);
         $this->isLoaded = true;
 
         // Инициализируем dropdownValue в зависимости от того, где находится заметка
@@ -119,18 +119,18 @@ class EditNote extends Component
         );
     }
 
-    private function extractImagePathsFromPayload($payload): array
+    private function extractImagePathsFromContent($content): array
     {
-        if (is_string($payload)) {
-            $payload = json_decode($payload, true);
+        if (is_string($content)) {
+            $content = json_decode($content, true);
         }
 
-        if (!is_array($payload) || !isset($payload['content'])) {
+        if (!is_array($content) || !isset($content['content'])) {
             return [];
         }
 
         $paths = [];
-        $this->traverseContent($payload['content'], $paths);
+        $this->traverseContent($content['content'], $paths);
         return array_values(array_unique($paths));
     }
 
@@ -317,7 +317,7 @@ class EditNote extends Component
             }
 
             // Удаление изображений, которые больше не используются
-            $currentImagePaths = $this->extractImagePathsFromPayload($this->content);
+            $currentImagePaths = $this->extractImagePathsFromContent($this->content);
             $removedImagePaths = array_diff($this->originalImagePaths, $currentImagePaths);
             $this->deleteImagesFromStorage($removedImagePaths);
 
@@ -348,7 +348,7 @@ class EditNote extends Component
                 return;
             }
 
-            $currentImagePaths = $this->extractImagePathsFromPayload($this->content);
+            $currentImagePaths = $this->extractImagePathsFromContent($this->content);
             $removedImagePaths = array_diff($this->originalImagePaths, $currentImagePaths);
             $this->deleteImagesFromStorage($removedImagePaths);
 
@@ -432,7 +432,7 @@ class EditNote extends Component
 
     private function updateContent(Note $note): void
     {
-        $note->payload = $this->content;
+        $note->content = $this->content;
     }
 
     private function updateLocation(Note $note): void

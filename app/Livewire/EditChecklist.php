@@ -71,7 +71,7 @@ class EditChecklist extends Component
         $this->safeId = $this->cachedChecklist->safe_id;
         $this->archiveId = $this->cachedChecklist->archive_id;
         $this->is_favorite = (bool) $this->cachedChecklist->is_favorite;
-        $this->content = $this->normalizeContent($this->cachedChecklist->payload);
+        $this->content = $this->normalizeContent($this->cachedChecklist->content);
 
         // Инициализируем dropdownValue в зависимости от того, где находится список
         if ($this->safeId) {
@@ -344,7 +344,7 @@ class EditChecklist extends Component
 
     private function updateContent(Note $checklist): void
     {
-        $checklist->payload = $this->content;
+        $checklist->content = $this->content;
     }
 
     private function updateLocation(Note $checklist): void

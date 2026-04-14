@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('safes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
+            $table->string('password_hash')->nullable();
             $table->integer('max_attempts')->default(3);
             $table->integer('failed_attempts')->default(0);
             $table->timestamp('locked_until')->nullable();

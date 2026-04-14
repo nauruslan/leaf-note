@@ -117,7 +117,7 @@ class CreateChecklistView extends Component
                 $note = new Note();
                 $note->title = trim($this->title);
                 $note->type = Note::TYPE_CHECKLIST;
-                $note->payload = $this->normalizeContent($this->content);
+                $note->content = $this->normalizeContent($this->content);
                 $note->is_favorite = $this->is_favorite;
                 $note->user_id = Auth::id();
 
@@ -260,7 +260,7 @@ class CreateChecklistView extends Component
                 $note = new Note();
                 $note->title = trim($this->title);
                 $note->type = Note::TYPE_CHECKLIST;
-                $note->payload = $this->normalizeContent($this->content);
+                $note->content = $this->normalizeContent($this->content);
                 $note->is_favorite = $this->is_favorite;
                 $note->user_id = Auth::id();
 
@@ -330,7 +330,7 @@ class CreateChecklistView extends Component
 
     private function updateContent(Note $note): void
     {
-        $note->payload = $this->content;
+        $note->content = $this->content;
     }
 
     private function updateLocation(Note $note): void

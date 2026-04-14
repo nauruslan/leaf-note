@@ -15,8 +15,8 @@
     </span>
     @if (!is_null($count))
         <span
-            class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-0.5 rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
-            {{ $count }}
+            class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium w-8 h-5 flex items-center justify-center rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+            {{ $count > 99 ? '+99' : $count }}
         </span>
     @endif
 </a>

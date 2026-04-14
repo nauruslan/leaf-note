@@ -20,15 +20,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = [
         'name',
-        'surname',
         'email',
         'password',
         'is_demo',
         'email_verified_at',
-        'avatar_path',
-        'gender',
-        'birth_date',
-        'country',
         'google_id',
         'notifications_enabled',
     ];
@@ -40,26 +35,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $casts = [
         'is_demo' => 'boolean',
-        'birth_date' => 'date',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'notifications_enabled' => 'boolean',
     ];
 
-    // Вычисляемые атрибуты
-    public function getAgeAttribute(): ?int
-    {
-        return $this->birth_date ? now()->diffInYears($this->birth_date) : null;
-    }
-
-    public function getAvatarUrlAttribute(): string
-    {
-        return $this->avatar_path
-            ? asset('storage/' . $this->avatar_path)
-            : asset('images/default-avatar.png');
-    }
-
-    // Boot-логика с явными значениями
     protected static function booted(): void
     {
         static::created(function (User $user) {
@@ -80,20 +60,37 @@ class User extends Authenticatable implements MustVerifyEmail
             $user->folders()->createMany([
             [
                 'title' => 'Рабочая',
-                'color' => 'default',
+                'color' => 'electric-blue',
                 'icon' => 'briefcase',
             ],
             [
                 'title' => 'Личное',
-                'color' => 'default',
+                'color' => 'neon-pink',
                 'icon' => 'heart',
             ],
             [
                 'title' => 'Идеи',
-                'color' => 'default',
+                'color' => 'neon-amber',
                 'icon' => 'lightbulb',
             ],
         ]);
+        });
+
+        static::deleting(function (User $user) {
+            // Вручную удаляем notes и folders перед удалением пользователя,
+            // чтобы избежать ошибку MySQL #1452 (Foreign key constraint fails).
+            //
+            // Проблема: MySQL не может обработать множественные каскадные пути
+            // к одной таблице. При удалении users:
+            //   users → notes (CASCADE) пытается DELETE notes
+            //   users → trashes → notes (SET NULL) пытается UPDATE notes.trash_id
+            // MySQL не может одновременно DELETE и UPDATE одну строку.
+            //
+            // Решение: удаляем notes и folders вручную через Eloquent,
+            // тогда при удалении user CASCADE обработает только
+            // trashes/safes/archives — без конфликтов.
+            $user->notes()->delete();
+            $user->folders()->delete();
         });
     }
 
