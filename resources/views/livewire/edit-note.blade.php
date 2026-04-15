@@ -186,7 +186,20 @@
             <!-- TipTap Editor Content Area (ignored) -->
             <div wire:ignore>
                 <div class="flex-grow p-6">
-                    <div id="note-view-editor" data-content='@json($content ? json_decode($content, true) : [])'
+                    @php
+                        $editorContent = [];
+                        if ($content) {
+                            if (is_array($content)) {
+                                $editorContent = $content;
+                            } elseif (is_string($content)) {
+                                $decoded = json_decode($content, true);
+                                if (is_array($decoded)) {
+                                    $editorContent = $decoded;
+                                }
+                            }
+                        }
+                    @endphp
+                    <div id="note-view-editor" data-content='@json($editorContent)'
                         class="prose prose-indigo max-w-none focus:outline-none min-h-[400px] text-gray-700">
                     </div>
                 </div>
@@ -238,8 +251,9 @@
             </div>
         </div>
         <!-- Delete Confirmation Modal -->
-        <x-modal type="delete" :show="$confirmingDeletion" title="Удалить заметку?" description="Заметка будет перемещена в корзину"
-            confirmMethod="confirmDelete" cancelMethod="closeModal" />
+        <x-modal type="delete" :show="$confirmingDeletion" title="Удалить заметку?"
+            description="Заметка будет перемещена в корзину" confirmMethod="confirmDelete"
+            cancelMethod="closeModal" />
     </div>
 
     @script

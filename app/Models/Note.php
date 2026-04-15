@@ -9,6 +9,7 @@ use App\Models\Trash;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Note extends Model
 {
@@ -418,5 +419,83 @@ class Note extends Model
         }
 
         return ['completed' => $completed, 'total' => $total];
+    }
+
+    /**
+     * Извлекает все пути к изображениям из контента заметки.
+     *
+     * @return array
+     */
+    public function getImagePaths(): array
+    {
+        if (empty($this->content)) {
+            return [];
+        }
+
+        $data = is_string($this->content)
+            ? json_decode($this->content, true)
+            : $this->content;
+
+        if (!is_array($data) || !isset($data['content'])) {
+            return [];
+        }
+
+        return $this->extractImagePaths($data['content']);
+    }
+
+    /**
+     * Рекурсивно извлекает пути изображений из узлов контента.
+     *
+     * @param array $content
+     * @return array
+     */
+    private function extractImagePaths(array $content): array
+    {
+        $paths = [];
+
+        foreach ($content as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+
+            // Проверяем, является ли узел изображением
+            if (isset($node['type']) && $node['type'] === 'image') {
+                // Приоритетно используем атрибут path
+                if (isset($node['attrs']['path'])) {
+                    $paths[] = $node['attrs']['path'];
+                } elseif (isset($node['attrs']['src'])) {
+                    $src = $node['attrs']['src'];
+                    // Извлекаем путь из URL (например, /storage/notes/images/xxx.jpg -> notes/images/xxx.jpg)
+                    if (str_starts_with($src, '/storage/')) {
+                        $paths[] = substr($src, strlen('/storage/'));
+                    } elseif (str_starts_with($src, 'notes/')) {
+                        $paths[] = $src;
+                    }
+                }
+            }
+
+            // Рекурсивно обрабатываем вложенный контент
+            if (isset($node['content']) && is_array($node['content'])) {
+                $paths = array_merge($paths, $this->extractImagePaths($node['content']));
+            }
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Удаляет все изображения, связанные с заметкой, из хранилища.
+     *
+     * @return void
+     */
+    public function deleteImages(): void
+    {
+        $paths = $this->getImagePaths();
+
+        foreach ($paths as $path) {
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+        }
     }
 }

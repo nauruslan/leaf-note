@@ -226,8 +226,15 @@ class CreateNoteView extends Component
     }
 
     #[On('noteContentReady')]
-    public function handleContentReady(string $content): void
+    public function handleContentReady($data): void
     {
+        // Извлекаем контент из массива, если он обернут (из JavaScript приходит { content: ... })
+        if (is_array($data) && isset($data['content'])) {
+            $content = $data['content'];
+        } else {
+            $content = $data;
+        }
+
         $this->content = $content;
         $this->save();
     }

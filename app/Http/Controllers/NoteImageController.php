@@ -17,7 +17,7 @@ class NoteImageController extends Controller
             $file = $request->file('image');
             $filename = Str::uuid() . '_' . time() . '_' . $file->getClientOriginalName();
 
-            $path = $file->store('notes/images');
+            $path = $file->store('notes/images', 'public');
 
             return response()->json([
                 'success' => true,

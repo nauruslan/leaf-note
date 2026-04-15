@@ -77,6 +77,11 @@ class User extends Authenticatable implements MustVerifyEmail
         });
 
         static::deleting(function (User $user) {
+            // Удаляем изображения из всех заметок пользователя
+            foreach ($user->notes as $note) {
+                $note->deleteImages();
+            }
+
             // Вручную удаляем notes и folders перед удалением пользователя
             $user->notes()->delete();
             $user->folders()->delete();

@@ -219,8 +219,15 @@ class EditNote extends Component
         $this->dispatch('getEditorContent');
     }
 
-    public function setContent($content): void
+    public function setContent($data): void
     {
+        // Извлекаем контент из массива, если он обернут (из JavaScript приходит { content: ... })
+        if (is_array($data) && isset($data['content'])) {
+            $content = $data['content'];
+        } else {
+            $content = $data;
+        }
+
         $this->content = $this->normalizeContent($content);
         $this->performSave();
     }
