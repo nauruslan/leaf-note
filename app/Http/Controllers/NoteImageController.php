@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Services\TemporaryImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -18,6 +19,10 @@ class NoteImageController extends Controller
             $filename = Str::uuid() . '_' . time() . '_' . $file->getClientOriginalName();
 
             $path = $file->store('notes/images', 'public');
+
+            // Сохраняем путь к временному изображению
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->add($path);
 
             return response()->json([
                 'success' => true,
@@ -48,6 +53,10 @@ class NoteImageController extends Controller
                     'error' => 'Неверный путь к файлу'
                 ], 403);
             }
+
+            // Удаляем из списка временных изображений
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->remove($path);
 
             if (Storage::disk('public')->exists($path)) {
                 Storage::disk('public')->delete($path);

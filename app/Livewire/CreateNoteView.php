@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
 use App\Services\StateManager;
+use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -25,6 +26,7 @@ class CreateNoteView extends Component
     public ?int $folderId = null;
     public ?int $safeId = null;
     public ?int $archiveId = null;
+    public ?string $dropdownValue = null;
     public bool $is_favorite = false;
     public string $content = '';
     public bool $isSaving = false;
@@ -167,6 +169,11 @@ class CreateNoteView extends Component
                 $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
             }
 
+            // Очищаем список временных изображений при успешном сохранении
+            // (файлы уже привязаны к заметке и не должны удаляться)
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->clear();
+
             $this->dispatch('noteCreated');
             $this->dispatch('navigateTo', 'dashboard');
         } catch (\Throwable $e) {
@@ -175,20 +182,30 @@ class CreateNoteView extends Component
         }
     }
 
-    public function updatedFolderId(): void
+    public function updatedDropdownValue(): void
     {
         // Обработка префиксов safe_ и archive_
-        if (is_string($this->folderId)) {
-            if (str_starts_with($this->folderId, 'safe_')) {
-                $this->safeId = (int) substr($this->folderId, 5);
+        if (is_string($this->dropdownValue)) {
+            if (str_starts_with($this->dropdownValue, 'safe_')) {
+                $this->safeId = (int) substr($this->dropdownValue, 5);
                 $this->folderId = null;
                 $this->archiveId = null;
-            } elseif (str_starts_with($this->folderId, 'archive_')) {
-                $this->archiveId = (int) substr($this->folderId, 8);
+            } elseif (str_starts_with($this->dropdownValue, 'archive_')) {
+                $this->archiveId = (int) substr($this->dropdownValue, 8);
                 $this->folderId = null;
                 $this->safeId = null;
+            } elseif (is_numeric($this->dropdownValue)) {
+                $this->folderId = (int) $this->dropdownValue;
+                $this->safeId = null;
+                $this->archiveId = null;
             }
         }
+        $this->autoSave();
+    }
+
+    public function updatedFolderId(): void
+    {
+        // Этот метод может вызываться если folderId изменяется напрямую
         $this->autoSave();
     }
 

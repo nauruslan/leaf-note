@@ -3,6 +3,7 @@
 namespace App\Livewire\Layouts;
 
 use App\Services\StateManager;
+use App\Services\TemporaryImageService;
 use Livewire\Component;
 
 class AppLayout extends Component
@@ -37,6 +38,14 @@ class AppLayout extends Component
         $leavingSafeContext = in_array($this->section, $safeContextSections) && !in_array($section, $safeContextSections);
         if ($leavingSafeContext) {
             StateManager::remove('safe_unlocked');
+        }
+
+        // Если покидаем страницу создания заметки/чеклиста, удаляем несохраненные временные изображения
+        $createSections = ['create-note', 'create-checklist'];
+        $leavingCreateSection = in_array($this->section, $createSections) && !in_array($section, $createSections);
+        if ($leavingCreateSection) {
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->deleteUnsavedImages();
         }
 
         StateManager::set('section', $section);

@@ -221,7 +221,7 @@ class EditNote extends Component
 
     public function setContent($data): void
     {
-        // Извлекаем контент из массива, если он обернут (из JavaScript приходит { content: ... })
+        // Извлекаем контент из массива
         if (is_array($data) && isset($data['content'])) {
             $content = $data['content'];
         } else {
