@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Storage;
 class TemporaryImageService
 {
     private const SESSION_KEY = 'temporary_images';
+    private const PENDING_DELETE_KEY = 'pending_delete_images';
     private const STORAGE_PATH = 'notes/images';
+    private const BACKUP_PATH = 'notes/.backup';
 
     /**
      * Добавить путь к временному изображению
@@ -24,13 +26,18 @@ class TemporaryImageService
     {
         $images = $this->getAll();
 
-        if (!in_array($path, $images)) {
-            $images[] = [
-                'path' => $path,
-                'created_at' => time(),
-            ];
-            Session::put(self::SESSION_KEY, $images);
+        // Проверяем, есть ли уже такой путь в списке
+        foreach ($images as $item) {
+            if (isset($item['path']) && $item['path'] === $path) {
+                return; // Уже существует
+            }
         }
+
+        $images[] = [
+            'path' => $path,
+            'created_at' => time(),
+        ];
+        Session::put(self::SESSION_KEY, $images);
     }
 
     /**
@@ -76,10 +83,107 @@ class TemporaryImageService
     /**
      * Удалить временные изображения, созданные в текущей сессии создания заметки
      * Вызывается при уходе со страницы создания заметки без сохранения
+     * Удаляет только те изображения, которые не используются в других заметках
      */
     public function deleteUnsavedImages(): void
     {
-        $this->deleteAll();
+        $images = $this->getAll();
+
+        foreach ($images as $item) {
+            // Проверяем, используется ли изображение в какой-либо заметке
+            if (!$this->isFileUsedInNotes($item['path'])) {
+                $this->deleteFile($item['path']);
+            }
+        }
+
+        $this->clear();
+    }
+
+    /**
+     * Добавить изображение в список на удаление (мягкое удаление)
+     * Изображение не удаляется физически, а помечается для удаления
+     * Перед пометкой создается бэкап файла для возможности восстановления
+     */
+    public function markForDeletion(string $path): void
+    {
+        $pendingDelete = $this->getPendingDelete();
+
+        // Проверяем, есть ли уже такой путь в списке
+        foreach ($pendingDelete as $item) {
+            if (isset($item['path']) && $item['path'] === $path) {
+                return; // Уже в списке
+            }
+        }
+
+        // Создаем бэкап файла перед удалением
+        $this->createBackup($path);
+
+        $pendingDelete[] = [
+            'path' => $path,
+            'marked_at' => time(),
+        ];
+        Session::put(self::PENDING_DELETE_KEY, $pendingDelete);
+    }
+
+    /**
+     * Восстановить изображение из списка на удаление (при undo)
+     * Возвращает true если файл был успешно восстановлен из бэкапа
+     */
+    public function restoreFromDeletion(string $path): bool
+    {
+        $pendingDelete = $this->getPendingDelete();
+        $pendingDelete = array_filter($pendingDelete, fn($item) => $item['path'] !== $path);
+        Session::put(self::PENDING_DELETE_KEY, array_values($pendingDelete));
+
+        // Восстанавливаем файл из бэкапа
+        return $this->restoreFromBackup($path);
+    }
+
+    /**
+     * Получить все изображения, помеченные на удаление
+     */
+    public function getPendingDelete(): array
+    {
+        return Session::get(self::PENDING_DELETE_KEY, []);
+    }
+
+    /**
+     * Выполнить фактическое удаление всех помеченных изображений
+     */
+    public function executePendingDeletion(): void
+    {
+        $pendingDelete = $this->getPendingDelete();
+
+        foreach ($pendingDelete as $item) {
+            // Проверяем, используется ли изображение в какой-либо заметке
+            if (!$this->isFileUsedInNotes($item['path'])) {
+                $this->deleteFile($item['path']);
+            }
+        }
+
+        $this->clearPendingDeletion();
+    }
+
+    /**
+     * Очистить список изображений на удаление (без удаления файлов)
+     */
+    public function clearPendingDeletion(): void
+    {
+        Session::forget(self::PENDING_DELETE_KEY);
+    }
+
+    /**
+     * Проверить, помечено ли изображение на удаление
+     */
+    public function isMarkedForDeletion(string $path): bool
+    {
+        $pendingDelete = $this->getPendingDelete();
+        foreach ($pendingDelete as $item) {
+            if (isset($item['path']) && $item['path'] === $path) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -99,6 +203,81 @@ class TemporaryImageService
         }
 
         return false;
+    }
+
+    /**
+     * Создать бэкап файла изображения
+     * Бэкап хранится в отдельной директории для возможности восстановления
+     */
+    private function createBackup(string $path): bool
+    {
+        try {
+            $cleanPath = str_replace('..', '', $path);
+
+            if (!str_starts_with($cleanPath, 'notes/')) {
+                return false;
+            }
+
+            // Проверяем существование оригинального файла
+            if (!Storage::disk('public')->exists($cleanPath)) {
+                return false;
+            }
+
+            // Создаем директорию для бэкапов если её нет
+            if (!Storage::disk('public')->exists(self::BACKUP_PATH)) {
+                Storage::disk('public')->makeDirectory(self::BACKUP_PATH);
+            }
+
+            // Генерируем уникальное имя для бэкапа на основе оригинального пути
+            $backupName = md5($cleanPath) . '_' . basename($cleanPath);
+            $backupPath = self::BACKUP_PATH . '/' . $backupName;
+
+            // Копируем файл в бэкап
+            $content = Storage::disk('public')->get($cleanPath);
+            return Storage::disk('public')->put($backupPath, $content);
+
+        } catch (\Exception $e) {
+            report($e);
+            return false;
+        }
+    }
+
+    /**
+     * Восстановить файл изображения из бэкапа
+     */
+    private function restoreFromBackup(string $path): bool
+    {
+        try {
+            $cleanPath = str_replace('..', '', $path);
+
+            if (!str_starts_with($cleanPath, 'notes/')) {
+                return false;
+            }
+
+            // Генерируем имя бэкапа
+            $backupName = md5($cleanPath) . '_' . basename($cleanPath);
+            $backupPath = self::BACKUP_PATH . '/' . $backupName;
+
+            // Проверяем существование бэкапа
+            if (!Storage::disk('public')->exists($backupPath)) {
+                return false;
+            }
+
+            // Восстанавливаем файл из бэкапа
+            $content = Storage::disk('public')->get($backupPath);
+            $restored = Storage::disk('public')->put($cleanPath, $content);
+
+            // Удаляем бэкап после восстановления
+            if ($restored) {
+                Storage::disk('public')->delete($backupPath);
+            }
+
+            return $restored;
+
+        } catch (\Exception $e) {
+            report($e);
+            return false;
+        }
     }
 
     /**

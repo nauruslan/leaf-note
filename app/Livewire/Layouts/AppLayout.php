@@ -40,10 +40,9 @@ class AppLayout extends Component
             StateManager::remove('safe_unlocked');
         }
 
-        // Если покидаем страницу создания заметки/чеклиста, удаляем несохраненные временные изображения
-        $createSections = ['create-note', 'create-checklist'];
-        $leavingCreateSection = in_array($this->section, $createSections) && !in_array($section, $createSections);
-        if ($leavingCreateSection) {
+        // Если покидаем страницу создания заметки, удаляем несохраненные временные изображения
+        // (только create-note)
+        if ($this->section === 'create-note' && $section !== 'create-note') {
             $temporaryImageService = app(TemporaryImageService::class);
             $temporaryImageService->deleteUnsavedImages();
         }

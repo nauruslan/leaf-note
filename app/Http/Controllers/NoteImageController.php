@@ -79,4 +79,100 @@ class NoteImageController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Мягкое удаление - пометить изображение на удаление
+     * Используется при удалении изображения в редакторе (для возможности undo)
+     */
+    public function softDelete(Request $request)
+    {
+        $request->validate([
+            'path' => 'required|string|max:500'
+        ]);
+
+        try {
+            $path = str_replace('..', '', $request->path);
+
+            if (!str_starts_with($path, 'notes/')) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Неверный путь к файлу'
+                ], 403);
+            }
+
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->markForDeletion($path);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Изображение помечено на удаление'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Ошибка: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Восстановить изображение из списка на удаление
+     * Используется при undo удаления изображения
+     */
+    public function restore(Request $request)
+    {
+        $request->validate([
+            'path' => 'required|string|max:500'
+        ]);
+
+        try {
+            $path = str_replace('..', '', $request->path);
+
+            if (!str_starts_with($path, 'notes/')) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Неверный путь к файлу'
+                ], 403);
+            }
+
+            $temporaryImageService = app(TemporaryImageService::class);
+            $restored = $temporaryImageService->restoreFromDeletion($path);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Изображение восстановлено',
+                'restored' => $restored
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Ошибка: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Выполнить фактическое удаление всех помеченных изображений
+     * Вызывается при сохранении заметки или уходе со страницы
+     */
+    public function executeDeletion(Request $request)
+    {
+        try {
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->executePendingDeletion();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Удаление выполнено'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Ошибка: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

@@ -6,7 +6,7 @@ use App\Services\TemporaryImageService;
 use Illuminate\Console\Command;
 
 /**
- * Команда для очистки старых временных изображений (garbage collection).
+ * Команда для очистки старых временных изображений.
  * Удаляет изображения старше указанного количества часов, которые не привязаны к заметкам.
  * Запускается через планировщик или вручную: php artisan images:cleanup-temporary
  */

@@ -173,11 +173,24 @@ export function initNoteEditor(options) {
 
     const editor = new Editor(config);
 
+    // Отслеживание транзакций для синхронизации изображений при undo/redo
+    editor.on('transaction', ({ transaction }) => {
+        // Проверяем, что это undo или redo
+        if (transaction.getMeta('history')) {
+            if (onUpdate) {
+                // Передаем editor в onUpdate для синхронизации изображений
+                setTimeout(() => {
+                    if (onUpdate) onUpdate(editor);
+                }, 0);
+            }
+        }
+    });
+
     editorElement._editor = editor;
 
     setTimeout(() => {
         updateCounters(editor);
-        initToolbarButtons(editor, onImageUploaded);
+        initToolbarButtons(editor, onImageUploaded, onUpdate);
         updateToolbarButtons(editor);
     }, 0);
 
@@ -217,7 +230,7 @@ export function sendContentToLivewire(elementId) {
     }
 }
 
-function initToolbarButtons(editor, onImageUploaded) {
+function initToolbarButtons(editor, onImageUploaded, onUpdate) {
     const buttonActions = {
         bold: () => editor.chain().focus().toggleBold().run(),
         italic: () => editor.chain().focus().toggleItalic().run(),
@@ -228,8 +241,20 @@ function initToolbarButtons(editor, onImageUploaded) {
         bulletList: () => editor.chain().focus().toggleBulletList().run(),
         orderedList: () => editor.chain().focus().toggleOrderedList().run(),
         taskList: () => editor.chain().focus().toggleTaskList().run(),
-        undo: () => editor.chain().focus().undo().run(),
-        redo: () => editor.chain().focus().redo().run(),
+        undo: () => {
+            editor.chain().focus().undo().run();
+            // Триггерим onUpdate для синхронизации изображений
+            if (onUpdate) {
+                setTimeout(() => onUpdate(editor), 0);
+            }
+        },
+        redo: () => {
+            editor.chain().focus().redo().run();
+            // Триггерим onUpdate для синхронизации изображений
+            if (onUpdate) {
+                setTimeout(() => onUpdate(editor), 0);
+            }
+        },
         addRow: () => editor.chain().focus().addRowAfter().run(),
         addCol: () => editor.chain().focus().addColumnAfter().run(),
         deleteRow: () => editor.chain().focus().deleteRow().run(),
@@ -285,7 +310,26 @@ function initToolbarButtons(editor, onImageUploaded) {
                     });
                     if (!response.ok) throw new Error('Ошибка загрузки');
                     const data = await response.json();
+
+                    // Вставляем изображение
                     editor.chain().focus().setImage({ src: data.url, path: data.path }).run();
+
+                    // Добавляем параграф после изображения
+                    setTimeout(() => {
+                        const { state } = editor;
+                        const { from } = state.selection;
+
+                        // Вставляем параграф ПОСЛЕ изображения (from + 1)
+                        const docSize = state.doc.content.size;
+                        const insertPos = Math.min(from + 1, docSize);
+
+                        editor
+                            .chain()
+                            .insertContentAt(insertPos, { type: 'paragraph' })
+                            .focus()
+                            .run();
+                    }, 50);
+
                     updateToolbarButtons(editor);
 
                     if (onImageUploaded && typeof onImageUploaded === 'function') {

@@ -629,6 +629,8 @@ function createImageDeleteButton(node, getPos, editor) {
         e.stopPropagation();
         e.preventDefault();
 
+        // Удаляем изображение из редактора
+        // Мягкое удаление (softDeleteImage) вызывается автоматически в syncImageState при изменении контента
         if (typeof getPos === 'function') {
             const pos = getPos();
             editor
@@ -640,6 +642,80 @@ function createImageDeleteButton(node, getPos, editor) {
     });
 
     return deleteBtn;
+}
+
+/**
+ * Мягкое удаление изображения - помечает на удаление, но не удаляет физически
+ * @param {string} path - Путь к изображению
+ */
+export function softDeleteImage(path) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch('/notes/soft-delete-image', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ path }),
+    }).catch((error) => {
+        // Игнорируем 429 (rate limit) ошибки, чтобы не блокировать JS
+        if (error.status === 429) {
+            console.warn('[ImageSoftDelete] Rate limited, skipping:', path);
+            return;
+        }
+        console.error('[ImageSoftDelete] Error:', error);
+    });
+}
+
+/**
+ * Восстановление изображения из списка на удаление
+ * @param {string} path - Путь к изображению
+ */
+export function restoreImage(path) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch('/notes/restore-image', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ path }),
+    })
+        .then((response) => {
+            // Игнорируем 429 (rate limit) ошибки, чтобы не блокировать JS
+            if (response.status === 429) {
+                console.warn('[ImageRestore] Rate limited, skipping:', path);
+                return;
+            }
+            if (!response.ok) {
+                console.error('[ImageRestore] Error:', response.status);
+            }
+        })
+        .catch((error) => {
+            console.error('[ImageRestore] Error:', error);
+        });
+}
+
+/**
+ * Выполнить фактическое удаление всех помеченных изображений
+ */
+export function executePendingDeletion() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    return fetch('/notes/execute-deletion', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+    }).catch((error) => {
+        console.error('[ExecuteDeletion] Error:', error);
+    });
 }
 
 function createViewButtonHTML() {

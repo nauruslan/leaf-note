@@ -46,6 +46,11 @@ class CreateNoteView extends Component
     {
         $this->content = self::EMPTY_NOTE_STRUCTURE;
 
+        // Очищаем список временных изображений при входе на страницу создания заметки
+        // Это гарантирует, что в сессии будут только изображения, загруженные в текущей сессии
+        $temporaryImageService = app(TemporaryImageService::class);
+        $temporaryImageService->clear();
+
         // Если заметка уже создана, загружаем оригинальные пути изображений
         if ($this->noteId) {
             $note = Note::where('user_id', Auth::id())
@@ -79,7 +84,26 @@ class CreateNoteView extends Component
 
     public function cancel(): void
     {
-        $this->dispatch('deleteUploadedImages');
+        // Если заметка была создана через автосохранение, удаляем её
+        if ($this->noteId) {
+            $note = Note::where('user_id', Auth::id())
+                ->where('type', Note::TYPE_NOTE)
+                ->find($this->noteId);
+
+            if ($note) {
+                // Удаляем изображения из хранилища
+                $imagePaths = $this->extractImagePathsFromContent($note->content);
+                $this->deleteImagesFromStorage($imagePaths);
+                // Удаляем заметку
+                $note->delete();
+            }
+        }
+
+        // Выполняем отложенное удаление изображений и очищаем временные
+        $temporaryImageService = app(TemporaryImageService::class);
+        $temporaryImageService->executePendingDeletion();
+        $temporaryImageService->deleteUnsavedImages();
+
         $this->dispatch('navigateTo', 'dashboard');
     }
 
@@ -121,13 +145,9 @@ class CreateNoteView extends Component
                     return;
                 }
 
-                // Удаление изображений, которые больше не используются
-                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
-                // Получаем оригинальные пути из БД (из сохраненного content)
-                $originalImagePathsFromDb = $this->extractImagePathsFromContent($this->cachedNote->content);
-                $removedImagePaths = array_diff($originalImagePathsFromDb, $currentImagePaths);
-
-                $this->deleteImagesFromStorage($removedImagePaths);
+                // Выполняем отложенное удаление изображений
+                $temporaryImageService = app(TemporaryImageService::class);
+                $temporaryImageService->executePendingDeletion();
 
                 $this->updateTitle($this->cachedNote);
                 $this->updateContent($this->cachedNote);
@@ -136,6 +156,7 @@ class CreateNoteView extends Component
                 $this->cachedNote->save();
 
                 // Обновляем оригинальные пути изображений для текущего запроса
+                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
                 $this->originalImagePaths = $currentImagePaths;
             } else {
                 // Создаем новую заметку
@@ -300,13 +321,9 @@ class CreateNoteView extends Component
                     return;
                 }
 
-                // Удаление изображений, которые больше не используются
-                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
-                // Получаем оригинальные пути из БД (из сохраненного content)
-                $originalImagePathsFromDb = $this->extractImagePathsFromContent($this->cachedNote->content);
-                $removedImagePaths = array_diff($originalImagePathsFromDb, $currentImagePaths);
-
-                $this->deleteImagesFromStorage($removedImagePaths);
+                // Выполняем отложенное удаление изображений
+                $temporaryImageService = app(TemporaryImageService::class);
+                $temporaryImageService->executePendingDeletion();
 
                 $this->updateTitle($this->cachedNote);
                 $this->updateContent($this->cachedNote);
@@ -315,6 +332,7 @@ class CreateNoteView extends Component
                 $this->cachedNote->save();
 
                 // Обновляем оригинальные пути изображений для текущего запроса
+                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
                 $this->originalImagePaths = $currentImagePaths;
             } else {
                 // Создаем новую заметку
@@ -351,6 +369,11 @@ class CreateNoteView extends Component
                 // Инициализируем оригинальные пути изображений после создания
                 $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
             }
+
+            // Очищаем список временных изображений при успешном автосохранении
+            // (файлы уже привязаны к заметке и не должны удаляться при уходе со страницы)
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->clear();
         } catch (\Throwable $e) {
             report($e);
             // При автосохранении не показываем ошибку пользователю

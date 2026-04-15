@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
 use App\Services\StateManager;
+use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
@@ -162,6 +163,10 @@ class EditNote extends Component
 
     public function cancel(): void
     {
+        // Очищаем отложенные удаления изображений (не выполняем их)
+        $temporaryImageService = app(TemporaryImageService::class);
+        $temporaryImageService->clearPendingDeletion();
+
         $this->js('localStorage.clear()');
         $this->dispatch('restoreNoteOriginalState');
         $this->dispatch('navigateTo', 'dashboard');
@@ -323,10 +328,9 @@ class EditNote extends Component
                 return;
             }
 
-            // Удаление изображений, которые больше не используются
-            $currentImagePaths = $this->extractImagePathsFromContent($this->content);
-            $removedImagePaths = array_diff($this->originalImagePaths, $currentImagePaths);
-            $this->deleteImagesFromStorage($removedImagePaths);
+            // Выполняем отложенное удаление изображений
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->executePendingDeletion();
 
             $this->updateTitle($this->cachedNote);
             $this->updateContent($this->cachedNote);
@@ -336,6 +340,7 @@ class EditNote extends Component
             $this->cachedNote->save();
 
             // Обновляем оригинальные пути изображений
+            $currentImagePaths = $this->extractImagePathsFromContent($this->content);
             $this->originalImagePaths = $currentImagePaths;
 
             // Можно диспатчить событие для UI, что автосохранение прошло успешно
@@ -355,12 +360,12 @@ class EditNote extends Component
                 return;
             }
 
-            $currentImagePaths = $this->extractImagePathsFromContent($this->content);
-            $removedImagePaths = array_diff($this->originalImagePaths, $currentImagePaths);
-            $this->deleteImagesFromStorage($removedImagePaths);
+            // Выполняем отложенное удаление изображений
+            $temporaryImageService = app(TemporaryImageService::class);
+            $temporaryImageService->executePendingDeletion();
 
             $this->updateNoteLocation();
-            $this->originalImagePaths = $currentImagePaths;
+            $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
 
             $this->dispatch('noteUpdated');
             $this->dispatch('navigateTo', 'dashboard');

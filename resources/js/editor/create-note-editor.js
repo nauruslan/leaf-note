@@ -1,12 +1,64 @@
 import { destroyNoteEditor, initNoteEditor } from './note-editor';
+import { executePendingDeletion, restoreImage, softDeleteImage } from './editor-helpers';
 
 // Приватное состояние модуля (замыкание)
 let editorInstance = null;
 let uploadedImages = [];
 let lastContent = null;
+let previousImagePaths = new Set(); // Пути изображений из предыдущего состояния
+
+/**
+ * Извлечь пути изображений из контента редактора
+ */
+function extractImagePathsFromContent(content) {
+    const paths = new Set();
+    if (!content || !content.content) return paths;
+
+    function traverse(node) {
+        if (!node) return;
+        if (node.type === 'image' && node.attrs?.path) {
+            paths.add(node.attrs.path);
+        }
+        if (node.content) {
+            node.content.forEach(traverse);
+        }
+    }
+
+    traverse(content);
+    return paths;
+}
+
+/**
+ * Сравнить текущие и предыдущие пути изображений,
+ * выполнить мягкое удаление/восстановление при undo/redo
+ */
+function syncImageState(currentContent) {
+    const currentPaths = extractImagePathsFromContent(currentContent);
+    const previousPaths = previousImagePaths;
+
+    // Изображения, которые были удалены из контента (undo добавления или удаление)
+    for (const path of previousPaths) {
+        if (!currentPaths.has(path)) {
+            // Изображение удалено из контента — помечаем на удаление
+            softDeleteImage(path);
+        }
+    }
+
+    // Изображения, которые появились в контенте (redo удаления или добавление)
+    for (const path of currentPaths) {
+        if (!previousPaths.has(path)) {
+            // Изображение появилось в контенте — восстанавливаем из списка на удаление
+            restoreImage(path);
+        }
+    }
+
+    // Обновляем предыдущее состояние
+    previousImagePaths = currentPaths;
+}
 
 export function initCreateNoteEditor() {
     uploadedImages = [];
+    previousImagePaths = new Set();
 
     // Уничтожаем существующий редактор
     if (editorInstance) {
@@ -30,6 +82,10 @@ export function initCreateNoteEditor() {
             // Сохраняем последние данные в замыкании
             const json = editor.getJSON();
             lastContent = json;
+
+            // Синхронизируем состояние изображений (мягкое удаление/восстановление)
+            syncImageState(json);
+
             // Обновляем скрытый input для синхронизации с Livewire
             const contentInput = document.getElementById('note-content-input');
             if (contentInput) {
@@ -38,7 +94,6 @@ export function initCreateNoteEditor() {
                 clearTimeout(window.createNoteUpdateTimeout);
                 window.createNoteUpdateTimeout = setTimeout(() => {
                     contentInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    // Можно добавить индикатор автосохранения, если потребуется
                 }, 300);
             }
         },
@@ -48,6 +103,7 @@ export function initCreateNoteEditor() {
 
     // Сохраняем начальные данные
     lastContent = editor.getJSON();
+    previousImagePaths = extractImagePathsFromContent(lastContent);
 
     return editor;
 }
@@ -60,6 +116,7 @@ export function destroyCreateNoteEditor() {
     }
     uploadedImages = [];
     lastContent = null;
+    previousImagePaths = new Set();
 }
 
 export function getCreateNoteEditorContent() {
@@ -73,40 +130,12 @@ export function sendCreateNoteContentToLivewire() {
     }
 }
 
+/**
+ * Выполнить фактическое удаление всех помеченных изображений
+ * Вызывается при сохранении заметки или уходе со страницы
+ */
 export function deleteAllUploadedImages() {
-    if (uploadedImages.length === 0) {
-        return Promise.resolve();
-    }
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-    const deletePromises = uploadedImages.map((path) => {
-        return fetch('/notes/delete-image', {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ path }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    console.error(
-                        `[CreateNoteEditor] Ошибка удаления изображения ${path}:`,
-                        response.statusText,
-                    );
-                }
-                return response.json();
-            })
-            .catch((error) => {
-                console.error(`[CreateNoteEditor] Ошибка удаления изображения ${path}:`, error);
-            });
-    });
-
-    return Promise.all(deletePromises).then(() => {
-        uploadedImages = [];
-    });
+    return executePendingDeletion();
 }
 
 function autoInitCreateNoteEditor() {

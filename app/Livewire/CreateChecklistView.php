@@ -6,7 +6,6 @@ use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Note;
 use App\Services\StateManager;
-use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -68,7 +67,6 @@ class CreateChecklistView extends Component
 
     public function cancel(): void
     {
-        $this->dispatch('deleteUploadedImages');
         $this->dispatch('navigateTo', 'dashboard');
     }
 
@@ -143,11 +141,6 @@ class CreateChecklistView extends Component
                 $this->noteId = $note->id;
                 $this->cachedNote = $note;
             }
-
-            // Очищаем список временных изображений при успешном сохранении
-            // (файлы уже привязаны к заметке и не должны удаляться)
-            $temporaryImageService = app(TemporaryImageService::class);
-            $temporaryImageService->clear();
 
             $this->dispatch('checklistCreated');
             $this->dispatch('navigateTo', 'dashboard');
