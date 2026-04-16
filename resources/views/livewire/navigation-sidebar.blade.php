@@ -161,12 +161,23 @@
 
                 try {
                     $wire.clearSidebarFlag();
-                } catch (e) {}
+                } catch (e) {
+                    // Игнорируем ошибки если компонент уже уничтожен
+                }
             }, 150);
         });
 
+        // Перехватываем клики по ссылкам навигации и устанавливаем флаг ДО отправки запроса
+        sidebar?.addEventListener('click', (e) => {
+            const link = e.target.closest('a[wire\\:click]');
+            if (link) {
+                isNavigating = true;
+                clearAllTimers();
+            }
+        });
+
         $wire.on('navigateTo', () => {
-            isNavigating = true;
+            // Флаг уже установлен в обработчике клика
             clearAllTimers();
             // После навигации сворачиваем через DOM
             setTimeout(() => {

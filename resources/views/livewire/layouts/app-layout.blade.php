@@ -1,6 +1,6 @@
 <div class="min-h-screen flex flex-col">
     {{-- Sidebar --}}
-    <livewire:navigation-sidebar :section="$section" :folder-id="$folderId" key="{{ $section }}-{{ $componentKey }}" />
+    <livewire:navigation-sidebar :section="$section" :folder-id="$folderId" key="navigation-sidebar" />
     <div class="ml-16 flex-1">
         {{-- Content Dinamic --}}
         @if ($section === 'edit-checklist')
