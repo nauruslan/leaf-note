@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Mail\ResetPasswordMail;
 use App\Mail\VerifyEmailMail;
 use App\Models\Trash;
 use App\Models\Archive;
@@ -9,6 +10,8 @@ use App\Models\Safe;
 use App\Models\Folder;
 use App\Models\Note;
 use App\Services\DemoUserService;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -160,6 +163,22 @@ class User extends Authenticatable implements MustVerifyEmail
 
         Mail::to($this->getEmailForVerification())->send(
             new VerifyEmailMail($verificationUrl, $this->name)
+        );
+    }
+
+    /**
+     * Отправить уведомление о сбросе пароля.
+     * Переопределяет стандартный метод для использования кастомного Mailable.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $resetUrl = url(route('password.reset', [
+            'token' => $token,
+            'email' => $this->getEmailForPasswordReset(),
+        ], false));
+
+        Mail::to($this->getEmailForPasswordReset())->send(
+            new ResetPasswordMail($resetUrl, $this->name)
         );
     }
 }
