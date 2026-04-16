@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Mail\VerifyEmailMail;
 use App\Models\Trash;
 use App\Models\Archive;
 use App\Models\Safe;
@@ -12,6 +13,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -137,6 +140,26 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return now()->gte(
             $this->created_at->addMinutes(DemoUserService::DEMO_LIFETIME_MINUTES)
+        );
+    }
+
+    /**
+     * Отправить уведомление о верификации email.
+     * Переопределяет стандартный метод для использования кастомного Mailable.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            [
+                'id' => $this->getKey(),
+                'hash' => sha1($this->getEmailForVerification()),
+            ]
+        );
+
+        Mail::to($this->getEmailForVerification())->send(
+            new VerifyEmailMail($verificationUrl, $this->name)
         );
     }
 }
