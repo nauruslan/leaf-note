@@ -112,8 +112,11 @@ class ProfileView extends Component
         $user = Auth::user();
         $user->name = $this->name;
         $user->email = $this->email;
-        $user->notifications_enabled = (bool) $this->notificationsEnabled;
+        $user->notifications_enabled = $this->notificationsEnabled === '1';
         $user->save();
+
+        // Отправляем событие для обновления JavaScript переменной
+        $this->dispatch('notifications-settings-updated', enabled: $user->notifications_enabled);
 
         // Сохраняем настройки корзины
         $this->saveNotificationSettings($user);

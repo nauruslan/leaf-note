@@ -56,7 +56,18 @@ class Notifications {
         const bindEvent = () => {
             if (window.Livewire) {
                 Livewire.on('notification', (data) => {
+                    // Проверяем, включены ли уведомления в настройках пользователя
+                    if (window.App && window.App.notificationsEnabled === false) {
+                        return;
+                    }
                     this.show(data.title, data.content, data.type, data.duration || 3000);
+                });
+
+                // Слушаем событие обновления настроек уведомлений
+                Livewire.on('notifications-settings-updated', (data) => {
+                    if (window.App) {
+                        window.App.notificationsEnabled = data.enabled;
+                    }
                 });
             }
         };
