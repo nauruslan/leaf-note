@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Folder;
 use App\Models\Note;
+use App\Models\Trash;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -20,10 +21,21 @@ class TrashView extends Component
 
     public $section = 'trash';
     public $heading = 'Корзина';
+    public string $subheading = '';
 
     public function mount(): void
     {
         $this->sort = 'deleted';
+        $this->setSubheading();
+    }
+
+    // Установить subheading в зависимости от настроек автоочистки
+    private function setSubheading(): void
+    {
+        $trash = Auth::user()->trash;
+        if ($trash && $trash->auto_delete_days && $trash->auto_delete_days !== 'disabled') {
+            $this->subheading = 'Включена автоочистка корзины';
+        }
     }
 
     // Свойства для модального окна подтверждения удаления

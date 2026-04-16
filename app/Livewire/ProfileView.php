@@ -136,7 +136,13 @@ class ProfileView extends Component
     {
         $trash = Trash::where('user_id', $user->id)->first();
         if ($trash) {
-            $autoDeleteDays = $this->autoDeleteDays === 'disabled' ? null : (int) $this->autoDeleteDays;
+            if ($this->autoDeleteDays === 'disabled') {
+                $autoDeleteDays = null;
+            } elseif ($this->autoDeleteDays === '1min') {
+                $autoDeleteDays = '1min';
+            } else {
+                $autoDeleteDays = (int) $this->autoDeleteDays;
+            }
             $trash->auto_delete_days = $autoDeleteDays;
             $trash->save();
         }

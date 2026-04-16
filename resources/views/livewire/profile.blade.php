@@ -112,6 +112,7 @@
                             </p>
                             <x-dropdown :options="[
                                 ['value' => 'disabled', 'text' => 'Отключено'],
+                                ['value' => '1min', 'text' => '1 мин (тест)'],
                                 ['value' => '7', 'text' => '7 дней'],
                                 ['value' => '14', 'text' => '14 дней'],
                                 ['value' => '30', 'text' => '30 дней'],
