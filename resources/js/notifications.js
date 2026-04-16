@@ -57,7 +57,7 @@ class Notifications {
             if (window.Livewire) {
                 Livewire.on('notification', (data) => {
                     // Проверяем, включены ли уведомления в настройках пользователя
-                    if (window.App && window.App.notificationsEnabled === false) {
+                    if (document.documentElement.dataset.notifications === 'false') {
                         return;
                     }
                     this.show(data.title, data.content, data.type, data.duration || 3000);
@@ -65,9 +65,9 @@ class Notifications {
 
                 // Слушаем событие обновления настроек уведомлений
                 Livewire.on('notifications-settings-updated', (data) => {
-                    if (window.App) {
-                        window.App.notificationsEnabled = data.enabled;
-                    }
+                    document.documentElement.dataset.notifications = data.enabled
+                        ? 'true'
+                        : 'false';
                 });
             }
         };

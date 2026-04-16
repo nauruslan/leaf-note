@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    data-notifications="{{ auth()->check() && auth()->user()->notifications_enabled }}">
 
 <head>
     <meta charset="utf-8">
@@ -8,11 +9,6 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <script>
-        window.App = {
-            notificationsEnabled: {{ auth()->check() && auth()->user()->notifications_enabled ? 'true' : 'false' }}
-        };
-    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 

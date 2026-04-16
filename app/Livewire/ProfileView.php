@@ -41,6 +41,7 @@ class ProfileView extends Component
 
     // Состояние
     public bool $hasSafePassword = false;
+    public bool $canChangePassword = true;
 
     // Состояние модального окна сброса пароля сейфа
     public bool $confirmingResetSafePassword = false;
@@ -63,6 +64,9 @@ class ProfileView extends Component
         // Safe пароль
         $safe = Safe::where('user_id', $user->id)->first();
         $this->hasSafePassword = $safe && $safe->hasPassword();
+
+        // Проверка возможности смены пароля (не демо и не Google аккаунт)
+        $this->canChangePassword = !$user->isDemoUser() && !$user->hasGoogleAccount();
     }
 
     // Получить настройку автоудаления из корзины.
@@ -154,6 +158,11 @@ class ProfileView extends Component
     // Сменить пароль аккаунта.
     private function changePassword(): void
     {
+        // Если смена пароля недоступна - выходим
+        if (!$this->canChangePassword) {
+            return;
+        }
+
         // Если все поля пусты - не меняем пароль
         if (empty($this->currentPassword) && empty($this->newPassword) && empty($this->confirmPassword)) {
             return;
