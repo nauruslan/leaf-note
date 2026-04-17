@@ -65,16 +65,13 @@ new #[Layout('layouts.guest')] class extends Component {
             </span>
         </div>
         <h1 class="text-2xl font-bold text-gray-900">Установка нового пароля</h1>
-        <p class="mt-2 text-sm text-gray-600">
-            Введите ваш новый пароль ниже
-        </p>
     </div>
 
-    @session('status')
+    @if (session('status'))
         <div class="mb-4 p-3 bg-green-50 border border-green-300 rounded-lg text-sm text-green-800">
-            {{ $value }}
+            Ваш пароль был успешно сброшен.
         </div>
-    @endsession
+    @endif
 
     <form wire:submit="resetPassword" class="space-y-6">
         <!-- Email Address -->

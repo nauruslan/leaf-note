@@ -55,11 +55,11 @@ new #[Layout('layouts.guest')] class extends Component {
         <h1 class="text-2xl font-bold text-gray-900">Войдите в свой аккаунт</h1>
     </div>
 
-    @session('status')
-        <div class="mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
-            {{ $value }}
+    @if (session('status'))
+        <div class="mb-4 p-3 bg-green-50 border border-green-300 rounded-lg text-sm text-green-800">
+            Ваш пароль был успешно сброшен. Вы можете войти с новым паролем.
         </div>
-    @endsession
+    @endif
 
     <!-- Login Form -->
     <form wire:submit.prevent="login" class="space-y-6">

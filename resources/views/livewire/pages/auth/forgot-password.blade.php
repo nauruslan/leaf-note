@@ -29,28 +29,28 @@ new #[Layout('layouts.guest')] class extends Component {
 
 <div>
     <!-- Header -->
-    <div class="text-center mb-8">
+    <div class="text-center mb-4">
         <div class="flex items-center justify-center gap-2 mb-3">
             <span
                 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 LeafNote
             </span>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900">Забыли пароль?</h1>
-        <p class="mt-2 text-sm text-gray-600">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Забыли пароль?</h1>
+        <p class="text-sm text-gray-600">
             Введите ваш email, и мы отправим ссылку для сброса пароля
         </p>
     </div>
 
-    @session('status')
+    @if (session('status'))
         <div class="mb-4 p-3 bg-green-50 border border-green-300 rounded-lg text-sm text-green-800">
-            {{ $value }}
+            Письмо со ссылкой для сброса пароля отправлено на вашу почту.
         </div>
-    @endsession
+    @endif
 
     <form wire:submit="sendPasswordResetLink" class="space-y-6">
         <!-- Email Address -->
-        <div>
+        <div class="mb-2">
             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
                 Email
             </label>
