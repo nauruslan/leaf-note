@@ -4,7 +4,10 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
+use App\Models\Archive;
+use App\Models\Folder;
 use App\Models\Note;
+use App\Models\Safe;
 use App\Services\StateManager;
 use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +34,7 @@ class CreateNoteView extends Component
     public string $content = '';
     public bool $isSaving = false;
     public ?int $noteId = null;
+    public bool $isFirstSave = true; // Флаг для отслеживания первого сохранения
 
     private ?Note $cachedNote = null;
     private array $originalImagePaths = [];
@@ -335,7 +339,7 @@ class CreateNoteView extends Component
                 $currentImagePaths = $this->extractImagePathsFromContent($this->content);
                 $this->originalImagePaths = $currentImagePaths;
             } else {
-                // Создаем новую заметку
+                // Создаем новую заметку (первое сохранение)
                 $note = new Note();
                 $note->title = trim($this->title);
                 $note->type = Note::TYPE_NOTE;
@@ -368,6 +372,13 @@ class CreateNoteView extends Component
                 $this->cachedNote = $note;
                 // Инициализируем оригинальные пути изображений после создания
                 $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
+
+                // Показываем уведомление о первом сохранении только если это первое сохранение
+                if ($this->isFirstSave) {
+                    $locationName = $this->getLocationName($note);
+                    $this->dispatch('notification', title: 'Сохранено', content: "Заметка сохранена в «{$locationName}»", type: 'success');
+                    $this->isFirstSave = false;
+                }
             }
 
             // Очищаем список временных изображений при успешном автосохранении
@@ -516,6 +527,29 @@ class CreateNoteView extends Component
 
         // Проверяем с префиксом archive_
         return collect($this->archives)->contains('value', 'archive_' . $selectedId);
+    }
+
+    /**
+     * Получить название места хранения заметки
+     */
+    private function getLocationName(Note $note): string
+    {
+        if ($note->folder_id !== null) {
+            $folder = Folder::find($note->folder_id);
+            return $folder?->title ?? 'Папка';
+        }
+
+        if ($note->safe_id !== null) {
+            $safe = Safe::find($note->safe_id);
+            return $safe?->name ?? 'Сейф';
+        }
+
+        if ($note->archive_id !== null) {
+            $archive = Archive::find($note->archive_id);
+            return $archive?->name ?? 'Архив';
+        }
+
+        return 'Архив';
     }
 
     #[Computed]

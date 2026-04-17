@@ -4,7 +4,10 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
+use App\Models\Archive;
+use App\Models\Folder;
 use App\Models\Note;
+use App\Models\Safe;
 use App\Services\StateManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +35,11 @@ class EditChecklist extends Component
     public bool $confirmingDeletion = false;
     public bool $isSaving = false;
     public bool $is_favorite = false;
+
+    // Для отслеживания изменений местоположения
+    public ?int $originalFolderId = null;
+    public ?int $originalSafeId = null;
+    public ?int $originalArchiveId = null;
 
     private ?Note $cachedChecklist = null;
 
@@ -72,6 +80,11 @@ class EditChecklist extends Component
         $this->archiveId = $this->cachedChecklist->archive_id;
         $this->is_favorite = (bool) $this->cachedChecklist->is_favorite;
         $this->content = $this->normalizeContent($this->cachedChecklist->content);
+
+        // Сохраняем оригинальное местоположение для отслеживания изменений
+        $this->originalFolderId = $this->cachedChecklist->folder_id;
+        $this->originalSafeId = $this->cachedChecklist->safe_id;
+        $this->originalArchiveId = $this->cachedChecklist->archive_id;
 
         // Инициализируем dropdownValue в зависимости от того, где находится список
         if ($this->safeId) {
@@ -209,6 +222,11 @@ class EditChecklist extends Component
 
     public function updatedDropdownValue(): void
     {
+        // Сохраняем старое местоположение перед изменением
+        $oldFolderId = $this->folderId;
+        $oldSafeId = $this->safeId;
+        $oldArchiveId = $this->archiveId;
+
         if (is_string($this->dropdownValue)) {
             if (str_starts_with($this->dropdownValue, 'safe_')) {
                 $this->safeId = (int) substr($this->dropdownValue, 5);
@@ -224,7 +242,13 @@ class EditChecklist extends Component
                 $this->archiveId = null;
             }
         }
-        $this->autoSave();
+
+        // Проверяем, изменилось ли местоположение по сравнению с оригиналом
+        $locationChanged = ($this->folderId !== $this->originalFolderId) ||
+                           ($this->safeId !== $this->originalSafeId) ||
+                           ($this->archiveId !== $this->originalArchiveId);
+
+        $this->autoSave($locationChanged);
     }
 
     #[On('updateSafeId')]
@@ -267,7 +291,7 @@ class EditChecklist extends Component
     }
 
     #[On('triggerAutoSave')]
-    public function autoSave(): void
+    public function autoSave(bool $locationChanged = false): void
     {
         if (!$this->noteId) {
             return;
@@ -300,6 +324,17 @@ class EditChecklist extends Component
             $this->updateLocation($this->cachedChecklist);
 
             $this->cachedChecklist->save();
+
+            // Показываем уведомление если изменилось местоположение
+            if ($locationChanged) {
+                $locationName = $this->getLocationName($this->cachedChecklist);
+                $this->dispatch('notification', title: 'Обновлено', content: "Место хранения изменено на «{$locationName}»", type: 'success');
+
+                // Обновляем оригинальное местоположение
+                $this->originalFolderId = $this->cachedChecklist->folder_id;
+                $this->originalSafeId = $this->cachedChecklist->safe_id;
+                $this->originalArchiveId = $this->cachedChecklist->archive_id;
+            }
 
             // Можно диспатчить событие для UI, что автосохранение прошло успешно
         } catch (\Throwable $e) {
@@ -386,6 +421,29 @@ class EditChecklist extends Component
 
         // Проверяем с префиксом archive_
         return collect($this->archives)->contains('value', 'archive_' . $selectedId);
+    }
+
+    /**
+     * Получить название места хранения заметки
+     */
+    private function getLocationName(Note $note): string
+    {
+        if ($note->folder_id !== null) {
+            $folder = Folder::find($note->folder_id);
+            return $folder?->title ?? 'Папка';
+        }
+
+        if ($note->safe_id !== null) {
+            $safe = Safe::find($note->safe_id);
+            return $safe?->name ?? 'Сейф';
+        }
+
+        if ($note->archive_id !== null) {
+            $archive = Archive::find($note->archive_id);
+            return $archive?->name ?? 'Архив';
+        }
+
+        return 'Архив';
     }
 
     public function back(): void

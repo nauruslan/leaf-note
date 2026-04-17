@@ -4,7 +4,10 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
+use App\Models\Archive;
+use App\Models\Folder;
 use App\Models\Note;
+use App\Models\Safe;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
@@ -30,6 +33,7 @@ class CreateChecklistView extends Component
     public bool $confirmingDeletion = false;
     public bool $isSaving = false;
     public ?int $noteId = null;
+    public bool $isFirstSave = true; // Флаг для отслеживания первого сохранения
 
     private ?Note $cachedNote = null;
 
@@ -266,7 +270,7 @@ class CreateChecklistView extends Component
                 $this->updateLocation($this->cachedNote);
                 $this->cachedNote->save();
             } else {
-                // Создаем новую заметку
+                // Создаем новую заметку (первое сохранение)
                 $note = new Note();
                 $note->title = trim($this->title);
                 $note->type = Note::TYPE_CHECKLIST;
@@ -297,6 +301,13 @@ class CreateChecklistView extends Component
                 // Сохраняем ID созданной заметки для будущих обновлений
                 $this->noteId = $note->id;
                 $this->cachedNote = $note;
+
+                // Показываем уведомление о первом сохранении
+                if ($this->isFirstSave) {
+                    $locationName = $this->getLocationName($note);
+                    $this->dispatch('notification', title: 'Сохранено', content: "Список сохранён в «{$locationName}»", type: 'success');
+                    $this->isFirstSave = false;
+                }
             }
         } catch (\Throwable $e) {
             report($e);
@@ -382,6 +393,29 @@ class CreateChecklistView extends Component
 
         // Проверяем с префиксом archive_
         return collect($this->archives)->contains('value', 'archive_' . $selectedId);
+    }
+
+    /**
+     * Получить название места хранения заметки
+     */
+    private function getLocationName(Note $note): string
+    {
+        if ($note->folder_id !== null) {
+            $folder = Folder::find($note->folder_id);
+            return $folder?->title ?? 'Папка';
+        }
+
+        if ($note->safe_id !== null) {
+            $safe = Safe::find($note->safe_id);
+            return $safe?->name ?? 'Сейф';
+        }
+
+        if ($note->archive_id !== null) {
+            $archive = Archive::find($note->archive_id);
+            return $archive?->name ?? 'Архив';
+        }
+
+        return 'Архив';
     }
 
     public function back(): void

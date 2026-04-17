@@ -17,9 +17,7 @@ new #[Layout('layouts.guest')] class extends Component {
     public string $password_confirmation = '';
     public bool $remember = false;
 
-    /**
-     * Mount the component and restore email from cookie.
-     */
+    // Инициализация компонента и восстановление email из cookie.
     public function mount(): void
     {
         // Восстанавливаем email из cookie, если он был сохранён
@@ -37,9 +35,7 @@ new #[Layout('layouts.guest')] class extends Component {
         }
     }
 
-    /**
-     * Handle an incoming registration request.
-     */
+    // Обработка входящего запроса на регистрацию.
     public function register(): void
     {
         $validated = $this->validate([
@@ -64,9 +60,7 @@ new #[Layout('layouts.guest')] class extends Component {
         $this->redirect(route('app', absolute: false), navigate: true);
     }
 
-    /**
-     * Создать демо-пользователя и войти в него.
-     */
+    // Создать демо-пользователя и войти в него.
     public function loginAsDemo(DemoUserService $demoUserService): void
     {
         $demoUserService->createAndLogin($this->remember);
@@ -81,9 +75,7 @@ new #[Layout('layouts.guest')] class extends Component {
         $this->redirectIntended(default: route('app', absolute: false));
     }
 
-    /**
-     * Перенаправить на Google авторизацию с сохранением remember.
-     */
+    // Перенаправить на Google авторизацию с сохранением remember.
     public function loginWithGoogle(): void
     {
         // Сохраняем состояние remember в сессию для использования в callback

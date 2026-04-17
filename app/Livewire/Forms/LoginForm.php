@@ -22,7 +22,7 @@ class LoginForm extends Form
     public bool $remember = false;
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Попытка аутентификации с переданными учётными данными.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -42,7 +42,7 @@ class LoginForm extends Form
     }
 
     /**
-     * Ensure the authentication request is not rate limited.
+     * Проверка, что запрос аутентификации не превышает лимит попыток.
      */
     protected function ensureIsNotRateLimited(): void
     {
@@ -63,7 +63,7 @@ class LoginForm extends Form
     }
 
     /**
-     * Get the authentication rate limiting throttle key.
+     * Получение ключа для ограничения частоты запросов аутентификации.
      */
     protected function throttleKey(): string
     {
