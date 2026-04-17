@@ -1,4 +1,13 @@
 <div class="min-h-screen flex flex-col">
+    {{-- Demo Account Modal --}}
+    <x-modal
+        type="info"
+        :show="$showDemoModal"
+        title="Информация"
+        :description="'Добро пожаловать в Leaf Note! Вы используете демо-аккаунт с ограниченным сроком действия до ' . $demoExpirationTime . '. По истечении этого периода аккаунт и все связанные с ним данные будут автоматически удалены. Чтобы получить полный доступ к возможностям приложения, рекомендуем создать полноценный профиль.'"
+        confirmMethod="closeDemoModal"
+    />
+
     {{-- Sidebar --}}
     <livewire:navigation-sidebar :section="$section" :folder-id="$folderId" key="navigation-sidebar" />
     <div class="ml-16 flex-1">

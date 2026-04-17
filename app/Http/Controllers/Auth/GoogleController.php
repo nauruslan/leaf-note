@@ -10,9 +10,7 @@ use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController
 {
-    /**
-     * Перенаправление на Google для аутентификации.
-     */
+    //  Перенаправление на Google для аутентификации.
     public function redirect()
     {
         return Socialite::driver('google')->redirect();

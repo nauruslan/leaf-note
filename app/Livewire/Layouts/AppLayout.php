@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Layouts;
 
+use App\Services\DemoUserService;
 use App\Services\StateManager;
 use App\Services\TemporaryImageService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class AppLayout extends Component
@@ -12,6 +14,8 @@ class AppLayout extends Component
     public ?int $folderId = null;
     public ?int $noteId = null;
     public int $componentKey = 0;
+    public bool $showDemoModal = false;
+    public string $demoExpirationTime = '';
 
 
     public function mount(): void
@@ -19,6 +23,37 @@ class AppLayout extends Component
         $this->section = StateManager::get('section', 'dashboard');
         $this->folderId = StateManager::get('folderId', null);
         $this->noteId = StateManager::get('noteId', null);
+
+        $this->initDemoModal();
+    }
+
+    /**
+     * Инициализация модального окна для демо-пользователей.
+     * Показывает информацию о сроке действия демо-аккаунта.
+     */
+    protected function initDemoModal(): void
+    {
+        $user = Auth::user();
+
+        if ($user && $user->isDemoUser()) {
+            // Проверяем, нужно ли показать модальное окно (только при первом входе в сессию)
+            if (!session()->has('demo_modal_shown')) {
+                $this->showDemoModal = true;
+                session()->put('demo_modal_shown', true);
+            }
+
+            // Вычисляем время истечения демо-аккаунта
+            $expirationDate = $user->created_at->addMinutes(DemoUserService::DEMO_LIFETIME_MINUTES);
+            $this->demoExpirationTime = $expirationDate->format('d.m.Y H:i');
+        }
+    }
+
+    /**
+     * Закрыть модальное окно демо-информации.
+     */
+    public function closeDemoModal(): void
+    {
+        $this->showDemoModal = false;
     }
 
     protected $listeners = [
