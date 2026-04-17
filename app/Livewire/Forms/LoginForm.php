@@ -15,7 +15,7 @@ class LoginForm extends Form
     #[Validate('required|string|email')]
     public string $email = '';
 
-    #[Validate('required|string')]
+    #[Validate('required|string|min:8|max:32')]
     public string $password = '';
 
     #[Validate('boolean')]

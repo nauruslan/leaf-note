@@ -48,9 +48,7 @@ class AppLayout extends Component
         }
     }
 
-    /**
-     * Закрыть модальное окно демо-информации.
-     */
+    // Закрыть модальное окно демо-информации.
     public function closeDemoModal(): void
     {
         $this->showDemoModal = false;
