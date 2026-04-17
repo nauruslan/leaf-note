@@ -2,12 +2,26 @@
 
 use App\Livewire\Forms\LoginForm;
 use App\Services\DemoUserService;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('layouts.guest')] class extends Component {
     public LoginForm $form;
+
+    /**
+     * Mount the component and restore email from cookie.
+     */
+    public function mount(): void
+    {
+        // Восстанавливаем email из cookie, если он был сохранён
+        $savedEmail = Cookie::get('remembered_email');
+        if ($savedEmail) {
+            $this->form->email = $savedEmail;
+            $this->form->remember = true;
+        }
+    }
 
     #[Js]
     public function getRememberValue(): bool
@@ -25,6 +39,13 @@ new #[Layout('layouts.guest')] class extends Component {
         $this->form->authenticate();
 
         Session::regenerate();
+
+        // Сохраняем или удаляем email в cookie в зависимости от галочки "Запомнить меня"
+        if ($this->form->remember) {
+            cookie()->queue(cookie('remembered_email', $this->form->email, 43200)); // 30 дней
+        } else {
+            cookie()->queue(cookie()->forget('remembered_email'));
+        }
 
         $this->dispatch('navigateTo', section: 'dashboard');
         $this->redirectIntended(default: route('app', absolute: false));

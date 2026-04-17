@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Services\DemoUserService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
@@ -14,6 +15,20 @@ new #[Layout('layouts.guest')] class extends Component {
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
+    public bool $remember = false;
+
+    /**
+     * Mount the component and restore email from cookie.
+     */
+    public function mount(): void
+    {
+        // Восстанавливаем email из cookie, если он был сохранён
+        $savedEmail = Cookie::get('remembered_email');
+        if ($savedEmail) {
+            $this->email = $savedEmail;
+            $this->remember = true;
+        }
+    }
 
     /**
      * Handle an incoming registration request.
@@ -30,7 +45,14 @@ new #[Layout('layouts.guest')] class extends Component {
 
         event(new Registered(($user = User::create($validated))));
 
-        Auth::login($user);
+        Auth::login($user, $this->remember);
+
+        // Сохраняем или удаляем email в cookie в зависимости от галочки "Запомнить меня"
+        if ($this->remember) {
+            cookie()->queue(cookie('remembered_email', $this->email, 43200)); // 30 дней
+        } else {
+            cookie()->queue(cookie()->forget('remembered_email'));
+        }
 
         $this->redirect(route('app', absolute: false), navigate: true);
     }
@@ -155,6 +177,26 @@ new #[Layout('layouts.guest')] class extends Component {
             @error('password_confirmation')
                 <span class="text-red-500 text-sm mt-1 inline-block">{{ $message }}</span>
             @enderror
+        </div>
+
+        <!-- Remember Me Checkbox -->
+        <div class="flex items-center">
+            <label class="flex items-center cursor-pointer">
+                <div class="relative mt-1">
+                    <input type="checkbox" id="remember-checkbox" wire:model="remember" class="sr-only" />
+                    <label for="remember-checkbox" class="cursor-pointer">
+                        <div class="relative inline-block w-10 h-6">
+                            <div id="remember-bg"
+                                class="block w-full h-full rounded-full transition-colors duration-300 bg-gray-200">
+                            </div>
+                            <div id="remember-dot"
+                                class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300">
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                <span class="ml-3 text-sm font-medium text-gray-700">Запомнить меня</span>
+            </label>
         </div>
 
         <!-- Terms & Newsletter Checkboxes -->
@@ -291,6 +333,34 @@ new #[Layout('layouts.guest')] class extends Component {
     <!-- Custom Toggle JavaScript -->
     <script>
         document.addEventListener('livewire:init', () => {
+            // Remember me toggle
+            const rememberCheckbox = document.getElementById('remember-checkbox');
+            const rememberBg = document.getElementById('remember-bg');
+            const rememberDot = document.getElementById('remember-dot');
+
+            if (rememberCheckbox && rememberBg && rememberDot) {
+                const updateRememberToggle = () => {
+                    if (rememberCheckbox.checked) {
+                        rememberBg.classList.remove('bg-gray-200');
+                        rememberBg.classList.add('bg-indigo-600');
+                        rememberDot.classList.add('translate-x-4');
+                    } else {
+                        rememberBg.classList.remove('bg-indigo-600');
+                        rememberBg.classList.add('bg-gray-200');
+                        rememberDot.classList.remove('translate-x-4');
+                    }
+                };
+
+                updateRememberToggle();
+                rememberCheckbox.addEventListener('change', updateRememberToggle);
+
+                Livewire.hook('element.updated', (el) => {
+                    if (el.id === 'remember-checkbox') {
+                        setTimeout(updateRememberToggle, 0);
+                    }
+                });
+            }
+
             // Terms toggle
             const termsCheckbox = document.getElementById('terms-checkbox');
             const termsBg = document.getElementById('terms-bg');
