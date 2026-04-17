@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -41,8 +42,11 @@ class GoogleController
         $user = User::where('google_id', $googleId)->first();
 
         if ($user) {
-            Auth::login($user);
+            Auth::login($user, true);
             session()->regenerate();
+
+            // Сохраняем email в cookie для автозаполнения
+            Cookie::queue(Cookie::make('remembered_email', $email, 43200)); // 30 дней
 
             return redirect()->intended(route('app', absolute: false));
         }
@@ -56,8 +60,11 @@ class GoogleController
                 'email_verified_at' => $user->email_verified_at ?? now(),
             ]);
 
-            Auth::login($user);
+            Auth::login($user, true);
             session()->regenerate();
+
+            // Сохраняем email в cookie для автозаполнения
+            Cookie::queue(Cookie::make('remembered_email', $email, 43200)); // 30 дней
 
             return redirect()->intended(route('app', absolute: false));
         }
@@ -73,8 +80,11 @@ class GoogleController
 
         event(new Registered($user));
 
-        Auth::login($user);
+        Auth::login($user, true);
         session()->regenerate();
+
+        // Сохраняем email в cookie для автозаполнения
+        Cookie::queue(Cookie::make('remembered_email', $email, 43200)); // 30 дней
 
         return redirect()->intended(route('app', absolute: false));
     }
