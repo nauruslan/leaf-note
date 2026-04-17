@@ -13,14 +13,15 @@ class DemoUserService
      * Время жизни демо-аккаунта в минутах.
      * Срок считается от created_at пользователя.
      */
-    public const DEMO_LIFETIME_MINUTES = 2;
+    public const DEMO_LIFETIME_MINUTES = 1;
 
     /**
      * Создать демо-пользователя и авторизовать его.
      *
+     * @param bool $remember Запомнить пользователя (создать remember_token)
      * @return User|null Созданный пользователь или null в случае ошибки
      */
-    public function createAndLogin(): ?User
+    public function createAndLogin(bool $remember = false): ?User
     {
         $demoNumber = $this->getNextDemoNumber();
 
@@ -32,7 +33,8 @@ class DemoUserService
             'email_verified_at' => now(),
         ]);
 
-        Auth::login($user);
+        // Авторизуем с опцией remember
+        Auth::login($user, $remember);
 
         // Очищаем состояние навигации от предыдущей сессии,
         // чтобы новый пользователь начинал с чистого дашборда

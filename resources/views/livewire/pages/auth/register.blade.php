@@ -28,6 +28,13 @@ new #[Layout('layouts.guest')] class extends Component {
             $this->email = $savedEmail;
             $this->remember = true;
         }
+
+        // Проверяем сообщение об истечении демо-аккаунта из cookie
+        $demoExpiredMessage = Cookie::get('demo_expired_message');
+        if ($demoExpiredMessage) {
+            session()->flash('demo_expired', $demoExpiredMessage);
+            Cookie::queue(Cookie::forget('demo_expired_message'));
+        }
     }
 
     /**
@@ -62,11 +69,32 @@ new #[Layout('layouts.guest')] class extends Component {
      */
     public function loginAsDemo(DemoUserService $demoUserService): void
     {
-        $demoUserService->createAndLogin();
+        $demoUserService->createAndLogin($this->remember);
 
         session()->regenerate();
 
+        // Сохраняем email в cookie если выбрано "Запомнить меня"
+        if ($this->remember) {
+            cookie()->queue(cookie('remembered_email', 'demo', 43200)); // 30 дней
+        }
+
         $this->redirectIntended(default: route('app', absolute: false));
+    }
+
+    /**
+     * Перенаправить на Google авторизацию с сохранением remember.
+     */
+    public function loginWithGoogle(): void
+    {
+        // Сохраняем состояние remember в сессию для использования в callback
+        session(['google_remember' => $this->remember]);
+
+        // Сохраняем email в cookie если выбрано "Запомнить меня"
+        if ($this->remember) {
+            cookie()->queue(cookie('remembered_email', 'google', 43200)); // 30 дней
+        }
+
+        $this->redirect(route('auth.google.redirect'));
     }
 }; ?>
 
@@ -88,6 +116,12 @@ new #[Layout('layouts.guest')] class extends Component {
             {{ $value }}
         </div>
     @endsession
+
+    @if (session('demo_expired'))
+        <div class="mb-4 p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800">
+            {{ session('demo_expired') }}
+        </div>
+    @endif
 
     <!-- Register Form -->
     <form wire:submit.prevent="register" class="space-y-6">
@@ -301,8 +335,8 @@ new #[Layout('layouts.guest')] class extends Component {
             </span>
         </button>
 
-        <a href="{{ route('auth.google.redirect') }}"
-            class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+        <button wire:click="loginWithGoogle" wire:loading.attr="disabled"
+            class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
             <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -317,8 +351,19 @@ new #[Layout('layouts.guest')] class extends Component {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     fill="#EA4335" />
             </svg>
-            Войти через Google
-        </a>
+            <span wire:loading.remove>Войти через Google</span>
+            <span wire:loading class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                Перенаправление...
+            </span>
+        </button>
     </div>
 
     <!-- Login Link -->

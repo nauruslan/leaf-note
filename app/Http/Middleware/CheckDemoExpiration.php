@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -21,16 +22,26 @@ class CheckDemoExpiration
     {
         $user = $request->user();
 
+        // Проверяем только если пользователь авторизован
         if ($user && $user->isDemoUser() && $user->isDemoExpired()) {
-            // Удаляем истёкшего демо-пользователя
+            // Сначала полностью очищаем сессию и авторизацию
             Auth::logout();
+
+            // Удаляем пользователя из базы
             $user->delete();
 
-            session()->invalidate();
-            session()->regenerateToken();
+            // Полностью очищаем сессию
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-            return redirect()->route('login')
-                ->with('status', 'Время демо-доступа истекло. Аккаунт был автоматически удалён.');
+            // Удаляем cookie с сохранённым email (демо email больше не существует)
+            Cookie::queue(Cookie::forget('remembered_email'));
+
+            // Сохраняем сообщение в cookie (т.к. сессия очищена)
+            Cookie::queue(Cookie::make('demo_expired_message', 'Срок действия демо-аккаунта истёк. Аккаунт был автоматически удалён.', 1));
+
+            // Возвращаем редирект
+            return redirect()->route('login');
         }
 
         return $next($request);

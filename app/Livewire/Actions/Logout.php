@@ -8,16 +8,24 @@ use Illuminate\Support\Facades\Session;
 
 class Logout
 {
-    /**
-     * Log the current user out of the application.
-     */
+
     public function __invoke(): void
     {
-        // Получаем текущего пользователя и очищаем remember_token
+        // Получаем текущего пользователя
         $user = Auth::guard('web')->user();
+
         if ($user) {
+            // Проверяем, является ли пользователь демо-аккаунтом
+            $isDemoUser = $user->isDemoUser();
+
+            // Очищаем remember_token
             $user->setRememberToken(null);
             $user->save();
+
+            // Если это демо-пользователь, удаляем его из базы данных
+            if ($isDemoUser) {
+                $user->delete();
+            }
         }
 
         Auth::guard('web')->logout();
