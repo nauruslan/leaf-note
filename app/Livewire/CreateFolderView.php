@@ -13,8 +13,8 @@ class CreateFolderView extends Component
     public $section='create-folder';
 
     public string $title = '';
-    public string $color = 'white';
-    public string $icon='folder';
+    public string $color = '';
+    public string $icon = '';
 
     public function getColorsProperty(): array
     {
@@ -26,6 +26,27 @@ class CreateFolderView extends Component
         return Folder::ICONS;
     }
 
+    /**
+     * Получить занятые иконки текущего пользователя
+     */
+    public function getUsedIconsProperty(): array
+    {
+        return Folder::where('user_id', Auth::id())
+            ->whereNull('trash_id')
+            ->pluck('icon')
+            ->toArray();
+    }
+
+    /**
+     * Получить занятые цвета текущего пользователя
+     */
+    public function getUsedColorsProperty(): array
+    {
+        return Folder::where('user_id', Auth::id())
+            ->whereNull('trash_id')
+            ->pluck('color')
+            ->toArray();
+    }
 
     public function createFolder()
     {
@@ -34,37 +55,54 @@ class CreateFolderView extends Component
 
     public function save()
     {
-        try {
-            $this->validate([
-                'title' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('folders')->where('user_id', Auth::id())->whereNull('trash_id'),
-                ],
-                'color' => ['required', 'string', 'in:' . implode(',', array_keys(Folder::COLORS))],
-                'icon' => ['required', 'string', 'in:' . implode(',', array_keys(Folder::ICONS))],
-            ]);
+        $this->validate([
+            'title' => [
+                'required',
+                'string',
+                'min:1',
+                'max:12',
+                Rule::unique('folders')->where('user_id', Auth::id())->whereNull('trash_id'),
+            ],
+            'color' => [
+                'required',
+                'string',
+                'in:' . implode(',', array_keys(Folder::COLORS)),
+                Rule::unique('folders')->where('user_id', Auth::id())->whereNull('trash_id'),
+            ],
+            'icon' => [
+                'required',
+                'string',
+                'in:' . implode(',', array_keys(Folder::ICONS)),
+                Rule::unique('folders')->where('user_id', Auth::id())->whereNull('trash_id'),
+            ],
+        ], [
+            'title.required' => 'Название папки обязательно',
+            'title.min' => 'Название должно содержать минимум 1 символ',
+            'title.max' => 'Название не должно превышать 12 символов',
+            'title.unique' => 'Папка с таким названием уже существует',
+            'color.required' => 'Выберите цвет папки',
+            'color.in' => 'Выберите корректный цвет из списка',
+            'color.unique' => 'Этот цвет уже используется в другой папке',
+            'icon.required' => 'Выберите иконку папки',
+            'icon.in' => 'Выберите корректную иконку из списка',
+            'icon.unique' => 'Эта иконка уже используется в другой папке',
+        ]);
 
-            $folder = new Folder();
-            $folder->title = $this->title;
-            $folder->color = $this->color;
-            $folder->icon = $this->icon;
-            $folder->user_id = Auth::id();
-            $folder->save();
+        $folder = new Folder();
+        $folder->title = $this->title;
+        $folder->color = $this->color;
+        $folder->icon = $this->icon;
+        $folder->user_id = Auth::id();
+        $folder->save();
 
-            $this->reset(['title', 'color', 'icon']);
-            $this->title = '';
-            $this->color = 'white';
-            $this->icon = 'folder';
+        $this->reset(['title', 'color', 'icon']);
+        $this->title = '';
+        $this->color = '';
+        $this->icon = '';
 
-            $this->dispatch('notify', ['message' => 'Папка успешно создана', 'type' => 'success']);
-            $this->dispatch('folderCreated');
-            $this->dispatch('navigateTo', section: 'dashboard');
-        } catch (\Throwable $e) {
-            report($e);
-            $this->dispatch('notify', ['message' => 'Ошибка при создании папки: ' . $e->getMessage(), 'type' => 'error']);
-        }
+        $this->dispatch('notify', ['message' => 'Папка успешно создана', 'type' => 'success']);
+        $this->dispatch('folderCreated');
+        $this->dispatch('navigateTo', section: 'dashboard');
     }
 
     public function back(): void

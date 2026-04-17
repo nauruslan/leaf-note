@@ -6,7 +6,7 @@
         <div class="bg-white rounded-xl shadow-md p-6">
             <form wire:submit.prevent="save" class="space-y-8">
                 <!-- Название папки -->
-                <div class="h-[70px]">
+                <div>
                     <label for="folder-title" class="block text-lg font-medium text-gray-700 mb-1.5">
                         Название папки <span class="text-red-500">*</span>
                     </label>
@@ -22,34 +22,72 @@
                 <div class="flex flex-col lg:flex-row gap-6">
                     <!-- Иконка папки -->
                     <div class="flex-1">
-                        <label class="block text-lg font-medium text-gray-700 mb-2">Иконка папки</label>
+                        <label class="block text-lg font-medium text-gray-700 mb-2">
+                            Иконка папки <span class="text-red-500">*</span>
+                        </label>
                         <div
                             class="folder-icons-scroll flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto max-h-[160px]">
                             @foreach ($this->icons as $key => $icon)
-                                <button type="button" wire:click="$set('icon', '{{ $key }}')"
-                                    wire:key="{{ $key }}"
-                                    class="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white border-2 {{ $key === $this->icon ? 'border-white ring-2 ring-offset-2 ring-indigo-500' : 'border-gray-300' }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                    title="{{ $icon['label'] }}" aria-label="{{ $icon['label'] }}">
-                                    <i data-lucide="{{ $icon['icon'] }}" class="w-4 h-4 text-gray-700"></i>
+                                @php
+                                    $isUsedIcon = in_array($key, $this->usedIcons);
+                                    $isSelectedIcon = $key === $this->icon;
+                                @endphp
+                                <button type="button"
+                                    @if (!$isUsedIcon || $isSelectedIcon) wire:click="$set('icon', '{{ $key }}')" @endif
+                                    wire:key="{{ $key }}" @if ($isUsedIcon && !$isSelectedIcon) disabled @endif
+                                    class="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white border-2
+                                        @if ($isSelectedIcon) border-white ring-2 ring-offset-2 ring-indigo-500
+                                        @elseif($isUsedIcon)
+                                            border-gray-200 opacity-40 cursor-not-allowed
+                                        @else
+                                            border-gray-300 hover:scale-110 @endif
+                                        transition-all focus:outline-none
+                                        @if (!$isUsedIcon || $isSelectedIcon) focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 @endif"
+                                    title="{{ $icon['label'] }}{{ $isUsedIcon && !$isSelectedIcon ? ' (уже используется)' : '' }}"
+                                    aria-label="{{ $icon['label'] }}">
+                                    <i data-lucide="{{ $icon['icon'] }}"
+                                        class="w-4 h-4 @if ($isUsedIcon && !$isSelectedIcon) text-gray-400 @else text-gray-700 @endif"></i>
                                 </button>
                             @endforeach
                         </div>
+                        @error('icon')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Цвет папки -->
                     <div class="flex-1">
-                        <label class="block text-lg font-medium text-gray-700 mb-2">Цвет папки</label>
+                        <label class="block text-lg font-medium text-gray-700 mb-2">
+                            Цвет папки <span class="text-red-500">*</span>
+                        </label>
                         <div
                             class="folder-colors-scroll flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto max-h-[160px]">
                             @foreach ($this->colors as $key => $color)
-                                <button type="button" wire:click="$set('color', '{{ $key }}')"
+                                @php
+                                    $isUsedColor = in_array($key, $this->usedColors);
+                                    $isSelectedColor = $key === $this->color;
+                                @endphp
+                                <button type="button"
+                                    @if (!$isUsedColor || $isSelectedColor) wire:click="$set('color', '{{ $key }}')" @endif
                                     wire:key="{{ $key }}"
-                                    style="background-color: {{ $color['hex'] }}; border-color: {{ $key === $this->color ? '#FFFFFF' : $color['hex'] }};"
-                                    class="relative w-8 h-8 shrink-0 rounded-full border-2 {{ $key === $this->color ? 'ring-2 ring-offset-2 ring-indigo-500' : '' }} hover:scale-110 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ring-indigo-500"
-                                    title="{{ $color['label'] }}" aria-label="{{ $color['label'] }}">
+                                    style="background-color: {{ $color['hex'] }}; border-color: {{ $isSelectedColor ? '#FFFFFF' : $color['hex'] }};"
+                                    @if ($isUsedColor && !$isSelectedColor) disabled @endif
+                                    class="relative w-8 h-8 shrink-0 rounded-full border-2
+                                        @if ($isSelectedColor) ring-2 ring-offset-2 ring-indigo-500
+                                        @elseif($isUsedColor)
+                                            opacity-40 cursor-not-allowed
+                                        @else
+                                            hover:scale-110 @endif
+                                        transition-all focus:outline-none
+                                        @if (!$isUsedColor || $isSelectedColor) focus:ring-2 focus:ring-offset-2 ring-indigo-500 @endif"
+                                    title="{{ $color['label'] }}{{ $isUsedColor && !$isSelectedColor ? ' (уже используется)' : '' }}"
+                                    aria-label="{{ $color['label'] }}">
                                 </button>
                             @endforeach
                         </div>
+                        @error('color')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 

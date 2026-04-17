@@ -33,7 +33,7 @@ class CreateChecklistView extends Component
     public bool $confirmingDeletion = false;
     public bool $isSaving = false;
     public ?int $noteId = null;
-    public bool $isFirstSave = true; // Флаг для отслеживания первого сохранения
+    public bool $isFirstSave = true;
 
     private ?Note $cachedNote = null;
 
