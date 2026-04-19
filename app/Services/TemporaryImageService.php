@@ -283,14 +283,15 @@ class TemporaryImageService
     /**
      * Удалить старые временные изображения (garbage collection)
      * Удаляет изображения старше указанного количества часов
+     * Поддерживает структуру подпапок с датами (images/19042026/)
      */
     public function garbageCollect(int $olderThanHours = 24): int
     {
         $deletedCount = 0;
         $threshold = time() - ($olderThanHours * 3600);
 
-        // Получаем все файлы в директории временных изображений
-        $files = Storage::disk('public')->files(self::STORAGE_PATH);
+        // Получаем все файлы рекурсивно (включая подпапки с датами)
+        $files = Storage::disk('public')->allFiles(self::STORAGE_PATH);
 
         foreach ($files as $file) {
             $lastModified = Storage::disk('public')->lastModified($file);
@@ -304,7 +305,25 @@ class TemporaryImageService
             }
         }
 
+        // Удаляем пустые папки с датами
+        $this->cleanupEmptyDateFolders();
+
         return $deletedCount;
+    }
+
+    /**
+     * Удалить пустые папки с датами
+     */
+    private function cleanupEmptyDateFolders(): void
+    {
+        $directories = Storage::disk('public')->directories(self::STORAGE_PATH);
+
+        foreach ($directories as $directory) {
+            $files = Storage::disk('public')->files($directory);
+            if (empty($files)) {
+                Storage::disk('public')->deleteDirectory($directory);
+            }
+        }
     }
 
     /**

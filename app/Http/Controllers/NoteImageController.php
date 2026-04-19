@@ -18,7 +18,11 @@ class NoteImageController extends Controller
             $file = $request->file('image');
             $filename = Str::uuid() . '_' . time() . '_' . $file->getClientOriginalName();
 
-            $path = $file->store('notes/images', 'public');
+            // Создаем подпапку с текущей датой (формат: DDMMYYYY)
+            $dateFolder = date('dmY');
+            $storagePath = 'notes/images/' . $dateFolder;
+
+            $path = $file->store($storagePath, 'public');
 
             // Сохраняем путь к временному изображению
             $temporaryImageService = app(TemporaryImageService::class);

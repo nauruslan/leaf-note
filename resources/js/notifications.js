@@ -93,7 +93,7 @@ class Notifications {
         notification.className = `notification-item relative overflow-hidden rounded-xl ${bgColor} ${borderColor} border-l-4 shadow-xl`;
 
         notification.style.cssText = `
-            max-width: 400px; min-width: 300px; opacity: 1; z-index: 999999;
+            width: 300px; opacity: 1; z-index: 999999;
             isolation: isolate; transform: translate3d(120%, 0, 0);
             will-change: transform; transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
         `;
