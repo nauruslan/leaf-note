@@ -36,11 +36,6 @@ class EditFolder extends Component
         }
     }
 
-    public function getColorsProperty(): array
-    {
-        return Folder::COLORS;
-    }
-
     public function getIconsProperty(): array
     {
         return Folder::ICONS;
@@ -59,21 +54,6 @@ class EditFolder extends Component
         }
 
         return $query->pluck('icon')->toArray();
-    }
-
-    /**
-     * Получить занятые цвета текущего пользователя (исключая текущую папку)
-     */
-    public function getUsedColorsProperty(): array
-    {
-        $query = Folder::where('user_id', Auth::id())
-            ->whereNull('trash_id');
-
-        if ($this->folder) {
-            $query->where('id', '!=', $this->folder->id);
-        }
-
-        return $query->pluck('color')->toArray();
     }
 
     public function createFolder()
@@ -107,7 +87,7 @@ class EditFolder extends Component
             'color' => [
                 'required',
                 'string',
-                'in:' . implode(',', array_keys(Folder::COLORS)),
+                'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
             ],
             'icon' => [
                 'required',
@@ -127,17 +107,6 @@ class EditFolder extends Component
 
         $rules['title'][] = $titleUniqueRule;
 
-        // Правило unique для color с игнорированием текущей папки
-        $colorUniqueRule = Rule::unique('folders')
-            ->where('user_id', Auth::id())
-            ->whereNull('trash_id');
-
-        if ($this->folder) {
-            $colorUniqueRule->ignore($this->folder->id);
-        }
-
-        $rules['color'][] = $colorUniqueRule;
-
         // Правило unique для icon с игнорированием текущей папки
         $iconUniqueRule = Rule::unique('folders')
             ->where('user_id', Auth::id())
@@ -155,8 +124,7 @@ class EditFolder extends Component
             'title.max' => 'Название не должно превышать 12 символов',
             'title.unique' => 'Папка с таким названием уже существует',
             'color.required' => 'Выберите цвет папки',
-            'color.in' => 'Выберите корректный цвет из списка',
-            'color.unique' => 'Этот цвет уже используется в другой папке',
+            'color.regex' => 'Цвет должен быть в формате HEX (например, #FF0000)',
             'icon.required' => 'Выберите иконку папки',
             'icon.in' => 'Выберите корректную иконку из списка',
             'icon.unique' => 'Эта иконка уже используется в другой папке',

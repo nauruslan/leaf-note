@@ -243,7 +243,7 @@ class Note extends Model
 
     public function getColorAttribute(): string
     {
-        return $this->folder?->color ?? 'white';
+        return $this->folder?->color ?? '#FFFFFF';
     }
 
     public function getPreviewAttribute(): string
@@ -331,7 +331,8 @@ class Note extends Model
 
     public function getColorHexAttribute(): string
     {
-        return Folder::COLORS[$this->color]['hex'] ?? '#FFFFFF';
+        // Теперь color уже содержит hex значение
+        return $this->color ?? '#FFFFFF';
     }
 
     public function getIconColorClassAttribute(): string

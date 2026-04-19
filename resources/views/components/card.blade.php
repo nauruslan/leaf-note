@@ -37,7 +37,7 @@
         {{ $attributes->merge(['class' => 'min-w-[320px] h-[340px] flex flex-col py-4 px-5 bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all relative']) }}>
 
         <!-- Overlay элемент с динамическим цветом -->
-        <div style="background-color: {{ $color }}33;"
+        <div style="background-color: {{ $color }}50;"
             class="absolute top-0 left-0 right-0 h-[70px] rounded-t-xl pointer-events-none z-0">
         </div>
 

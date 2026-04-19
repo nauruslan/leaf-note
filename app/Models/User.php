@@ -66,17 +66,17 @@ class User extends Authenticatable implements MustVerifyEmail
             $user->folders()->createMany([
             [
                 'title' => 'Рабочая',
-                'color' => 'electric-blue',
+                'color' => '#00f6ff',
                 'icon' => 'briefcase',
             ],
             [
                 'title' => 'Личное',
-                'color' => 'neon-pink',
+                'color' => '#f200ff',
                 'icon' => 'heart',
             ],
             [
                 'title' => 'Идеи',
-                'color' => 'neon-amber',
+                'color' => '#eaff00',
                 'icon' => 'lightbulb',
             ],
         ]);

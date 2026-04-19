@@ -75,7 +75,7 @@
             @if ($item->type === 'folder')
                 <x-card :item="$item->data" :section="$section" type="folder" />
             @else
-                <x-card :item="$item->data" :color="$item->data->icon_color_class" :section="$section" />
+                <x-card :item="$item->data" :color="$item->data->color" :section="$section" />
             @endif
         @empty
             <div class="col-span-full">

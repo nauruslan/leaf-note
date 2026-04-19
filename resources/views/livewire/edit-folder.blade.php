@@ -57,33 +57,13 @@
 
                     <!-- Цвет папки -->
                     <div class="flex-1">
-                        <label class="block text-lg font-medium text-gray-700 mb-2">
+                        <label for="folder-color" class="block text-lg font-medium text-gray-700 mb-2">
                             Цвет папки <span class="text-red-500">*</span>
                         </label>
-                        <div
-                            class="folder-colors-scroll flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto max-h-[160px]">
-                            @foreach ($this->colors as $key => $color)
-                                @php
-                                    $isUsedColor = in_array($key, $this->usedColors);
-                                    $isSelectedColor = $key === $this->color;
-                                @endphp
-                                <button type="button"
-                                    @if (!$isUsedColor || $isSelectedColor) wire:click="$set('color', '{{ $key }}')" @endif
-                                    wire:key="{{ $key }}"
-                                    style="background-color: {{ $color['hex'] }}; border-color: {{ $isSelectedColor ? '#FFFFFF' : $color['hex'] }};"
-                                    @if ($isUsedColor && !$isSelectedColor) disabled @endif
-                                    class="relative w-8 h-8 shrink-0 rounded-full border-2
-                                        @if ($isSelectedColor) ring-2 ring-offset-2 ring-indigo-500
-                                        @elseif($isUsedColor)
-                                            opacity-40 cursor-not-allowed
-                                        @else
-                                            hover:scale-110 @endif
-                                        transition-all focus:outline-none
-                                        @if (!$isUsedColor || $isSelectedColor) focus:ring-2 focus:ring-offset-2 ring-indigo-500 @endif"
-                                    title="{{ $color['label'] }}{{ $isUsedColor && !$isSelectedColor ? ' (уже используется)' : '' }}"
-                                    aria-label="{{ $color['label'] }}">
-                                </button>
-                            @endforeach
+                        <div class="folder-color-picker h-[160px] rounded-lg border border-gray-200 overflow-hidden"
+                            wire:ignore>
+                            <input type="text" id="folder-color" data-coloris data-livewire-color
+                                class="folder-color-input" placeholder="Выберите цвет" value="{{ $this->color }}">
                         </div>
                         @error('color')
                             <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>

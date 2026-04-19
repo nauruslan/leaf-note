@@ -16,11 +16,6 @@ class CreateFolderView extends Component
     public string $color = '';
     public string $icon = '';
 
-    public function getColorsProperty(): array
-    {
-        return Folder::COLORS;
-    }
-
     public function getIconsProperty(): array
     {
         return Folder::ICONS;
@@ -34,17 +29,6 @@ class CreateFolderView extends Component
         return Folder::where('user_id', Auth::id())
             ->whereNull('trash_id')
             ->pluck('icon')
-            ->toArray();
-    }
-
-    /**
-     * Получить занятые цвета текущего пользователя
-     */
-    public function getUsedColorsProperty(): array
-    {
-        return Folder::where('user_id', Auth::id())
-            ->whereNull('trash_id')
-            ->pluck('color')
             ->toArray();
     }
 
@@ -66,8 +50,7 @@ class CreateFolderView extends Component
             'color' => [
                 'required',
                 'string',
-                'in:' . implode(',', array_keys(Folder::COLORS)),
-                Rule::unique('folders')->where('user_id', Auth::id())->whereNull('trash_id'),
+                'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
             ],
             'icon' => [
                 'required',
@@ -81,8 +64,7 @@ class CreateFolderView extends Component
             'title.max' => 'Название не должно превышать 12 символов',
             'title.unique' => 'Папка с таким названием уже существует',
             'color.required' => 'Выберите цвет папки',
-            'color.in' => 'Выберите корректный цвет из списка',
-            'color.unique' => 'Этот цвет уже используется в другой папке',
+            'color.regex' => 'Цвет должен быть в формате HEX (например, #FF0000)',
             'icon.required' => 'Выберите иконку папки',
             'icon.in' => 'Выберите корректную иконку из списка',
             'icon.unique' => 'Эта иконка уже используется в другой папке',

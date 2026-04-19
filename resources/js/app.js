@@ -8,6 +8,7 @@ import './dropdown';
 import './toggle';
 import './search';
 import './notifications';
+import './coloris';
 
 // import './sidebar';
 import { createIcons, icons } from 'lucide';
