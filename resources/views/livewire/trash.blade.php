@@ -79,12 +79,15 @@
             @endif
         @empty
             <div class="col-span-full">
-                @if ($isSearching)
+                @if ($this->totalCount === 0)
+                    <x-no-data icon="trash" title="Корзина пуста"
+                        description="Удалённые файлы будут отображаться здесь" />
+                @elseif ($isSearching)
                     <x-no-data icon="search-x" title="Совпадений не найдено"
                         description="Попробуйте изменить поисковый запрос" />
                 @else
-                    <x-no-data icon="trash" title="Корзина пуста"
-                        description="Удалённые файлы будут отображаться здесь" />
+                    <x-no-data icon="trash" title="Совпадений нет"
+                        description="Попробуйте изменить фильтры" />
                 @endif
             </div>
         @endforelse

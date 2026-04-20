@@ -52,12 +52,15 @@
             <x-card :item="$note" :color="$note->color" />
         @empty
             <div class="col-span-full">
-                @if ($search)
+                @if ($this->totalFavoriteNotesCount === 0)
+                    <x-no-data icon="star" title="Избранных заметок нет"
+                        description="Добавьте заметки в избранное, чтобы видеть их здесь" />
+                @elseif ($search)
                     <x-no-data icon="search-x" title="Совпадений не найдено"
                         description="Попробуйте изменить поисковый запрос" />
                 @else
-                    <x-no-data icon="star" title="Избранных заметок нет"
-                        description="Добавьте заметки в избранное, чтобы видеть их здесь" />
+                    <x-no-data icon="star" title="Совпадений нет"
+                        description="Попробуйте изменить фильтры" />
                 @endif
             </div>
         @endforelse

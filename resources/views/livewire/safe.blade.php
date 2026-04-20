@@ -1,8 +1,8 @@
 <div>
     {{-- Модальное окно предупреждения о незащищённом сейфе --}}
     <x-modal type="info" :show="$showUnprotectedModal" title="Сейф не защищён"
-        description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль."
-        icon="lock" confirmMethod="closeModal" />
+        description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль." icon="lock"
+        confirmMethod="closeModal" />
     @if ($isUnlocked)
         <!-- Header Section -->
         <x-header :heading="$heading" :subheading="$subheading" showSearch />
@@ -57,11 +57,13 @@
                 <x-card :item="$note" :color="$note->color" />
             @empty
                 <div class="col-span-full">
-                    @if ($search)
+                    @if ($this->totalSafeNotesCount === 0)
+                        <x-no-data icon="lock" title="Сейф пуст" description="Создайте первую защищенную заметку" />
+                    @elseif ($search)
                         <x-no-data icon="search-x" title="Совпадений не найдено"
                             description="Попробуйте изменить поисковый запрос" />
                     @else
-                        <x-no-data icon="lock" title="Сейф пуст" description="Создайте первую защищенную заметку" />
+                        <x-no-data icon="lock" title="Совпадений нет" description="Попробуйте изменить фильтры" />
                     @endif
                 </div>
             @endforelse

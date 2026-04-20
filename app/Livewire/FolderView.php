@@ -45,6 +45,18 @@ class FolderView extends Component
     }
 
     #[Computed]
+    public function totalFolderNotesCount(): int
+    {
+        if (!$this->folderId) {
+            return 0;
+        }
+
+        return Note::where('user_id', Auth::id())
+            ->where('folder_id', $this->folderId)
+            ->count();
+    }
+
+    #[Computed]
     public function notes(): LengthAwarePaginator
     {
         if (!$this->folderId) {

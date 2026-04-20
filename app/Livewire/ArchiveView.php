@@ -34,6 +34,14 @@ class ArchiveView extends Component
 
 
     #[Computed]
+    public function totalArchivedNotesCount(): int
+    {
+        return Note::where('user_id', Auth::id())
+            ->whereNotNull('archive_id')
+            ->count();
+    }
+
+    #[Computed]
     public function notes(): LengthAwarePaginator
     {
         $query = Note::where('user_id', Auth::id())

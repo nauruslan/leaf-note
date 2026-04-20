@@ -27,6 +27,17 @@ class FavoriteView extends Component
     public $subheading='Ваши избранные заметки и списки';
 
     #[Computed]
+    public function totalFavoriteNotesCount(): int
+    {
+        return Note::where('user_id', Auth::id())
+            ->where('is_favorite', true)
+            ->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->count();
+    }
+
+    #[Computed]
     public function notes(): LengthAwarePaginator
     {
         $query = Note::where('user_id', Auth::id())

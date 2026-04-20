@@ -58,12 +58,15 @@
                 <x-card :item="$note" :color="$note->color" :section="$section" />
             @empty
                 <div class="col-span-full">
-                    @if ($search)
+                    @if ($this->totalFolderNotesCount === 0)
+                        <x-no-data icon="{{ $this->folder->icon }}" title="Папка пуста"
+                            description="Создайте заметку, чтобы увидеть её здесь" />
+                    @elseif ($search)
                         <x-no-data icon="search-x" title="Совпадений не найдено"
                             description="Попробуйте изменить поисковый запрос" />
                     @else
-                        <x-no-data icon="{{ $this->folder->icon }}" title="Папка пуста"
-                            description="Создайте заметку, чтобы увидеть её здесь" />
+                        <x-no-data icon="{{ $this->folder->icon }}" title="Совпадений нет"
+                            description="Попробуйте изменить фильтры" />
                     @endif
                 </div>
             @endforelse

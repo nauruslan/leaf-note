@@ -52,12 +52,15 @@
             <x-card :item="$note" :color="$note->color" />
         @empty
             <div class="col-span-full">
-                @if ($search)
+                @if ($this->totalArchivedNotesCount === 0)
+                    <x-no-data icon="package" title="Архив пуст"
+                        description="Сюда добавляются заметки, которые были восстановлены из корзины" />
+                @elseif ($search)
                     <x-no-data icon="search-x" title="Совпадений не найдено"
                         description="Попробуйте изменить поисковый запрос" />
                 @else
-                    <x-no-data icon="package" title="Архив пуст"
-                        description="Сюда добавляются заметки, которые были восстановлены из корзины" />
+                    <x-no-data icon="package" title="Совпадений нет"
+                        description="Попробуйте изменить фильтры" />
                 @endif
             </div>
         @endforelse

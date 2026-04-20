@@ -30,7 +30,6 @@ class Dropdown {
                 e.stopPropagation();
                 // Если dropdown disabled, не выбираем
                 if (this.container.hasAttribute('data-disabled')) {
-                    console.log('Dropdown item click ignored because dropdown is disabled');
                     return;
                 }
                 this.select(item);
@@ -76,12 +75,7 @@ class Dropdown {
     }
 
     toggle() {
-        console.log(
-            'Dropdown toggle called, data-disabled?',
-            this.container.hasAttribute('data-disabled'),
-        );
         if (this.container.hasAttribute('data-disabled')) {
-            console.log('Dropdown is disabled, ignoring toggle');
             return;
         }
         const display = window.getComputedStyle(this.dropdown).display;
@@ -101,12 +95,6 @@ class Dropdown {
     }
 
     select(item) {
-        console.log(
-            'Dropdown select called',
-            item.dataset.value,
-            item.dataset.safe,
-            item.dataset.archive,
-        );
         // Удаляем класс selected у всех элементов
         this.items.forEach((i) => i.classList.remove('selected'));
         // Добавляем выбранному элементу
@@ -134,7 +122,6 @@ class Dropdown {
         // Генерируем пользовательское событие
         const isSafe = item.dataset.safe === 'true';
         const isArchive = item.dataset.archive === 'true';
-        console.log('isSafe:', isSafe, 'isArchive:', isArchive);
         this.container.dispatchEvent(
             new CustomEvent('dropdown-change', {
                 detail: {

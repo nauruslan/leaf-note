@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController
@@ -68,7 +67,6 @@ class GoogleController
             'name' => $name,
             'email' => $email,
             'google_id' => $googleId,
-            'password' => Hash::make(str()->password(32)),
             'email_verified_at' => now(),
         ]);
 

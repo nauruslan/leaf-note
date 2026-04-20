@@ -136,6 +136,14 @@ class SafeView extends Component
     }
 
     #[Computed]
+    public function totalSafeNotesCount(): int
+    {
+        return Note::where('user_id', Auth::id())
+            ->whereNotNull('safe_id')
+            ->count();
+    }
+
+    #[Computed]
     public function notes(): LengthAwarePaginator
     {
         $query = Note::where('user_id', Auth::id())

@@ -52,12 +52,15 @@
             <x-card :item="$note" :color="$note->color" />
         @empty
             <div class="col-span-full">
-                @if ($search)
+                @if ($this->totalNotesCount === 0)
+                    <x-no-data icon="layout-grid" title="Заметок нет"
+                        description="Создайте заметку, чтобы увидеть её здесь" />
+                @elseif ($search)
                     <x-no-data icon="search-x" title="Совпадений не найдено"
                         description="Попробуйте изменить поисковый запрос" />
                 @else
-                    <x-no-data icon="layout-grid" title="Заметок нет"
-                        description="Создайте заметку, чтобы увидеть её здесь" />
+                    <x-no-data icon="layout-grid" title="Совпадений нет"
+                        description="Попробуйте изменить фильтры" />
                 @endif
             </div>
         @endforelse

@@ -27,6 +27,16 @@ class DashboardView extends Component
     public $subheading='Все ваши заметки и списки в одном месте';
 
     #[Computed]
+    public function totalNotesCount(): int
+    {
+        return Note::where('user_id', Auth::id())
+            ->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id')
+            ->count();
+    }
+
+    #[Computed]
     public function notes(): LengthAwarePaginator
     {
         $query = Note::where('user_id', Auth::id())
