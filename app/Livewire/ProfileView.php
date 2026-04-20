@@ -135,7 +135,7 @@ class ProfileView extends Component
             $this->saveSafePassword();
         }
 
-        $this->dispatch('notify', ['message' => 'Профиль успешно сохранён', 'type' => 'success']);
+        $this->dispatch('notification', title: 'Успешно', content: 'Настройки сохранены', type: 'success');
     }
 
     // Сохранить настройки автоудаления.
@@ -262,14 +262,14 @@ class ProfileView extends Component
         $this->safePassword = '';
         $this->safeConfirmPassword = '';
 
-        $this->dispatch('notify', ['message' => 'Пароль сейфа удалён', 'type' => 'success']);
+        $this->dispatch('notification', title: 'Успешно', content: 'Пароль сейфа удалён', type: 'success');
     }
 
     //  Отменить изменения.
     public function cancel(): void
     {
         $this->mount();
-        $this->dispatch('notify', ['message' => 'Изменения отменены', 'type' => 'info']);
+        $this->dispatch('notification', title: 'Информация', content: 'Изменения отменены', type: 'info');
     }
 
     // Открыть модальное окно подтверждения сброса пароля сейфа

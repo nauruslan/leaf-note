@@ -111,6 +111,7 @@ class FolderView extends Component
         $success = $folder->moveToTrash();
 
         if ($success) {
+            $this->dispatch('notification', title: 'Удалено', content: "Папка «{$folder->title}» отправлена в корзину", type: 'danger');
             // После удаления перенаправить на дашборд
             $this->dispatch('navigateTo', 'dashboard');
             // Уведомить навигацию об удалении папки

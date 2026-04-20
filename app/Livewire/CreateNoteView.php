@@ -124,6 +124,8 @@ class CreateNoteView extends Component
         }
 
         $this->save();
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function save(): void
@@ -159,6 +161,9 @@ class CreateNoteView extends Component
                 $this->updateFavorite($this->cachedNote);
                 $this->cachedNote->save();
 
+                // Обновляем sidebar
+                $this->dispatch('refreshSidebar');
+
                 // Обновляем оригинальные пути изображений для текущего запроса
                 $currentImagePaths = $this->extractImagePathsFromContent($this->content);
                 $this->originalImagePaths = $currentImagePaths;
@@ -188,6 +193,10 @@ class CreateNoteView extends Component
                 }
 
                 $note->save();
+
+                // Обновляем sidebar
+                $this->dispatch('refreshSidebar');
+
                 $this->noteId = $note->id;
                 $this->cachedNote = $note;
                 // Инициализируем оригинальные пути изображений после создания
@@ -201,6 +210,8 @@ class CreateNoteView extends Component
 
             $this->dispatch('noteCreated');
             $this->dispatch('navigateTo', 'dashboard');
+            // Обновляем sidebar
+            $this->dispatch('refreshSidebar');
         } catch (\Throwable $e) {
             report($e);
             $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось сохранить заметку', type: 'danger');
@@ -226,12 +237,16 @@ class CreateNoteView extends Component
             }
         }
         $this->autoSave();
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function updatedFolderId(): void
     {
         // Этот метод может вызываться если folderId изменяется напрямую
         $this->autoSave();
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     #[On('updateSafeId')]
@@ -241,6 +256,8 @@ class CreateNoteView extends Component
         $this->folderId = null;
         $this->archiveId = null;
         $this->autoSave();
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     #[On('updateArchiveId')]
@@ -250,21 +267,29 @@ class CreateNoteView extends Component
         $this->folderId = null;
         $this->safeId = null;
         $this->autoSave();
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function updatedSafeId(): void
     {
         $this->autoSave();
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function updatedTitle(): void
     {
         $this->autoSave();
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function updatedContent(): void
     {
         $this->autoSave();
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     #[On('noteContentReady')]
@@ -390,6 +415,8 @@ class CreateNoteView extends Component
             // При автосохранении не показываем ошибку пользователю
         } finally {
             $this->isSaving = false;
+            // Обновляем sidebar
+            $this->dispatch('refreshSidebar');
         }
     }
 

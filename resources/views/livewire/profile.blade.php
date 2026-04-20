@@ -275,7 +275,8 @@
                         <x-button-reset-password-safe wire:click.prevent="confirmResetSafePassword"
                             wire:loading.attr="disabled" />
                     @endif
-                    <x-button-save wire:click.prevent="saveProfile" wire:loading.attr="disabled" />
+                    <x-button-save wire:click.prevent="saveProfile" wire:loading.attr="disabled"
+                        target="saveProfile" />
                 </div>
             </form>
         </div>

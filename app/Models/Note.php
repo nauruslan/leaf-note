@@ -7,6 +7,7 @@ use App\Models\Folder;
 use App\Models\Safe;
 use App\Models\Trash;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -92,6 +93,123 @@ class Note extends Model
     public function safe(): BelongsTo
     {
         return $this->belongsTo(Safe::class);
+    }
+
+    /**
+     * Scope: Заметки конкретного пользователя.
+     */
+    public function scopeForUser($query, int $userId): Builder
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Scope: Заметки не в корзине.
+     */
+    public function scopeNotInTrash($query): Builder
+    {
+        return $query->whereNull('trash_id');
+    }
+
+    /**
+     * Scope: Заметки в корзине.
+     */
+    public function scopeInTrash($query): Builder
+    {
+        return $query->whereNotNull('trash_id');
+    }
+
+    /**
+     * Scope: Заметки не в архиве.
+     */
+    public function scopeNotArchived($query): Builder
+    {
+        return $query->whereNull('archive_id');
+    }
+
+    /**
+     * Scope: Заметки в архиве.
+     */
+    public function scopeArchived($query): Builder
+    {
+        return $query->whereNotNull('archive_id');
+    }
+
+    /**
+     * Scope: Заметки не в сейфе.
+     */
+    public function scopeNotInSafe($query): Builder
+    {
+        return $query->whereNull('safe_id');
+    }
+
+    /**
+     * Scope: Заметки в сейфе.
+     */
+    public function scopeInSafe($query): Builder
+    {
+        return $query->whereNotNull('safe_id');
+    }
+
+    /**
+     * Scope: Активные заметки (не в корзине, архиве, сейфе).
+     */
+    public function scopeActive($query): Builder
+    {
+        return $query->whereNull('trash_id')
+            ->whereNull('archive_id')
+            ->whereNull('safe_id');
+    }
+
+    /**
+     * Scope: Избранные заметки.
+     */
+    public function scopeFavorite($query): Builder
+    {
+        return $query->where('is_favorite', true);
+    }
+
+    /**
+     * Scope: Заметки определённого типа.
+     */
+    public function scopeOfType($query, string $type): Builder
+    {
+        return $query->where('type', $type);
+    }
+
+    /**
+     * Scope: Только заметки (не чеклисты).
+     */
+    public function scopeNotes($query): Builder
+    {
+        return $query->where('type', self::TYPE_NOTE);
+    }
+
+    /**
+     * Scope: Только чеклисты.
+     */
+    public function scopeChecklists($query): Builder
+    {
+        return $query->where('type', self::TYPE_CHECKLIST);
+    }
+
+    /**
+     * Scope: Заметки в папке.
+     */
+    public function scopeInFolder($query, ?int $folderId = null): Builder
+    {
+        if ($folderId === null) {
+            return $query->whereNotNull('folder_id');
+        }
+        return $query->where('folder_id', $folderId);
+    }
+
+    /**
+     * Scope: Заметки без папки.
+     */
+    public function scopeWithoutFolder($query): Builder
+    {
+        return $query->whereNull('folder_id');
     }
 
     public function isNote(): bool

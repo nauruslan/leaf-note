@@ -76,13 +76,23 @@
             <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
                 @if ($item->isInFolder() && $section === 'folder')
                     <x-note-location>
-                        <i data-lucide="{{ $item->folder->icon ?? '' }}" class="w-4 h-4"></i>
-                        {{ $item->folder->title }}
+                        @if ($item->folder)
+                            <i data-lucide="{{ $item->folder->icon ?? 'folder' }}" class="w-4 h-4"></i>
+                            {{ $item->folder->title }}
+                        @else
+                            <i data-lucide="folder" class="w-4 h-4"></i>
+                            Папка
+                        @endif
                     </x-note-location>
                 @elseif ($item->isInFolder())
                     <x-note-location button wire:click="openFolder({{ $item->folder_id }})">
-                        <i data-lucide="{{ $item->folder->icon ?? '' }}" class="w-4 h-4"></i>
-                        {{ $item->folder->title }}
+                        @if ($item->folder)
+                            <i data-lucide="{{ $item->folder->icon ?? 'folder' }}" class="w-4 h-4"></i>
+                            {{ $item->folder->title }}
+                        @else
+                            <i data-lucide="folder" class="w-4 h-4"></i>
+                            Папка
+                        @endif
                     </x-note-location>
                 @elseif ($item->isInArchive())
                     <x-note-location>

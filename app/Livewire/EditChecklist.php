@@ -133,6 +133,7 @@ class EditChecklist extends Component
             return;
         }
 
+        $this->dispatch('notification', title: 'Удалено', content: "Список «{$checklist->title}» отправлен в корзину", type: 'danger');
         $this->dispatch('checklistUpdated');
         $this->dispatch('navigateTo', 'dashboard');
     }

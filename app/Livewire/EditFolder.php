@@ -218,7 +218,7 @@ class EditFolder extends Component
         $success = $folder->moveToTrash();
 
         if ($success) {
-            $this->dispatch('notify', ['message' => 'Папка удалена', 'type' => 'success']);
+            $this->dispatch('notification', title: 'Удалено', content: "Папка «{$folder->title}» отправлена в корзину", type: 'danger');
             $this->dispatch('folderDeleted');
             $this->dispatch('navigateTo', section: 'dashboard');
             $this->confirmingDeletion = false;

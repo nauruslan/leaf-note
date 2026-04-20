@@ -29,6 +29,15 @@ trait WithFiltering
     protected array $filterMap = [];
 
     /**
+     * Получить карту фильтров.
+     * Переопределить в дочернем классе для кастомизации.
+     */
+    protected function getFilterMap(): array
+    {
+        return $this->filterMap;
+    }
+
+    /**
      * Карта сортировок.
      */
     protected array $sortMap = [
@@ -85,7 +94,7 @@ trait WithFiltering
     }
 
     /**
-     * Применить фильтр к builder-у, используя $this->filterMap.
+     * Применить фильтр к builder-у, используя getFilterMap().
      *
      * @param Builder $query
      * @param string $typeColumn
@@ -93,7 +102,7 @@ trait WithFiltering
      */
     protected function applyFilters(Builder $query, string $typeColumn = 'type'): Builder
     {
-        return $this->applyFilter($query, $typeColumn, $this->filterMap);
+        return $this->applyFilter($query, $typeColumn, $this->getFilterMap());
     }
 
     /**

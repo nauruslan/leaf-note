@@ -203,6 +203,7 @@ class EditNote extends Component
             return;
         }
 
+        $this->dispatch('notification', title: 'Удалено', content: "Заметка «{$note->title}» отправлена в корзину", type: 'danger');
         $this->dispatch('noteUpdated');
         $this->dispatch('navigateTo', 'dashboard');
     }
