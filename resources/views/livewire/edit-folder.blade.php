@@ -1,6 +1,6 @@
 <div>
     <!-- Header Section -->
-    <x-header :heading="$heading" :subheading="$this->title" />
+    <x-header :heading="$this->title" :section='$section' />
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 py-6">
         <div class="bg-white rounded-xl shadow-md p-6">
@@ -75,8 +75,6 @@
                 <div class="flex flex-wrap items-center gap-3 justify-end">
                     <!-- Save Button -->
                     <x-button-save wire:click.prevent="save" wire:loading.attr="disabled" />
-                    <!-- Delete Button -->
-                    <x-button-delete wire:click.prevent="confirmDeletion" wire:loading.attr="disabled" />
                 </div>
             </form>
         </div>

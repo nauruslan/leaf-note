@@ -1,14 +1,17 @@
 <?php
+
 namespace App\Livewire;
 
 use App\Models\Folder;
+use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class EditFolder extends Component
 {
-    public $heading='Редактирование папки';
+    public $heading = 'Редактирование папки';
+    public $section = 'edit-folder';
 
     public ?int $folderId = null;
     public string $title = '';
@@ -150,51 +153,75 @@ class EditFolder extends Component
             $event = 'folderCreated';
         }
 
-        $this->dispatch('notify', ['message' => $message, 'type' => 'success']);
+        // $this->dispatch('notify', ['message' => $message, 'type' => 'success']);
+        $this->dispatch('notification', title: 'Успешно', content: 'Изменения сохранены', type: 'success');
         $this->dispatch($event);
-        $this->dispatch('navigateTo', section: 'dashboard');
+        // $this->dispatch('navigateTo', section: 'dashboard');
     }
 
-    public function cancel()
+    public function cancel(): void
     {
-        $this->dispatch('navigateTo', section: 'dashboard');
+        $this->back();
     }
 
-    public function confirmDeletion()
+    public function back(): void
+    {
+        $previousSection = StateManager::get('previous_section', 'dashboard');
+        $previousFolderId = StateManager::get('previous_folderId');
+        $previousNoteId = StateManager::get('previous_noteId');
+
+        // Если предыдущая секция - сейф, возвращаемся в сейф
+        if ($previousSection === 'safe') {
+            $previousSection = 'safe';
+            $previousFolderId = null;
+            $previousNoteId = null;
+        }
+
+        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
+    }
+
+    public function confirmDeletion(): void
     {
         $this->confirmingDeletion = true;
     }
 
-    public function closeModal()
+    public function closeModal(): void
     {
         $this->confirmingDeletion = false;
         $this->dispatch('modalClosed');
     }
 
-    public function openDeleteModal()
+    public function openDeleteModal(): void
     {
         // Для обратной совместимости, вызываем confirmDeletion
         $this->confirmDeletion();
     }
 
-    public function deleteFolder()
+    public function deleteFolder(): void
     {
-        if (!$this->folder) {
+        // Загружаем папку, если она не загружена (свойство private не сохраняется между запросами)
+        $folder = $this->folder;
+
+        if (!$folder && $this->folderId) {
+            $folder = Folder::where('user_id', Auth::id())
+                ->where('id', $this->folderId)
+                ->active()
+                ->first();
+        }
+
+        if (!$folder) {
             $this->dispatch('notify', ['message' => 'Папка не найдена', 'type' => 'error']);
+            $this->confirmingDeletion = false;
             return;
         }
 
-        try {
-            // Удаляем папку (мягкое удаление через trash)
-            $this->folder->moveToTrash();
+        $success = $folder->moveToTrash();
 
+        if ($success) {
             $this->dispatch('notify', ['message' => 'Папка удалена', 'type' => 'success']);
             $this->dispatch('folderDeleted');
             $this->dispatch('navigateTo', section: 'dashboard');
             $this->confirmingDeletion = false;
-        } catch (\Throwable $e) {
-            report($e);
-            $this->dispatch('notify', ['message' => 'Ошибка при удалении папки: ' . $e->getMessage(), 'type' => 'error']);
         }
     }
 

@@ -84,7 +84,7 @@ class CreateFolderView extends Component
 
         $this->dispatch('notify', ['message' => 'Папка успешно создана', 'type' => 'success']);
         $this->dispatch('folderCreated');
-        $this->dispatch('navigateTo', section: 'dashboard');
+        // $this->dispatch('navigateTo', section: 'dashboard');
     }
 
     public function back(): void
