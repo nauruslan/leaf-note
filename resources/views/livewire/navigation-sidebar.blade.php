@@ -190,6 +190,12 @@
             setTimeout(scrollToActiveItem, 300);
         });
 
+        // Глобальный слушатель для события stateUpdated (отправляется из других компонентов)
+        Livewire.on('stateUpdated', () => {
+            // Центрируем активный элемент в скролле после обновления состояния
+            setTimeout(scrollToActiveItem, 150);
+        });
+
         function collapseSidebarDOM() {
             const currentSidebar = document.getElementById('navigation-sidebar');
             const sidebarNav = document.getElementById('sidebar-nav');

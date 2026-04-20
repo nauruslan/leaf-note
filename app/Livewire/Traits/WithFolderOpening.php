@@ -10,6 +10,9 @@ trait WithFolderOpening
             return;
         }
 
+        // Обновляем активную секцию в навигации (глобальное событие)
+        $this->js("Livewire.dispatch('stateUpdated', {section: 'folder', folderId: {$folderId}})");
+        // Навигируем к папке
         $this->dispatch('navigateTo', section: 'folder', folderId: $folderId);
     }
 }
