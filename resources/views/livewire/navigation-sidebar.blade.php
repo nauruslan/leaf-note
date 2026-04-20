@@ -186,6 +186,8 @@
                     collapseSidebarDOM();
                 }
             }, 250);
+            // Центрируем активный элемент в скролле
+            setTimeout(scrollToActiveItem, 300);
         });
 
         function collapseSidebarDOM() {
@@ -262,7 +264,7 @@
                 return;
             }
 
-            const activeLink = nav.querySelector('.bg-gradient-to-r.from-indigo-600.to-purple-600');
+            const activeLink = nav.querySelector('.sidebar-active-item');
             if (!activeLink) return;
 
             const navRect = nav.getBoundingClientRect();
@@ -276,9 +278,6 @@
             });
         }
 
-        $wire.on('scrollToActiveItem', () => {
-            setTimeout(scrollToActiveItem, 500);
-        });
 
         function setupScrollListenerAndRestore() {
             const nav = document.getElementById('sidebar-nav');

@@ -3,9 +3,9 @@
 <a href="#" wire:click.prevent="{{ $wireClick }}"
     {{ $attributes->merge([
         'class' =>
-            'flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item ' .
+            'sidebar-item flex items-center w-full px-4 py-3 rounded-lg text-gray-700 transition-all group/item ' .
             ($active
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                ? 'sidebar-active-item bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
                 : 'hover:bg-gray-100 hover:text-indigo-600'),
     ]) }}>
     <i data-lucide="{{ $icon }}" class="w-6 h-6 flex-shrink-0"></i>

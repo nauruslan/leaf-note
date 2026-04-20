@@ -26,30 +26,32 @@
                         <label class="block text-lg font-medium text-gray-700 mb-2">
                             Иконка папки <span class="text-red-500">*</span>
                         </label>
-                        <div
-                            class="folder-icons-scroll flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto max-h-[160px]">
-                            @foreach ($this->icons as $key => $icon)
-                                @php
-                                    $isUsedIcon = in_array($key, $this->usedIcons);
-                                    $isSelectedIcon = $key === $this->icon;
-                                @endphp
-                                <button type="button"
-                                    @if (!$isUsedIcon || $isSelectedIcon) wire:click="$set('icon', '{{ $key }}')" @endif
-                                    wire:key="{{ $key }}" @if ($isUsedIcon && !$isSelectedIcon) disabled @endif
-                                    class="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white border-2
-                                        @if ($isSelectedIcon) border-white ring-2 ring-offset-2 ring-indigo-500
-                                        @elseif($isUsedIcon)
-                                            border-gray-200 opacity-40 cursor-not-allowed
-                                        @else
-                                            border-gray-300 hover:scale-110 @endif
-                                        transition-all focus:outline-none
-                                        @if (!$isUsedIcon || $isSelectedIcon) focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 @endif"
-                                    title="{{ $icon['label'] }}{{ $isUsedIcon && !$isSelectedIcon ? ' (уже используется)' : '' }}"
-                                    aria-label="{{ $icon['label'] }}">
-                                    <i data-lucide="{{ $icon['icon'] }}"
-                                        class="w-4 h-4 @if ($isUsedIcon && !$isSelectedIcon) text-gray-400 @else text-gray-700 @endif"></i>
-                                </button>
-                            @endforeach
+                        <div class="rounded-lg border border-gray-200 overflow-hidden">
+                            <div
+                                class="folder-icons-scroll flex flex-wrap gap-3 p-3 bg-gray-50 overflow-y-auto max-h-[160px]">
+                                @foreach ($this->icons as $key => $icon)
+                                    @php
+                                        $isUsedIcon = in_array($key, $this->usedIcons);
+                                        $isSelectedIcon = $key === $this->icon;
+                                    @endphp
+                                    <button type="button"
+                                        @if (!$isUsedIcon || $isSelectedIcon) wire:click="$set('icon', '{{ $key }}')" @endif
+                                        wire:key="{{ $key }}" @if ($isUsedIcon && !$isSelectedIcon) disabled @endif
+                                        class="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-white border-2
+                                            @if ($isSelectedIcon) border-white ring-2 ring-offset-2 ring-indigo-500
+                                            @elseif($isUsedIcon)
+                                                border-gray-200 opacity-40 cursor-not-allowed
+                                            @else
+                                                border-gray-300 hover:scale-110 @endif
+                                            transition-all focus:outline-none
+                                            @if (!$isUsedIcon || $isSelectedIcon) focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 @endif"
+                                        title="{{ $icon['label'] }}{{ $isUsedIcon && !$isSelectedIcon ? ' (уже используется)' : '' }}"
+                                        aria-label="{{ $icon['label'] }}">
+                                        <i data-lucide="{{ $icon['icon'] }}"
+                                            class="w-4 h-4 @if ($isUsedIcon && !$isSelectedIcon) text-gray-400 @else text-gray-700 @endif"></i>
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
                         @error('icon')
                             <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
