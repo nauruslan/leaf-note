@@ -82,10 +82,12 @@ trait WithComponentPagination
     /**
      * Сбросить пагинацию при изменении фильтрующих параметров.
      * Вызвать из updated() в компоненте.
+     *
+     * @param string $property Имя изменённого свойства
      */
     public function resetPaginationOnFilterChange(string $property): void
     {
-        if (in_array($property, ['search', 'filter', 'sort'])) {
+        if (in_array($property, ['search', 'filter', 'sort'], true)) {
             $this->resetPagination();
         }
     }

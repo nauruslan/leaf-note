@@ -11,16 +11,16 @@ class FavoriteView extends BaseView
     public string $subheading = 'Ваши избранные заметки и списки';
 
     /**
-     * Базовые условия для избранного - только избранные активные заметки.
+     * Скоупы для избранного - только избранные активные заметки.
+     */
+    protected array $scopes = ['favorite', 'active'];
+
+    /**
+     * Базовые условия для избранного (пустой массив, так как условия уже применены через скоупы).
      */
     protected function getBaseConditions(): array
     {
-        return [
-            'is_favorite' => true,
-            'trash_id' => null,
-            'archive_id' => null,
-            'safe_id' => null,
-        ];
+        return [];
     }
 
     /**

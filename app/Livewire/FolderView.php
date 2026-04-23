@@ -2,28 +2,14 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithComponentPagination;
-use App\Livewire\Traits\WithFiltering;
-use App\Livewire\Traits\WithNoteCreating;
-use App\Livewire\Traits\WithNoteOpening;
-use App\Livewire\Traits\WithSearch;
 use App\Models\Folder;
 use App\Models\Note;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
-use Livewire\Component;
 
-class FolderView extends Component
+class FolderView extends BaseView
 {
-    use WithComponentPagination;
-    use WithSearch;
-    use WithFiltering;
-    use WithNoteCreating;
-    use WithNoteOpening;
-
     public string $section = 'folder';
-    public ?int $folderId = null;
     public bool $confirmingDeletion = false;
 
     protected $listeners = [
@@ -33,55 +19,53 @@ class FolderView extends Component
         'closeModal' => 'closeModal',
     ];
 
-    #[Computed]
-    public function folder(): ?Folder
+    public function mount(?int $folderId = null): void
     {
-        $userId = Auth::id();
-
-        return Folder::where('user_id', $userId)
-            ->where('id', $this->folderId)
-            ->active()
-            ->first();
+        $this->folderId = $folderId;
+        $this->heading = 'Папка';
+        $this->subheading = $this->folder?->title ?? '';
     }
 
-    #[Computed]
-    public function totalFolderNotesCount(): int
+    protected function getBaseConditions(): array
+    {
+        return ['folder_id' => $this->folderId];
+    }
+
+    protected function getTotalCount(): int
     {
         if (!$this->folderId) {
             return 0;
         }
 
-        return Note::where('user_id', Auth::id())
+        return Note::forUser(Auth::id())
             ->where('folder_id', $this->folderId)
             ->count();
     }
 
     #[Computed]
-    public function notes(): LengthAwarePaginator
+    public function folder(): ?Folder
+    {
+        if (!$this->folderId) {
+            return null;
+        }
+
+        return Folder::where('user_id', Auth::id())
+            ->where('id', $this->folderId)
+            ->active()
+            ->first();
+    }
+
+    /**
+     * Переопределяем notes() для обработки случая без folderId.
+     */
+    #[Computed]
+    public function notes(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         if (!$this->folderId) {
             return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $this->perPage);
         }
 
-        $query = Note::where('user_id', Auth::id())
-            ->where('folder_id', $this->folderId)
-            ->with('folder');
-
-        // Применяем фильтр
-        $filterMap = [
-            'notes' => ['column' => 'type', 'value' => Note::TYPE_NOTE],
-            'checklists' => ['column' => 'type', 'value' => Note::TYPE_CHECKLIST],
-        ];
-        $query = $this->applyFilter($query, 'type', $filterMap);
-
-        // Применяем сортировку
-        $query = $this->applySorting($query);
-
-        // Применяем поиск
-        $query = $this->applySearch($query, ['title', 'search_content']);
-
-        // Пагинация
-        return $query->paginate($this->perPage, ['*'], 'page', $this->page);
+        return parent::notes();
     }
 
     public function confirmDeletion(): void

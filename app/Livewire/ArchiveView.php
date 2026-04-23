@@ -11,6 +11,11 @@ class ArchiveView extends BaseView
     public string $heading = 'Архив';
     public string $subheading = 'Заметки и списки помещенные в архив';
 
+    /**
+     * Скоупы для архива - только архивированные заметки.
+     */
+    protected array $scopes = ['archived'];
+
     public ?Archive $archive = null;
 
     public function mount(): void
@@ -19,13 +24,11 @@ class ArchiveView extends BaseView
     }
 
     /**
-     * Базовые условия для архива - заметки с archive_id.
+     * Базовые условия для архива (пустой массив, так как условия уже применены через скоупы).
      */
     protected function getBaseConditions(): array
     {
-        return [
-            'whereNotNull:archive_id' => true,
-        ];
+        return [];
     }
 
     /**

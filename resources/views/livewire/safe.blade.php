@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.{{ $attemptResetPollInterval }}ms="checkAttempts">
     {{-- Модальное окно предупреждения о незащищённом сейфе --}}
     <x-modal type="info" :show="$showUnprotectedModal" title="Сейф не защищён"
         description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль." icon="lock"
@@ -57,7 +57,7 @@
                 <x-card :item="$note" :color="$note->color" />
             @empty
                 <div class="col-span-full">
-                    @if ($this->totalSafeNotesCount === 0)
+                    @if ($this->getTotalCount() === 0)
                         <x-no-data icon="lock" title="Сейф пуст" description="Создайте первую защищенную заметку" />
                     @elseif ($search)
                         <x-no-data icon="search-x" title="Совпадений не найдено"
@@ -77,13 +77,13 @@
         <!-- Заблокированное состояние -->
         <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-24">
             <div class="flex items-center justify-center">
-                <div class="text-center">
+                <div class="text-center max-w-[400px]">
                     <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
                         <i data-lucide="lock" class="w-8 h-8 text-indigo-600"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Сейф заблокирован</h3>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Введите пароль сейфа</h3>
                     <p class="text-gray-500 mb-3 max-w-md mx-auto">
-                        Введите пароль для доступа к защищённым заметкам
+                        Для доступа к защищённым заметкам введите пароль
                     </p>
                     @if ($errorMessage)
                         <div class="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg text-red-700 text-sm">

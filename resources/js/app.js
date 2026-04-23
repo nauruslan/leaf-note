@@ -23,6 +23,9 @@ function initLucide(root = document) {
     createIcons({ icons, root });
 }
 
+// Делаем доступным глобально для других модулей (например, safe-timer)
+window.initLucide = initLucide;
+
 document.addEventListener('DOMContentLoaded', () => {
     initLucide();
 });

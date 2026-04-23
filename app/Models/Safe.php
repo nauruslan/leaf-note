@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Hash;
 
 class Safe extends Model
 {
+    public const ATTEMPT_RESET_MINUTES = 1;
+
     protected $fillable = [
         'user_id',
         'password_hash',
@@ -20,6 +22,7 @@ class Safe extends Model
         'failed_attempts',
         'locked_until',
         'last_accessed_at',
+        'last_failed_attempt_at',
     ];
 
     protected $hidden = [
@@ -31,6 +34,7 @@ class Safe extends Model
         'failed_attempts' => 'integer',
         'locked_until' => 'datetime',
         'last_accessed_at' => 'datetime',
+        'last_failed_attempt_at' => 'datetime',
     ];
 
 
@@ -54,14 +58,6 @@ class Safe extends Model
     }
 
     /**
-     * Доступен ли сейф для ввода пароля?
-     */
-    public function isAccessible(): bool
-    {
-        return !$this->isLocked();
-    }
-
-    /**
      * Достигнут ли лимит попыток?
      */
     public function hasReachedAttemptLimit(): bool
@@ -70,42 +66,45 @@ class Safe extends Model
     }
 
     /**
-     * Время до разблокировки в секундах.
-     */
-    public function getSecondsUntilUnlockAttribute(): int
-    {
-        if (!$this->isLocked()) {
-            return 0;
-        }
-        return max(0, $this->locked_until->diffInSeconds(now()));
-    }
-
-
-    /**
      * Зафиксировать неудачную попытку.
-     *
-     * @return bool true если сейф заблокирован после этой попытки
+     * При достижении лимита попыток сейф не блокируется по времени -
+     * вместо этого выполняется выход из аккаунта (логика в SafeView).
      */
-    public function recordFailedAttempt(): bool
+    public function recordFailedAttempt(): void
     {
         $this->failed_attempts += 1;
+        $this->last_failed_attempt_at = now();
         $this->save();
-
-        if ($this->hasReachedAttemptLimit()) {
-            $this->lockForMinutes(5);
-            return true;
-        }
-
-        return false;
     }
 
     /**
-     * Заблокировать сейф на указанное количество минут.
+     * Проверить и сбросить попытки, если прошло более ATTEMPT_RESET_MINUTES минут.
      */
-    public function lockForMinutes(int $minutes = 15): void
+    public function checkAndResetAttempts(): void
     {
-        $this->locked_until = now()->addMinutes($minutes);
+        if ($this->failed_attempts > 0 && $this->last_failed_attempt_at) {
+            if ($this->last_failed_attempt_at->addMinutes(self::ATTEMPT_RESET_MINUTES)->lt(now())) {
+                $this->resetFailedAttempts();
+            }
+        }
+    }
+
+    /**
+     * Сбросить счётчик неудачных попыток.
+     */
+    public function resetFailedAttempts(): void
+    {
+        $this->failed_attempts = 0;
+        $this->last_failed_attempt_at = null;
         $this->save();
+    }
+
+    /**
+     * Получить интервал сброса попыток в миллисекундах.
+     */
+    public static function getAttemptResetPollInterval(): int
+    {
+        return self::ATTEMPT_RESET_MINUTES * 60 * 1000;
     }
 
     /**
@@ -114,6 +113,7 @@ class Safe extends Model
     public function unlock(): void
     {
         $this->failed_attempts = 0;
+        $this->last_failed_attempt_at = null;
         $this->locked_until = null;
         $this->save();
     }
@@ -124,6 +124,7 @@ class Safe extends Model
     public function recordSuccessfulAccess(): void
     {
         $this->failed_attempts = 0;
+        $this->last_failed_attempt_at = null;
         $this->locked_until = null;
         $this->last_accessed_at = now();
         $this->save();

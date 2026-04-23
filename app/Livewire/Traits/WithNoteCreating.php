@@ -11,13 +11,13 @@ trait WithNoteCreating
      */
     protected function setCreationPresets(): void
     {
-        if (isset($this->folderId) && $this->folderId) {
+        if (! empty($this->folderId)) {
             StateManager::set('preset_folder_id', $this->folderId);
         }
-        if (isset($this->safe) && $this->safe) {
+        if (! empty($this->safe)) {
             StateManager::set('preset_safe_id', $this->safe->id);
         }
-        if (isset($this->archive) && $this->archive) {
+        if (! empty($this->archive)) {
             StateManager::set('preset_archive_id', $this->archive->id);
         }
     }

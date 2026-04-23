@@ -10,9 +10,9 @@ use App\Livewire\Traits\WithNoteOpening;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 abstract class BaseView extends Component
@@ -24,10 +24,31 @@ abstract class BaseView extends Component
     use WithNoteOpening;
     use WithFolderOpening;
 
-    #[Locked]
-    public string $heading = '';
+    /**
+     * Префикс для условия whereNotNull в getBaseConditions().
+     * Использование: 'whereNotNull:column_name' вместо прямого условия.
+     */
+    protected const WHERE_NOT_NULL_PREFIX = 'whereNotNull:';
 
-    #[Locked]
+    /**
+     * Скоупы модели для применения к запросу.
+     * Переопределить в дочернем классе.
+     *
+     * @var array<string>
+     */
+    protected array $scopes = [];
+
+    /**
+     * ID папки для фильтрации (опционально).
+     */
+    public ?int $folderId = null;
+
+    /**
+     * Показывать ли удалённые элементы.
+     */
+    public bool $withTrashed = false;
+
+    public string $heading = '';
     public string $subheading = '';
 
     /**
@@ -44,6 +65,11 @@ abstract class BaseView extends Component
     /**
      * Базовые условия запроса для конкретного представления.
      * Переопределить в дочернем классе.
+     *
+     * Формат массива:
+     * - ['column' => 'value'] => where('column', 'value')
+     * - ['column' => null] => whereNull('column')
+     * - ['whereNotNull:column' => true] => whereNotNull('column')
      *
      * @return array<string, mixed>
      */
@@ -72,19 +98,42 @@ abstract class BaseView extends Component
     }
 
     /**
+     * Получить базовый запрос заметок.
+     */
+    protected function buildNotesQuery(): Builder
+    {
+        $query = Note::forUser(Auth::id())
+            ->with('folder');
+
+        // Фильтрация по папке
+        if ($this->folderId !== null) {
+            $query->where('folder_id', $this->folderId);
+        }
+
+        // Показывать удалённые (для корзины)
+        if ($this->withTrashed) {
+            $query->withTrashed();
+        }
+
+        // Применяем скоупы
+        $this->applyScopes($query);
+
+        // Применяем базовые условия
+        $this->applyBaseConditions($query);
+
+        return $query;
+    }
+
+    /**
      * Получить заметки с применением фильтров, сортировки и поиска.
      */
     #[Computed]
     public function notes(): LengthAwarePaginator
     {
-        $query = Note::forUser(Auth::id())
-            ->with('folder');
-
-        // Применяем базовые условия
-        $this->applyBaseConditions($query);
+        $query = $this->buildNotesQuery();
 
         // Применяем фильтр
-        $query = $this->applyFilter($query, 'type', $this->getFilterMap());
+        $query = $this->applyFilters($query, 'type');
 
         // Применяем сортировку
         $query = $this->applySorting($query);
@@ -97,18 +146,50 @@ abstract class BaseView extends Component
     }
 
     /**
-     * Применить базовые условия к запросу.
+     * Применить скоупы модели к запросу.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
      */
-    protected function applyBaseConditions($query): void
+    protected function applyScopes(\Illuminate\Database\Eloquent\Builder $query): void
+    {
+        foreach ($this->scopes as $scope) {
+            if (method_exists($query->getModel(), 'scope' . ucfirst($scope))) {
+                $query->$scope();
+            }
+        }
+    }
+
+    /**
+     * Применить базовые условия к запросу.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     */
+    protected function applyBaseConditions(\Illuminate\Database\Eloquent\Builder $query): void
     {
         foreach ($this->getBaseConditions() as $column => $value) {
+            // Проверка валидности имени колонки
+            if (!is_string($column) || $column === '') {
+                continue;
+            }
+
+            // Обработка префикса whereNotNull
+            if (str_starts_with($column, self::WHERE_NOT_NULL_PREFIX)) {
+                $realColumn = substr($column, strlen(self::WHERE_NOT_NULL_PREFIX));
+                if ($realColumn === '') {
+                    continue;
+                }
+                $query->whereNotNull($realColumn);
+                continue;
+            }
+
+            // Обработка null значения
             if ($value === null) {
                 $query->whereNull($column);
-            } elseif (str_starts_with($column, 'whereNotNull:')) {
-                $query->whereNotNull(substr($column, 13));
-            } else {
-                $query->where($column, $value);
+                continue;
             }
+
+            // Стандартное условие where
+            $query->where($column, $value);
         }
     }
 }

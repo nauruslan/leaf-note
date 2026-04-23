@@ -11,15 +11,16 @@ class DashboardView extends BaseView
     public string $subheading = 'Все ваши заметки и списки в одном месте';
 
     /**
-     * Базовые условия для dashboard - только активные заметки.
+     * Скоупы для dashboard - только активные заметки.
+     */
+    protected array $scopes = ['active'];
+
+    /**
+     * Базовые условия для dashboard (пустой массив, так как условия уже применены через скоупы).
      */
     protected function getBaseConditions(): array
     {
-        return [
-            'trash_id' => null,
-            'archive_id' => null,
-            'safe_id' => null,
-        ];
+        return [];
     }
 
     /**

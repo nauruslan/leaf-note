@@ -70,11 +70,18 @@ trait WithFiltering
 
         $config = $filterMap[$this->filter];
 
+        $column = $config['column'] ?? $typeColumn;
+        $value = $config['value'] ?? $this->filter;
+
         if (isset($config['whereNull'])) {
             return $query->whereNull($config['whereNull']);
         }
 
-        return $query->where($config['column'] ?? $typeColumn, $config['value'] ?? $this->filter);
+        if ($value === null) {
+            return $query->whereNull($column);
+        }
+
+        return $query->where($column, $value);
     }
 
     /**

@@ -2,49 +2,90 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithComponentPagination;
-use App\Livewire\Traits\WithFiltering;
-use App\Livewire\Traits\WithNoteCreating;
-use App\Livewire\Traits\WithNoteOpening;
-use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
 use App\Models\Safe;
 use App\Services\StateManager;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
-use Livewire\Component;
 
-class SafeView extends Component
+class SafeView extends BaseView
 {
-    use WithComponentPagination;
-    use WithSearch;
-    use WithFiltering;
-    use WithNoteCreating;
-    use WithNoteOpening;
-
-    public $heading = 'Сейф';
-    public $subheading = 'Защищённые заметки';
-    public $section = 'safe';
-
+    public string $heading = 'Сейф';
+    public string $subheading = 'Защищённые заметки';
+    public string $section = 'safe';
     public bool $confirmingPassword = false;
     public string $password = '';
     public bool $isUnlocked = false;
     public ?string $errorMessage = null;
-    public ?Safe $safe = null;
     public bool $showUnprotectedModal = false;
+    public ?int $safeId = null;
+    public int $attemptResetPollInterval;
 
     public function mount(): void
     {
+        $this->attemptResetPollInterval = Safe::getAttemptResetPollInterval();
         $this->loadSafe();
+    }
+
+    protected function getBaseConditions(): array
+    {
+        return []; // safe_id фильтруется в buildNotesQuery
+    }
+
+    /**
+     * Количество заметок в сейфе (для отображения в UI).
+     */
+    #[Computed(cache: true, seconds: 60)]
+    protected function getTotalCount(): int
+    {
+        return Note::forUser(Auth::id())
+            ->whereNotNull('safe_id')
+            ->count();
+    }
+
+    /**
+     * Получить актуальную модель Safe из БД.
+     * Не используем caching - каждая проверка должна быть актуальной.
+     */
+    public function safe(): ?Safe
+    {
+        return Safe::where('user_id', Auth::id())->first();
+    }
+
+    /**
+     * Достигнут ли лимит попыток ввода пароля?
+     */
+    public function hasReachedAttemptLimit(): bool
+    {
+        $safe = $this->safe();
+        return $safe && $safe->hasReachedAttemptLimit();
+    }
+
+    /**
+     * Переопределяем buildNotesQuery для фильтрации по конкретному safe.
+     */
+    protected function buildNotesQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Note::forUser(Auth::id())->with('folder');
+
+        // Фильтруем только заметки конкретного сейфа
+        $safe = $this->safe();
+        if ($safe) {
+            $query->where('safe_id', $safe->id);
+        } else {
+            $query->whereRaw('1 = 0'); // нет safe = нет заметок
+        }
+
+        return $query;
     }
 
     protected function loadSafe(): void
     {
-        $this->safe = Safe::where('user_id', Auth::id())->first();
+        $safe = $this->safe();
 
         // Если пароль не установлен - показываем предупреждение
-        if (!$this->safe || !$this->safe->hasPassword()) {
+        if (!$safe || !$safe->hasPassword()) {
             $this->showUnprotectedModal = true;
             $this->isUnlocked = true;
             $this->confirmingPassword = false;
@@ -54,32 +95,35 @@ class SafeView extends Component
         // Проверяем, разблокирован ли сейф через сессию
         $safeUnlocked = StateManager::get('safe_unlocked', false);
         if ($safeUnlocked) {
-            // Сейф уже разблокирован (пользователь ввёл пароль ранее и не покидал safe-контекст)
             $this->isUnlocked = true;
             $this->confirmingPassword = false;
             $this->errorMessage = null;
             return;
         }
 
-        // Если сейф заблокирован
-        if ($this->safe->isLocked()) {
-            $this->confirmingPassword = true;
-            $this->isUnlocked = false;
-            $this->errorMessage = "Сейф заблокирован. Попробуйте через {$this->safe->seconds_until_unlock} секунд.";
-            return;
-        }
+        // Проверяем и сбрасываем попытки, если прошло более 10 минут
+        $safe->checkAndResetAttempts();
 
-        // Сейф заблокирован по попыткам
-        if ($this->safe->hasReachedAttemptLimit()) {
-            $this->confirmingPassword = true;
-            $this->isUnlocked = false;
-            $this->errorMessage = 'Слишком много попыток. Сейф заблокирован на 5 минут.';
+        // Сейф заблокирован по попыткам - выходим из аккаунта
+        if ($safe->hasReachedAttemptLimit()) {
+            $this->performLogoutDueToLockout();
             return;
         }
 
         // Требуется ввод пароля
         $this->confirmingPassword = true;
         $this->isUnlocked = false;
+
+        // Показываем сообщение о количестве оставшихся попыток
+        if ($safe->failed_attempts > 0) {
+            $remainingAttempts = $safe->max_attempts - $safe->failed_attempts;
+
+            if ($remainingAttempts === 1) {
+                $this->errorMessage = 'У вас осталась последняя попытка. В случае ввода неверного пароля будет выполнен выход из аккаунта.';
+            } else {
+                $this->errorMessage = "Неверный пароль. Осталось попыток: {$remainingAttempts}";
+            }
+        }
     }
 
     public function verifyPassword(): void
@@ -91,18 +135,16 @@ class SafeView extends Component
             return;
         }
 
-        if (!$this->safe) {
+        // Получаем актуальную модель из БД
+        $safe = $this->safe();
+
+        if (!$safe) {
             $this->errorMessage = 'Сейф не найден';
             return;
         }
 
-        if ($this->safe->isLocked()) {
-            $this->errorMessage = "Сейф заблокирован. Попробуйте через {$this->safe->seconds_until_unlock} секунд.";
-            return;
-        }
-
-        if ($this->safe->verifyPassword($this->password)) {
-            $this->safe->recordSuccessfulAccess();
+        if ($safe->verifyPassword($this->password)) {
+            $safe->recordSuccessfulAccess();
             StateManager::set('safe_unlocked', true);
             $this->isUnlocked = true;
             $this->confirmingPassword = false;
@@ -111,22 +153,59 @@ class SafeView extends Component
             return;
         }
 
-        // Неверный пароль
-        $this->safe->recordFailedAttempt();
+        // Неверный пароль - увеличиваем счётчик попыток
+        $safe->recordFailedAttempt();
         $this->password = '';
 
-        if ($this->safe->isLocked()) {
-            $this->errorMessage = "Сейф заблокирован на 5 минут из-за многочисленных попыток.";
+        // Перезагружаем сейф для актуальных данных
+        $safe = $this->safe();
+
+        // Проверяем, достигнут ли лимит попыток
+        if ($safe->hasReachedAttemptLimit()) {
+            // Выполняем выход из аккаунта
+            $this->performLogoutDueToLockout();
         } else {
-            $remainingAttempts = $this->safe->max_attempts - $this->safe->failed_attempts;
-            $this->errorMessage = "Неверный пароль. Осталось попыток: {$remainingAttempts}";
+            $remainingAttempts = $safe->max_attempts - $safe->failed_attempts;
+
+            // Особый текст для последней попытки
+            if ($remainingAttempts === 1) {
+                $this->errorMessage = 'У вас осталась последняя попытка. В случае ввода неверного пароля будет выполнен выход из аккаунта.';
+            } else {
+                $this->errorMessage = "Неверный пароль. Осталось попыток: {$remainingAttempts}";
+            }
         }
+    }
+
+    /**
+     * Выполнить выход из аккаунта из-за блокировки сейфа.
+     */
+    protected function performLogoutDueToLockout(): void
+    {
+        $userId = Auth::id();
+
+        // Сначала сбрасываем состояние сейфа и счётчик попыток
+        $safe = Safe::where('user_id', $userId)->first();
+        if ($safe) {
+            $safe->unlock(); // сбрасывает failed_attempts и locked_until
+        }
+        StateManager::remove('safe_unlocked');
+
+        // Выполняем выход пользователя
+        Auth::logout();
+
+        // Инвалидируем сессию
+        Session::invalidate();
+        Session::regenerateToken();
+
+        // Перенаправляем на страницу входа
+        redirect()->route('login');
     }
 
     public function lock(): void
     {
         $this->isUnlocked = false;
         $this->confirmingPassword = true;
+        StateManager::remove('safe_unlocked');
     }
 
     public function closeModal(): void
@@ -135,37 +214,25 @@ class SafeView extends Component
         $this->dispatch('modalClosed');
     }
 
-    #[Computed]
-    public function totalSafeNotesCount(): int
+    /**
+     * Периодическая проверка и сброс попыток (для wire:poll).
+     */
+    public function checkAttempts(): void
     {
-        return Note::where('user_id', Auth::id())
-            ->whereNotNull('safe_id')
-            ->count();
+        $safe = $this->safe();
+        if ($safe && $safe->failed_attempts > 0) {
+            $safe->checkAndResetAttempts();
+
+            // Если попытки были сброшены, обновляем сообщение
+            if ($safe->failed_attempts === 0) {
+                $this->errorMessage = null;
+            }
+        }
     }
-
-    #[Computed]
-    public function notes(): LengthAwarePaginator
-    {
-        $query = Note::where('user_id', Auth::id())
-            ->whereNotNull('safe_id')
-            ->with('folder');
-
-        $filterMap = [
-            'notes' => ['column' => 'type', 'value' => Note::TYPE_NOTE],
-            'checklists' => ['column' => 'type', 'value' => Note::TYPE_CHECKLIST],
-        ];
-        $query = $this->applyFilter($query, 'type', $filterMap);
-
-        $query = $this->applySorting($query);
-
-        $query = $this->applySearch($query, ['title', 'search_content']);
-
-        return $query->paginate($this->perPage, ['*'], 'page', $this->page);
-    }
-
 
     public function render()
     {
         return view('livewire.safe');
     }
+
 }
