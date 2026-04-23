@@ -25,6 +25,16 @@ class AppLayout extends Component
         $this->noteId = StateManager::get('noteId', null);
 
         $this->initDemoModal();
+
+        // Проверяем, был ли сброшен пароль сейфа через email
+        if (session()->has('safe_password_reset')) {
+            session()->forget('safe_password_reset');
+            $this->dispatch('notification',
+                title: 'Внимание',
+                content: 'Был сброшен пароль от сейфа',
+                type: 'warning'
+            );
+        }
     }
 
     /**

@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             CheckDemoExpiration::class,
         ]);
+
+        $middleware->alias([
+            'demo.expiration' => CheckDemoExpiration::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

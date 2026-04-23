@@ -200,6 +200,14 @@
                                     placeholder="Недоступно">
                             </div>
                         @endif
+                        <!-- Кнопка-ссылка "Забыли пароль аккаунта?" -->
+                        <div class="mt-2">
+                            <button type="button" wire:click="openAccountPasswordResetModal()"
+                                {{ !$canChangePassword ? 'disabled' : '' }}
+                                class="text-sm text-indigo-600 hover:text-indigo-700 hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:no-underline">
+                                Забыли пароль аккаунта?
+                            </button>
+                        </div>
                     </div>
                     <!-- Секция: Пароль сейфа -->
                     <div class="flex-1">
@@ -265,24 +273,36 @@
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+                        <!-- Кнопка-ссылка "Забыли пароль сейфа?" -->
+                        <div class="mt-2">
+                            <button type="button" wire:click="openSafePasswordResetModal()"
+                                {{ !$hasSafePassword ? 'disabled' : '' }}
+                                class="text-sm text-indigo-600 hover:text-indigo-700 hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:no-underline">
+                                Забыли пароль сейфа?
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <!-- Разделитель -->
                 <div class="border-t border-gray-200"></div>
                 <!-- Кнопки действий -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
-                    @if ($hasSafePassword)
-                        <x-button-reset-password-safe wire:click.prevent="confirmResetSafePassword"
-                            wire:loading.attr="disabled" />
-                    @endif
                     <x-button-save wire:click.prevent="saveProfile" wire:loading.attr="disabled"
                         target="saveProfile" />
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Модальное окно подтверждения сброса пароля аккаунта -->
+    <x-modal :show="$showPasswordResetModal" type="confirm" title="Сброс пароля аккаунта"
+        description="Вы уверены, что хотите сбросить пароль аккаунта? Ссылка для сброса будет отправлена на вашу почту."
+        confirmMethod="sendAccountPasswordResetLink" cancelMethod="closeAccountPasswordResetModal"
+        confirmText="Да, отправить" />
+
     <!-- Модальное окно подтверждения сброса пароля сейфа -->
-    <x-modal type="confirm" :show="$confirmingResetSafePassword" title="Сбросить пароль сейфа?"
-        description="Вход в сейф будет осуществляться без необходимости ввода пароля." icon="lock"
-        confirmText="Сбросить" confirmMethod="removeSafePassword" cancelMethod="closeResetSafePasswordModal" />
+    <x-modal :show="$showSafePasswordResetModal" type="confirm" title="Сброс пароля сейфа"
+        description="Вы уверены, что хотите сбросить пароль сейфа? Ссылка для сброса будет отправлена на вашу почту."
+        confirmMethod="sendSafePasswordResetLink" cancelMethod="closeSafePasswordResetModal"
+        confirmText="Да, отправить" />
 </div>

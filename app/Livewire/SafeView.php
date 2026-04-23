@@ -25,6 +25,17 @@ class SafeView extends BaseView
     public function mount(): void
     {
         $this->attemptResetPollInterval = Safe::getAttemptResetPollInterval();
+
+        // Проверяем, был ли сброшен пароль сейфа через email
+        if (session()->has('safe_password_reset')) {
+            session()->forget('safe_password_reset');
+            $this->dispatch('notification',
+                title: 'Успешно',
+                content: 'Пароль сейфа сброшен. Сейф теперь открыт без защиты.',
+                type: 'success'
+            );
+        }
+
         $this->loadSafe();
     }
 

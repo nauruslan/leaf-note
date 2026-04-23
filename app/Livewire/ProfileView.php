@@ -8,6 +8,7 @@ use App\Models\Trash;
 use App\Models\Safe;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -43,8 +44,13 @@ class ProfileView extends Component
     public bool $hasSafePassword = false;
     public bool $canChangePassword = true;
 
-    // Состояние модального окна сброса пароля сейфа
-    public bool $confirmingResetSafePassword = false;
+    // Состояние отправки сброса пароля сейфа
+    public bool $sendingSafePasswordReset = false;
+    public bool $safePasswordResetSent = false;
+
+    // Модальные окна для сброса паролей
+    public bool $showPasswordResetModal = false;
+    public bool $showSafePasswordResetModal = false;
 
     public function mount(): void
     {
@@ -65,8 +71,8 @@ class ProfileView extends Component
         $safe = Safe::where('user_id', $user->id)->first();
         $this->hasSafePassword = $safe && $safe->hasPassword();
 
-        // Проверка возможности смены пароля (не демо и не Google аккаунт)
-        $this->canChangePassword = !$user->isDemoUser() && !$user->hasGoogleAccount();
+        // Проверка возможности смены пароля (только не демо)
+        $this->canChangePassword = !$user->isDemoUser();
     }
 
     // Получить настройку автоудаления из корзины.
@@ -168,13 +174,13 @@ class ProfileView extends Component
             return;
         }
 
+        $user = Auth::user();
+
         $this->validate([
             'currentPassword' => 'required|string',
             'newPassword' => 'required|string|min:8',
             'confirmPassword' => 'required|string|same:newPassword',
         ]);
-
-        $user = Auth::user();
 
         if (!Hash::check($this->currentPassword, $user->password)) {
             throw ValidationException::withMessages([
@@ -244,25 +250,10 @@ class ProfileView extends Component
         $this->hasSafePassword = true;
     }
 
-    // Удалить пароль сейфа
-    public function removeSafePassword(): void
+    // Сбросить состояние отправки ссылки
+    public function dismissSafePasswordResetSent(): void
     {
-        $this->closeResetSafePasswordModal();
-
-        $user = Auth::user();
-
-        $safe = Safe::where('user_id', $user->id)->first();
-
-        if ($safe) {
-            $safe->resetPassword();
-        }
-
-        $this->hasSafePassword = false;
-        $this->safeCurrentPassword = '';
-        $this->safePassword = '';
-        $this->safeConfirmPassword = '';
-
-        $this->dispatch('notification', title: 'Успешно', content: 'Пароль сейфа удалён', type: 'success');
+        $this->safePasswordResetSent = false;
     }
 
     //  Отменить изменения.
@@ -272,21 +263,90 @@ class ProfileView extends Component
         $this->dispatch('notification', title: 'Информация', content: 'Изменения отменены', type: 'info');
     }
 
-    // Открыть модальное окно подтверждения сброса пароля сейфа
-    public function confirmResetSafePassword(): void
+    // Показать модальное окно подтверждения сброса пароля аккаунта
+    public function openAccountPasswordResetModal(): void
     {
-        $this->confirmingResetSafePassword = true;
+        $this->showPasswordResetModal = true;
     }
 
-    // Закрыть модальное окно подтверждения сброса пароля сейфа
-    public function closeResetSafePasswordModal(): void
+    // Скрыть модальное окно сброса пароля аккаунта
+    public function closeAccountPasswordResetModal(): void
     {
-        $this->confirmingResetSafePassword = false;
-        $this->dispatch('modalClosed');
+        $this->showPasswordResetModal = false;
     }
 
-    public function render()
+    // Показать модальное окно подтверждения сброса пароля сейфа
+    public function openSafePasswordResetModal(): void
     {
-        return view('livewire.profile');
+        $this->showSafePasswordResetModal = true;
     }
+
+    // Скрыть модальное окно сброса пароля сейфа
+    public function closeSafePasswordResetModal(): void
+    {
+        $this->showSafePasswordResetModal = false;
+    }
+
+    // Отправить ссылку для сброса пароля аккаунта
+    public function sendAccountPasswordResetLink(): void
+    {
+        $user = Auth::user();
+
+        $status = Password::sendResetLink($this->only('email'));
+
+        if ($status != Password::RESET_LINK_SENT) {
+            $this->closeAccountPasswordResetModal();
+            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось отправить ссылку для сброса пароля', type: 'error');
+            return;
+        }
+
+        $this->closeAccountPasswordResetModal();
+        $this->dispatch('notification', title: 'Успешно', content: 'Ссылка для сброса пароля отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для установки нового пароля.', type: 'success');
+    }
+
+    // Отправить ссылку для сброса пароля сейфа (с модальным окном)
+    public function sendSafePasswordResetLink(): void
+    {
+        $user = Auth::user();
+        $safe = Safe::where('user_id', $user->id)->first();
+
+        if (!$safe || !$safe->hasPassword()) {
+            $this->closeSafePasswordResetModal();
+            $this->dispatch('notification', title: 'Ошибка', content: 'Пароль сейфа не установлен', type: 'error');
+            return;
+        }
+
+        $this->sendingSafePasswordReset = true;
+
+        try {
+            // Шифруем ID сейфа
+            $safeId = \Illuminate\Support\Facades\Crypt::encryptString($safe->id);
+
+            // Генерируем подписанный URL на 60 минут
+            $resetUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'safe-password.reset',
+                now()->addMinutes(60),
+                ['safe_id' => $safeId]
+            );
+
+            // Отправляем email
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Mail\SafePasswordResetMail($resetUrl, $user->name)
+            );
+
+            $this->closeSafePasswordResetModal();
+            $this->dispatch('notification', title: 'Успешно', content: 'Ссылка для сброса пароля сейфа отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для подтверждения сброса.', type: 'success');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Safe password reset error: ' . $e->getMessage());
+            $this->closeSafePasswordResetModal();
+            $this->dispatch('notification', title: 'Ошибка', content: 'Произошла ошибка при отправке ссылки: ' . $e->getMessage(), type: 'error');
+        } finally {
+            $this->sendingSafePasswordReset = false;
+        }
+    }
+
+public function render()
+{
+    return view('livewire.profile');
+}
 }

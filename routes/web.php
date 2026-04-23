@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\NoteImageController;
+use App\Http\Controllers\SafePasswordResetController;
 use Illuminate\Support\Facades\Route;
 
 // Очистка сессии на время разработки
@@ -34,3 +35,13 @@ Route::post('/notes/execute-deletion', [NoteImageController::class, 'executeDele
 
 // Подключение маршрутов из auth.php
 require __DIR__.'/auth.php';
+
+// Сброс пароля сейфа (защищённые маршруты требующие аутентификации)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/safe-password/send-reset-link', [SafePasswordResetController::class, 'sendResetLink'])
+        ->name('safe-password.send-reset-link');
+});
+
+// Подписанный маршрут для сброса пароля сейфа (не требует аутентификации)
+Route::get('/safe-password/reset', [SafePasswordResetController::class, 'reset'])
+    ->name('safe-password.reset');

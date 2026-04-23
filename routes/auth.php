@@ -15,14 +15,17 @@ Route::middleware('guest')->group(function () {
     Volt::route('forgot-password', 'pages.auth.forgot-password')
         ->name('password.request');
 
-    Volt::route('reset-password/{token}', 'pages.auth.reset-password')
-        ->name('password.reset');
-
     // Google OAuth
     Route::get('auth/google/redirect', [GoogleController::class, 'redirect'])
         ->name('auth.google.redirect');
     Route::get('auth/google/callback', [GoogleController::class, 'callback'])
         ->name('auth.google.callback');
+});
+
+// Password reset route - available to guests (no middleware)
+Route::middleware([])->group(function () {
+    Volt::route('reset-password/{token}', 'pages.auth.reset-password')
+        ->name('password.reset');
 });
 
 Route::middleware('auth')->group(function () {
