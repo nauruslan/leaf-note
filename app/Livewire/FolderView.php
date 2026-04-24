@@ -95,7 +95,7 @@ class FolderView extends BaseView
         $success = $folder->moveToTrash();
 
         if ($success) {
-            $this->dispatch('notification', title: 'Удалено', content: "Папка «{$folder->title}» отправлена в корзину", type: 'danger');
+            $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Папка «{$folder->title}» отправлена в корзину", 'type' => 'danger']);
             // После удаления перенаправить на дашборд
             $this->dispatch('navigateTo', 'dashboard');
             // Уведомить навигацию об удалении папки
@@ -104,7 +104,7 @@ class FolderView extends BaseView
             $this->confirmingDeletion = false;
         } else {
             // Корзина переполнена
-            $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Корзина переполнена. Очистите корзину перед удалением.', 'type' => 'danger']);
             $this->confirmingDeletion = false;
         }
     }

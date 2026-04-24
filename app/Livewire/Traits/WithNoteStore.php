@@ -14,7 +14,7 @@ use Livewire\Attributes\Computed;
  * @property int|null $folderId
  * @property int|null $safeId
  */
-trait WithFolderSafeSelection
+trait WithNoteStore
 {
     #[Computed]
     public function folders(): EloquentCollection

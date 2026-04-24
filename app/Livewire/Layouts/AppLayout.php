@@ -29,11 +29,7 @@ class AppLayout extends Component
         // Проверяем, был ли сброшен пароль сейфа через email
         if (session()->has('safe_password_reset')) {
             session()->forget('safe_password_reset');
-            $this->dispatch('notification',
-                title: 'Внимание',
-                content: 'Был сброшен пароль от сейфа',
-                type: 'warning'
-            );
+            $this->dispatch('notification', ['title' => 'Внимание', 'content' => 'Был сброшен пароль от сейфа', 'type' => 'warning']);
         }
     }
 
@@ -98,9 +94,6 @@ class AppLayout extends Component
         $this->folderId = $folderId;
         $this->noteId = $noteId;
         $this->componentKey++;
-
-        // Уведомляем NavigationSidebar об изменении состояния
-        $this->dispatch('stateUpdated', section: $section, folderId: $folderId);
     }
 
     public function render()

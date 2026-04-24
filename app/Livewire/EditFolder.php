@@ -76,7 +76,7 @@ class EditFolder extends Component
                 ->first();
 
             if (!$this->folder) {
-                $this->dispatch('notify', ['message' => 'Папка не найдена или у вас нет прав на её редактирование.', 'type' => 'error']);
+                $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Папка не найдена или у вас нет прав на её редактирование.', 'type' => 'danger']);
                 return;
             }
         }
@@ -155,8 +155,7 @@ class EditFolder extends Component
             $event = 'folderCreated';
         }
 
-        // $this->dispatch('notify', ['message' => $message, 'type' => 'success']);
-        $this->dispatch('notification', title: 'Успешно', content: 'Изменения сохранены', type: 'success');
+        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Изменения сохранены', 'type' => 'success']);
         $this->dispatch($event);
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
@@ -198,7 +197,7 @@ class EditFolder extends Component
         }
 
         if (!$folder) {
-            $this->dispatch('notify', ['message' => 'Папка не найдена', 'type' => 'error']);
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Папка не найдена', 'type' => 'danger']);
             $this->confirmingDeletion = false;
             return;
         }
@@ -206,12 +205,12 @@ class EditFolder extends Component
         $success = $folder->moveToTrash();
 
         if ($success) {
-            $this->dispatch('notification', title: 'Удалено', content: "Папка «{$folder->title}» отправлена в корзину", type: 'danger');
+            $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Папка «{$folder->title}» отправлена в корзину", 'type' => 'danger']);
             $this->dispatch('navigateTo', section: 'dashboard');
             $this->confirmingDeletion = false;
         } else {
             // Корзина переполнена
-            $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Корзина переполнена. Очистите корзину перед удалением.', 'type' => 'danger']);
             $this->confirmingDeletion = false;
         }
         // Обновляем sidebar

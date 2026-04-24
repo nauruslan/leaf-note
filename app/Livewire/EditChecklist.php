@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithBackSection;
 use App\Livewire\Traits\WithFavorite;
-use App\Livewire\Traits\WithFolderSafeSelection;
+use App\Livewire\Traits\WithNoteStore;
 use App\Models\Archive;
 use App\Models\Folder;
 use App\Models\Note;
@@ -18,7 +18,7 @@ use Livewire\Component;
 class EditChecklist extends Component
 {
     use WithBackSection;
-    use WithFolderSafeSelection;
+    use WithNoteStore;
     use WithFavorite;
 
     public $section='edit-checklist';
@@ -116,7 +116,7 @@ class EditChecklist extends Component
         $checklist = $this->checklist();
 
         if (!$checklist) {
-            $this->dispatch('notification', title: 'Ошибка', content: 'Список не найден', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Список не найден', 'type' => 'danger']);
             return;
         }
 
@@ -126,11 +126,11 @@ class EditChecklist extends Component
 
         if (!$checklist->moveToTrash()) {
             // Корзина переполнена
-            $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Корзина переполнена. Очистите корзину перед удалением.', 'type' => 'danger']);
             return;
         }
 
-        $this->dispatch('notification', title: 'Удалено', content: "Список «{$checklist->title}» отправлен в корзину", type: 'danger');
+        $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Список «{$checklist->title}» отправлен в корзину", 'type' => 'danger']);
         $this->dispatch('navigateTo', 'dashboard');
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
@@ -155,7 +155,7 @@ class EditChecklist extends Component
     public function delete(): void
     {
         if (!$this->noteId) {
-            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось найти список', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось найти список', 'type' => 'danger']);
             return;
         }
 
@@ -164,7 +164,7 @@ class EditChecklist extends Component
             ->find($this->noteId);
 
         if (!$checklist || !$checklist->moveToTrash()) {
-            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось удалить список.', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось удалить список.', 'type' => 'danger']);
             return;
         }
 
@@ -202,7 +202,7 @@ class EditChecklist extends Component
             }
 
             if (!$this->cachedChecklist) {
-                $this->dispatch('notification', title: 'Ошибка', content: 'Список не найден', type: 'danger');
+                $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Список не найден', 'type' => 'danger']);
                 return;
             }
 
@@ -215,7 +215,7 @@ class EditChecklist extends Component
             $this->dispatch('navigateTo', 'dashboard');
         } catch (\Throwable $e) {
             report($e);
-            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось сохранить список', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось сохранить список', 'type' => 'danger']);
         }
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
@@ -329,7 +329,7 @@ class EditChecklist extends Component
             // Показываем уведомление если изменилось местоположение
             if ($locationChanged) {
                 $locationName = $this->getLocationName($this->cachedChecklist);
-                $this->dispatch('notification', title: 'Обновлено', content: "Место хранения изменено на «{$locationName}»", type: 'success');
+                $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'success']);
 
                 // Обновляем оригинальное местоположение
                 $this->originalFolderId = $this->cachedChecklist->folder_id;

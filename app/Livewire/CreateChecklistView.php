@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithBackSection;
 use App\Livewire\Traits\WithFavorite;
-use App\Livewire\Traits\WithFolderSafeSelection;
+use App\Livewire\Traits\WithNoteStore;
 use App\Models\Archive;
 use App\Models\Folder;
 use App\Models\Note;
@@ -17,7 +17,7 @@ use Livewire\Component;
 class CreateChecklistView extends Component
 {
     use WithBackSection;
-    use WithFolderSafeSelection;
+    use WithNoteStore;
     use WithFavorite;
 
     private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
@@ -110,7 +110,7 @@ class CreateChecklistView extends Component
                 }
 
                 if (!$this->cachedNote) {
-                    $this->dispatch('notification', title: 'Ошибка', content: 'Список не найден', type: 'danger');
+                    $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Список не найден', 'type' => 'danger']);
                     return;
                 }
 
@@ -152,7 +152,7 @@ class CreateChecklistView extends Component
             $this->dispatch('navigateTo', 'dashboard');
         } catch (\Throwable $e) {
             report($e);
-            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось сохранить список', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось сохранить список', 'type' => 'danger']);
         }
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
@@ -309,7 +309,7 @@ class CreateChecklistView extends Component
                 // Показываем уведомление о первом сохранении
                 if ($this->isFirstSave) {
                     $locationName = $this->getLocationName($note);
-                    $this->dispatch('notification', title: 'Сохранено', content: "Список сохранён в «{$locationName}»", type: 'success');
+                    $this->dispatch('notification', ['title' => 'Сохранено', 'content' => "Список сохранён в «{$locationName}»", 'type' => 'success']);
                     $this->isFirstSave = false;
                 }
             }

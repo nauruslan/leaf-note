@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithBackSection;
 use App\Livewire\Traits\WithFavorite;
-use App\Livewire\Traits\WithFolderSafeSelection;
+use App\Livewire\Traits\WithNoteStore;
 use App\Models\Archive;
 use App\Models\Folder;
 use App\Models\Note;
@@ -19,7 +19,7 @@ use Livewire\Component;
 class CreateNoteView extends Component
 {
     use WithBackSection;
-    use WithFolderSafeSelection;
+    use WithNoteStore;
     use WithFavorite;
 
     public $heading='Создать заметку';
@@ -149,7 +149,7 @@ class CreateNoteView extends Component
                 }
 
                 if (!$this->cachedNote) {
-                    $this->dispatch('notification', title: 'Ошибка', content: 'Заметка не найдена', type: 'danger');
+                    $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Заметка не найдена', 'type' => 'danger']);
                     return;
                 }
 
@@ -212,7 +212,7 @@ class CreateNoteView extends Component
             $this->dispatch('refreshSidebar');
         } catch (\Throwable $e) {
             report($e);
-            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось сохранить заметку', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось сохранить заметку', 'type' => 'danger']);
         }
     }
 
@@ -385,7 +385,7 @@ class CreateNoteView extends Component
                 // Показываем уведомление о первом сохранении только если это первое сохранение
                 if ($this->isFirstSave) {
                     $locationName = $this->getLocationName($note);
-                    $this->dispatch('notification', title: 'Сохранено', content: "Заметка сохранена в «{$locationName}»", type: 'success');
+                    $this->dispatch('notification', ['title' => 'Сохранено', 'content' => "Заметка сохранена в «{$locationName}»", 'type' => 'success']);
                     $this->isFirstSave = false;
                 }
             }

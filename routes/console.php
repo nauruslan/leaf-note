@@ -3,6 +3,7 @@
 use App\Console\Commands\DeleteExpiredDemoUsers;
 use App\Console\Commands\CleanupTemporaryImages;
 use App\Console\Commands\AutoCleanupTrash;
+use App\Console\Commands\CleanupEmptyImageFolders;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -19,3 +20,6 @@ Schedule::command(CleanupTemporaryImages::class, ['--hours' => 24])->hourly();
 
 // Планировщик: автоматическая очистка корзины ежедневно в 00:00
 Schedule::command(AutoCleanupTrash::class)->daily();
+
+// Планировщик: очистка пустых папок с изображениями ежедневно в 01:00
+Schedule::command(CleanupEmptyImageFolders::class)->dailyAt('01:00');

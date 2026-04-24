@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithBackSection;
 use App\Livewire\Traits\WithFavorite;
-use App\Livewire\Traits\WithFolderSafeSelection;
+use App\Livewire\Traits\WithNoteStore;
 use App\Models\Archive;
 use App\Models\Folder;
 use App\Models\Note;
@@ -19,7 +19,7 @@ use Livewire\Component;
 class EditNote extends Component
 {
     use WithBackSection;
-    use WithFolderSafeSelection;
+    use WithNoteStore;
     use WithFavorite;
 
     public $section='edit-note';
@@ -201,11 +201,11 @@ class EditNote extends Component
 
         if (!$note->moveToTrash()) {
             // Корзина переполнена
-            $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Корзина переполнена. Очистите корзину перед удалением.', 'type' => 'danger']);
             return;
         }
 
-        $this->dispatch('notification', title: 'Удалено', content: "Заметка «{$note->title}» отправлена в корзину", type: 'danger');
+        $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Заметка «{$note->title}» отправлена в корзину", 'type' => 'danger']);
         $this->dispatch('noteUpdated');
         $this->dispatch('navigateTo', 'dashboard');
         // Обновляем sidebar
@@ -375,7 +375,7 @@ class EditNote extends Component
             // Показываем уведомление если изменилось местоположение
             if ($locationChanged) {
                 $locationName = $this->getLocationName($this->cachedNote);
-                $this->dispatch('notification', title: 'Обновлено', content: "Место хранения изменено на «{$locationName}»", type: 'success');
+                $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'success']);
 
                 // Обновляем оригинальное местоположение
                 $this->originalFolderId = $this->cachedNote->folder_id;

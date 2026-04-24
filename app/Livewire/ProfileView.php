@@ -141,7 +141,7 @@ class ProfileView extends Component
             $this->saveSafePassword();
         }
 
-        $this->dispatch('notification', title: 'Успешно', content: 'Настройки сохранены', type: 'success');
+        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Настройки сохранены', 'type' => 'success']);
     }
 
     // Сохранить настройки автоудаления.
@@ -260,7 +260,7 @@ class ProfileView extends Component
     public function cancel(): void
     {
         $this->mount();
-        $this->dispatch('notification', title: 'Информация', content: 'Изменения отменены', type: 'info');
+        $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Изменения отменены', 'type' => 'info']);
     }
 
     // Показать модальное окно подтверждения сброса пароля аккаунта
@@ -296,12 +296,12 @@ class ProfileView extends Component
 
         if ($status != Password::RESET_LINK_SENT) {
             $this->closeAccountPasswordResetModal();
-            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось отправить ссылку для сброса пароля', type: 'error');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось отправить ссылку для сброса пароля', 'type' => 'danger']);
             return;
         }
 
         $this->closeAccountPasswordResetModal();
-        $this->dispatch('notification', title: 'Успешно', content: 'Ссылка для сброса пароля отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для установки нового пароля.', type: 'success');
+        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Ссылка для сброса пароля отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для установки нового пароля.', 'type' => 'success']);
     }
 
     // Отправить ссылку для сброса пароля сейфа (с модальным окном)
@@ -312,7 +312,7 @@ class ProfileView extends Component
 
         if (!$safe || !$safe->hasPassword()) {
             $this->closeSafePasswordResetModal();
-            $this->dispatch('notification', title: 'Ошибка', content: 'Пароль сейфа не установлен', type: 'error');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Пароль сейфа не установлен', 'type' => 'danger']);
             return;
         }
 
@@ -335,11 +335,11 @@ class ProfileView extends Component
             );
 
             $this->closeSafePasswordResetModal();
-            $this->dispatch('notification', title: 'Успешно', content: 'Ссылка для сброса пароля сейфа отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для подтверждения сброса.', type: 'success');
+            $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Ссылка для сброса пароля сейфа отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для подтверждения сброса.', 'type' => 'success']);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Safe password reset error: ' . $e->getMessage());
             $this->closeSafePasswordResetModal();
-            $this->dispatch('notification', title: 'Ошибка', content: 'Произошла ошибка при отправке ссылки: ' . $e->getMessage(), type: 'error');
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Произошла ошибка при отправке ссылки: ' . $e->getMessage(), 'type' => 'danger']);
         } finally {
             $this->sendingSafePasswordReset = false;
         }

@@ -55,11 +55,15 @@ class Notifications {
 
         const bindEvent = () => {
             if (window.Livewire) {
-                Livewire.on('notification', (data) => {
+                Livewire.on('notification', (params) => {
                     // Проверяем, включены ли уведомления в настройках пользователя
                     if (document.documentElement.dataset.notifications === 'false') {
                         return;
                     }
+
+                    // Поддержка массива [{}] и объекта {}
+                    const data = Array.isArray(params) ? params[0] : params;
+
                     this.show(data.title, data.content, data.type, data.duration || 3000);
                 });
 
