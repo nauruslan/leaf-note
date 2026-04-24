@@ -222,6 +222,10 @@ class EditFolder extends Component
             $this->dispatch('folderDeleted');
             $this->dispatch('navigateTo', section: 'dashboard');
             $this->confirmingDeletion = false;
+        } else {
+            // Корзина переполнена
+            $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
+            $this->confirmingDeletion = false;
         }
     }
 

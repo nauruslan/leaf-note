@@ -103,7 +103,9 @@ class FolderView extends BaseView
             // Закрыть модальное окно
             $this->confirmingDeletion = false;
         } else {
-            // Ошибка, например, корзина переполнена
+            // Корзина переполнена
+            $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
+            $this->confirmingDeletion = false;
         }
     }
 

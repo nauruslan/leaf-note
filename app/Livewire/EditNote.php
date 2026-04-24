@@ -199,7 +199,8 @@ class EditNote extends Component
         }
 
         if (!$note->moveToTrash()) {
-            $this->dispatch('showError', 'Не удалось удалить заметку');
+            // Корзина переполнена
+            $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
             return;
         }
 

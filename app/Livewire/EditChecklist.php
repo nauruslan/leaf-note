@@ -129,7 +129,8 @@ class EditChecklist extends Component
         }
 
         if (!$checklist->moveToTrash()) {
-            $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось удалить список', type: 'danger');
+            // Корзина переполнена
+            $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
             return;
         }
 
