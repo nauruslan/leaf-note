@@ -26,12 +26,12 @@ trait WithFavorite
                 } else {
                     $this->dispatch('notification', title: 'Успешно', content: 'Удалено из избранного', type: 'success');
                 }
-                // Обновляем sidebar
-                $this->dispatch('refreshSidebar');
             }
         } else {
             // Заметка еще не создана, просто вызываем автосохранение
             $this->autoSave();
         }
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 }

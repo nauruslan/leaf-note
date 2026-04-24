@@ -1,14 +1,16 @@
 <?php
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithBackSection;
 use App\Models\Folder;
-use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class CreateFolderView extends Component
 {
+    use WithBackSection;
+
     public $heading='Создать папку';
     public $section='create-folder';
 
@@ -83,17 +85,8 @@ class CreateFolderView extends Component
         $this->icon = '';
 
         $this->dispatch('notify', ['message' => 'Папка успешно создана', 'type' => 'success']);
-        $this->dispatch('folderCreated');
-        // $this->dispatch('navigateTo', section: 'dashboard');
-    }
-
-    public function back(): void
-    {
-        $previousSection = StateManager::get('previous_section', 'dashboard');
-        $previousFolderId = StateManager::get('previous_folderId');
-        $previousNoteId = StateManager::get('previous_noteId');
-
-        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function render()

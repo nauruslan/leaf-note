@@ -98,6 +98,9 @@ class AppLayout extends Component
         $this->folderId = $folderId;
         $this->noteId = $noteId;
         $this->componentKey++;
+
+        // Уведомляем NavigationSidebar об изменении состояния
+        $this->dispatch('stateUpdated', section: $section, folderId: $folderId);
     }
 
     public function render()

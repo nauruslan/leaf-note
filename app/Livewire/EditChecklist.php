@@ -2,13 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithBackSection;
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Archive;
 use App\Models\Folder;
 use App\Models\Note;
 use App\Models\Safe;
-use App\Services\StateManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -17,6 +17,7 @@ use Livewire\Component;
 
 class EditChecklist extends Component
 {
+    use WithBackSection;
     use WithFolderSafeSelection;
     use WithFavorite;
 
@@ -110,11 +111,6 @@ class EditChecklist extends Component
             : null;
     }
 
-    public function cancel(): void
-    {
-        $this->dispatch('navigateTo', 'dashboard', null, false);
-    }
-
     public function confirmDelete(): void
     {
         $checklist = $this->checklist();
@@ -135,8 +131,9 @@ class EditChecklist extends Component
         }
 
         $this->dispatch('notification', title: 'Удалено', content: "Список «{$checklist->title}» отправлен в корзину", type: 'danger');
-        $this->dispatch('checklistUpdated');
         $this->dispatch('navigateTo', 'dashboard');
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function confirmDeletion(): void
@@ -220,6 +217,8 @@ class EditChecklist extends Component
             report($e);
             $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось сохранить список', type: 'danger');
         }
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function updatedDropdownValue(): void
@@ -344,6 +343,8 @@ class EditChecklist extends Component
             // При автосохранении не показываем ошибку пользователю
         } finally {
             $this->isSaving = false;
+            // Обновляем sidebar
+            $this->dispatch('refreshSidebar');
         }
     }
 
@@ -446,22 +447,6 @@ class EditChecklist extends Component
         }
 
         return 'Архив';
-    }
-
-    public function back(): void
-    {
-        $previousSection = StateManager::get('previous_section', 'dashboard');
-        $previousFolderId = StateManager::get('previous_folderId');
-        $previousNoteId = StateManager::get('previous_noteId');
-
-        // Если предыдущая секция - сейф, возвращаемся в сейф
-        if ($previousSection === 'safe') {
-            $previousSection = 'safe';
-            $previousFolderId = null;
-            $previousNoteId = null;
-        }
-
-        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render(): \Illuminate\View\View

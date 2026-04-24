@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithBackSection;
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Archive;
@@ -17,6 +18,7 @@ use Livewire\Component;
 
 class CreateNoteView extends Component
 {
+    use WithBackSection;
     use WithFolderSafeSelection;
     use WithFavorite;
 
@@ -109,6 +111,8 @@ class CreateNoteView extends Component
         $temporaryImageService->deleteUnsavedImages();
 
         $this->dispatch('navigateTo', 'dashboard');
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function saveWithLocation(): void
@@ -124,8 +128,6 @@ class CreateNoteView extends Component
         }
 
         $this->save();
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     public function save(): void
@@ -194,9 +196,6 @@ class CreateNoteView extends Component
 
                 $note->save();
 
-                // Обновляем sidebar
-                $this->dispatch('refreshSidebar');
-
                 $this->noteId = $note->id;
                 $this->cachedNote = $note;
                 // Инициализируем оригинальные пути изображений после создания
@@ -208,7 +207,6 @@ class CreateNoteView extends Component
             $temporaryImageService = app(TemporaryImageService::class);
             $temporaryImageService->clear();
 
-            $this->dispatch('noteCreated');
             $this->dispatch('navigateTo', 'dashboard');
             // Обновляем sidebar
             $this->dispatch('refreshSidebar');
@@ -237,16 +235,12 @@ class CreateNoteView extends Component
             }
         }
         $this->autoSave();
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     public function updatedFolderId(): void
     {
         // Этот метод может вызываться если folderId изменяется напрямую
         $this->autoSave();
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     #[On('updateSafeId')]
@@ -256,8 +250,6 @@ class CreateNoteView extends Component
         $this->folderId = null;
         $this->archiveId = null;
         $this->autoSave();
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     #[On('updateArchiveId')]
@@ -267,29 +259,21 @@ class CreateNoteView extends Component
         $this->folderId = null;
         $this->safeId = null;
         $this->autoSave();
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     public function updatedSafeId(): void
     {
         $this->autoSave();
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     public function updatedTitle(): void
     {
         $this->autoSave();
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     public function updatedContent(): void
     {
         $this->autoSave();
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     #[On('noteContentReady')]
@@ -587,22 +571,6 @@ class CreateNoteView extends Component
                 ->where('type', Note::TYPE_NOTE)
                 ->find($this->noteId)
             : null;
-    }
-
-    public function back(): void
-    {
-        $previousSection = StateManager::get('previous_section', 'dashboard');
-        $previousFolderId = StateManager::get('previous_folderId');
-        $previousNoteId = StateManager::get('previous_noteId');
-
-        // Если предыдущая секция - сейф, возвращаемся в сейф
-        if ($previousSection === 'safe') {
-            $previousSection = 'safe';
-            $previousFolderId = null;
-            $previousNoteId = null;
-        }
-
-        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render(): \Illuminate\View\View

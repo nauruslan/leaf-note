@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithBackSection;
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Archive;
@@ -15,6 +16,7 @@ use Livewire\Component;
 
 class CreateChecklistView extends Component
 {
+    use WithBackSection;
     use WithFolderSafeSelection;
     use WithFavorite;
 
@@ -152,6 +154,8 @@ class CreateChecklistView extends Component
             report($e);
             $this->dispatch('notification', title: 'Ошибка', content: 'Не удалось сохранить список', type: 'danger');
         }
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function updatedDropdownValue(): void
@@ -314,6 +318,8 @@ class CreateChecklistView extends Component
             // При автосохранении не показываем ошибку пользователю
         } finally {
             $this->isSaving = false;
+            // Обновляем sidebar
+            $this->dispatch('refreshSidebar');
         }
     }
 
@@ -416,22 +422,6 @@ class CreateChecklistView extends Component
         }
 
         return 'Архив';
-    }
-
-    public function back(): void
-    {
-        $previousSection = StateManager::get('previous_section', 'dashboard');
-        $previousFolderId = StateManager::get('previous_folderId');
-        $previousNoteId = StateManager::get('previous_noteId');
-
-        // Если предыдущая секция - сейф, возвращаемся в сейф
-        if ($previousSection === 'safe') {
-            $previousSection = 'safe';
-            $previousFolderId = null;
-            $previousNoteId = null;
-        }
-
-        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render(): \Illuminate\View\View

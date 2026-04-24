@@ -21,13 +21,6 @@ class NavigationSidebar extends Component
 
 
     protected $listeners = [
-        // 'folderCreated' => 'refreshSidebar',
-        // 'folderDeleted' => 'refreshSidebar',
-        // 'noteCreated' => 'refreshSidebar',
-        // 'noteDeleted' => 'refreshSidebar',
-        // 'checklistCreated' => 'refreshSidebar',
-        // 'checklistDeleted' => 'refreshSidebar',
-        // 'favoriteToggled' => 'refreshSidebar',
         'refreshSidebar' => 'refreshSidebar',
         'stateUpdated' => 'updateState'
     ];

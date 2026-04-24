@@ -2,14 +2,16 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithBackSection;
 use App\Models\Folder;
-use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class EditFolder extends Component
 {
+    use WithBackSection;
+
     public $heading = 'Редактирование папки';
     public $section = 'edit-folder';
 
@@ -156,28 +158,14 @@ class EditFolder extends Component
         // $this->dispatch('notify', ['message' => $message, 'type' => 'success']);
         $this->dispatch('notification', title: 'Успешно', content: 'Изменения сохранены', type: 'success');
         $this->dispatch($event);
-        // $this->dispatch('navigateTo', section: 'dashboard');
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
+
     }
 
     public function cancel(): void
     {
         $this->back();
-    }
-
-    public function back(): void
-    {
-        $previousSection = StateManager::get('previous_section', 'dashboard');
-        $previousFolderId = StateManager::get('previous_folderId');
-        $previousNoteId = StateManager::get('previous_noteId');
-
-        // Если предыдущая секция - сейф, возвращаемся в сейф
-        if ($previousSection === 'safe') {
-            $previousSection = 'safe';
-            $previousFolderId = null;
-            $previousNoteId = null;
-        }
-
-        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function confirmDeletion(): void
@@ -219,7 +207,6 @@ class EditFolder extends Component
 
         if ($success) {
             $this->dispatch('notification', title: 'Удалено', content: "Папка «{$folder->title}» отправлена в корзину", type: 'danger');
-            $this->dispatch('folderDeleted');
             $this->dispatch('navigateTo', section: 'dashboard');
             $this->confirmingDeletion = false;
         } else {
@@ -227,6 +214,8 @@ class EditFolder extends Component
             $this->dispatch('notification', title: 'Ошибка', content: 'Корзина переполнена. Очистите корзину перед удалением.', type: 'danger');
             $this->confirmingDeletion = false;
         }
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function render()

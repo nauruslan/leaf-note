@@ -2,13 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithBackSection;
 use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithFolderSafeSelection;
 use App\Models\Archive;
 use App\Models\Folder;
 use App\Models\Note;
 use App\Models\Safe;
-use App\Services\StateManager;
 use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +18,7 @@ use Livewire\Component;
 
 class EditNote extends Component
 {
+    use WithBackSection;
     use WithFolderSafeSelection;
     use WithFavorite;
 
@@ -207,6 +208,8 @@ class EditNote extends Component
         $this->dispatch('notification', title: 'Удалено', content: "Заметка «{$note->title}» отправлена в корзину", type: 'danger');
         $this->dispatch('noteUpdated');
         $this->dispatch('navigateTo', 'dashboard');
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     public function confirmDeletion(): void
@@ -387,6 +390,8 @@ class EditNote extends Component
             // При автосохранении не показываем ошибку пользователю
         } finally {
             $this->isSaving = false;
+            // Обновляем sidebar
+            $this->dispatch('refreshSidebar');
         }
     }
 
@@ -411,6 +416,8 @@ class EditNote extends Component
             report($e);
             $this->dispatch('showError', 'Не удалось сохранить заметку');
         }
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     private function validateNote(): bool
@@ -445,6 +452,9 @@ class EditNote extends Component
         $this->cachedNote->is_favorite = $this->is_favorite;
 
         $this->cachedNote->save();
+
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
     private function normalizeContent(mixed $content): string
@@ -590,22 +600,6 @@ class EditNote extends Component
                 ->where('type', Note::TYPE_NOTE)
                 ->find($this->noteId)
             : null;
-    }
-
-    public function back(): void
-    {
-        $previousSection = StateManager::get('previous_section', 'dashboard');
-        $previousFolderId = StateManager::get('previous_folderId');
-        $previousNoteId = StateManager::get('previous_noteId');
-
-        // Если предыдущая секция - сейф, возвращаемся в сейф
-        if ($previousSection === 'safe') {
-            $previousSection = 'safe';
-            $previousFolderId = null;
-            $previousNoteId = null;
-        }
-
-        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
     }
 
     public function render()
