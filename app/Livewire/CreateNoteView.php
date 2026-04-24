@@ -12,6 +12,7 @@ use App\Models\Safe;
 use App\Services\StateManager;
 use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -67,9 +68,17 @@ class CreateNoteView extends Component
             }
         }
 
+        // Обработка предустановки флага "Избранное"
+        $presetIsFavorite = StateManager::get('preset_is_favorite', false);
+        if ($presetIsFavorite) {
+            $this->is_favorite = true;
+            StateManager::remove('preset_is_favorite');
+        }
+
         $presetSafeId = StateManager::get('preset_safe_id');
         if ($presetSafeId) {
             $this->safeId = $presetSafeId;
+            $this->dropdownValue = 'safe_' . $presetSafeId;
             StateManager::remove('preset_safe_id');
             return;
         }
@@ -77,6 +86,7 @@ class CreateNoteView extends Component
         $presetArchiveId = StateManager::get('preset_archive_id');
         if ($presetArchiveId) {
             $this->archiveId = $presetArchiveId;
+            $this->dropdownValue = 'archive_' . $presetArchiveId;
             StateManager::remove('preset_archive_id');
             return;
         }
@@ -84,6 +94,7 @@ class CreateNoteView extends Component
         $presetFolderId = StateManager::get('preset_folder_id');
         if ($presetFolderId) {
             $this->folderId = $presetFolderId;
+            $this->dropdownValue = (string) $presetFolderId;
             StateManager::remove('preset_folder_id');
         }
     }
@@ -115,106 +126,6 @@ class CreateNoteView extends Component
         $this->dispatch('refreshSidebar');
     }
 
-    public function saveWithLocation(): void
-    {
-        if ($this->isSafeSelected($this->folderId)) {
-            $this->safeId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        if ($this->isArchiveSelected($this->folderId)) {
-            $this->archiveId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        $this->save();
-    }
-
-    public function save(): void
-    {
-        try {
-            $this->validateOnly('title');
-        } catch (\Illuminate\Validation\ValidationException) {
-            $this->dispatch('showError', 'Название обязательно и не должно превышать 255 символов');
-            return;
-        }
-
-        try {
-            // Если заметка уже создана через автосохранение, обновляем ее
-            if ($this->noteId) {
-                if (!$this->cachedNote) {
-                    $this->cachedNote = Note::where('user_id', Auth::id())
-                        ->where('type', Note::TYPE_NOTE)
-                        ->find($this->noteId);
-                }
-
-                if (!$this->cachedNote) {
-                    $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Заметка не найдена', 'type' => 'danger']);
-                    return;
-                }
-
-                // Выполняем отложенное удаление изображений
-                $temporaryImageService = app(TemporaryImageService::class);
-                $temporaryImageService->executePendingDeletion();
-
-                $this->updateTitle($this->cachedNote);
-                $this->updateContent($this->cachedNote);
-                $this->updateLocation($this->cachedNote);
-                $this->updateFavorite($this->cachedNote);
-                $this->cachedNote->save();
-
-                // Обновляем sidebar
-                $this->dispatch('refreshSidebar');
-
-                // Обновляем оригинальные пути изображений для текущего запроса
-                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
-                $this->originalImagePaths = $currentImagePaths;
-            } else {
-                // Создаем новую заметку
-                $note = new Note();
-                $note->title = trim($this->title);
-                $note->type = Note::TYPE_NOTE;
-                $note->content = $this->normalizeContent($this->content);
-                $note->is_favorite = $this->is_favorite;
-                $note->user_id = Auth::id();
-
-                if ($this->folderId !== null) {
-                    $note->folder_id = $this->folderId;
-                    $note->safe_id = null;
-                    $note->archive_id = null;
-                } elseif ($this->safeId !== null) {
-                    $note->safe_id = $this->safeId;
-                    $note->folder_id = null;
-                    $note->archive_id = null;
-                } elseif ($this->archiveId !== null) {
-                    $note->archive_id = $this->archiveId;
-                    $note->folder_id = null;
-                    $note->safe_id = null;
-                } else {
-                    $note->archive_id = Auth::user()->archive->id;
-                }
-
-                $note->save();
-
-                $this->noteId = $note->id;
-                $this->cachedNote = $note;
-                // Инициализируем оригинальные пути изображений после создания
-                $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
-            }
-
-            // Очищаем список временных изображений при успешном сохранении
-            // (файлы уже привязаны к заметке и не должны удаляться)
-            $temporaryImageService = app(TemporaryImageService::class);
-            $temporaryImageService->clear();
-
-            $this->dispatch('navigateTo', 'dashboard');
-            // Обновляем sidebar
-            $this->dispatch('refreshSidebar');
-        } catch (\Throwable $e) {
-            report($e);
-            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось сохранить заметку', 'type' => 'danger']);
-        }
-    }
 
     public function updatedDropdownValue(): void
     {
@@ -287,7 +198,7 @@ class CreateNoteView extends Component
         }
 
         $this->content = $content;
-        $this->save();
+        $this->autoSave();
     }
 
     public function autoSave(): void
@@ -309,6 +220,11 @@ class CreateNoteView extends Component
         // 2. Title должен иметь длину хотя бы 1 символ
         if (($this->folderId === null && $this->safeId === null && $this->archiveId === null) || trim($this->title) === '') {
             return;
+        }
+
+        // Проверка уникальности title (исключая текущую заметку если она уже создана)
+        if ($this->isTitleExists(trim($this->title), $this->noteId)) {
+            $this->dispatch('notification', ['title' => 'Внимание', 'content' => 'Заметка с таким названием уже есть. Чтобы избежать путаницы измените название.', 'type' => 'warning']);
         }
 
         try {
@@ -571,6 +487,23 @@ class CreateNoteView extends Component
                 ->where('type', Note::TYPE_NOTE)
                 ->find($this->noteId)
             : null;
+    }
+
+    /**
+     * Проверить существование заметки с указанным названием у текущего пользователя
+     */
+    private function isTitleExists(string $title, ?int $excludeNoteId = null): bool
+    {
+        $query = Note::where('user_id', Auth::id())
+            ->where('type', Note::TYPE_NOTE)
+            ->where('title', $title)
+            ->whereNull('trash_id');
+
+        if ($excludeNoteId) {
+            $query->where('id', '!=', $excludeNoteId);
+        }
+
+        return $query->exists();
     }
 
     public function render(): \Illuminate\View\View

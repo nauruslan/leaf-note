@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ArchiveView extends BaseView
 {
+    public ?int $archiveId = null;
+
     public string $heading = 'Архив';
     public string $subheading = 'Заметки и списки помещенные в архив';
 
@@ -16,11 +18,12 @@ class ArchiveView extends BaseView
      */
     protected array $scopes = ['archived'];
 
-    public ?Archive $archive = null;
-
     public function mount(): void
     {
-        $this->archive = Archive::where('user_id', Auth::id())->first();
+        $archive = Archive::where('user_id', Auth::id())->first();
+        if ($archive) {
+            $this->archiveId = $archive->id;
+        }
     }
 
     /**

@@ -11,6 +11,7 @@ use App\Models\Note;
 use App\Models\Safe;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -50,9 +51,17 @@ class CreateChecklistView extends Component
     {
         $this->content = self::EMPTY_CHECKLIST_STRUCTURE;
 
+        // Обработка предустановки флага "Избранное"
+        $presetIsFavorite = StateManager::get('preset_is_favorite', false);
+        if ($presetIsFavorite) {
+            $this->is_favorite = true;
+            StateManager::remove('preset_is_favorite');
+        }
+
         $presetSafeId = StateManager::get('preset_safe_id');
         if ($presetSafeId) {
             $this->safeId = $presetSafeId;
+            $this->dropdownValue = 'safe_' . $presetSafeId;
             StateManager::remove('preset_safe_id');
             return;
         }
@@ -60,6 +69,7 @@ class CreateChecklistView extends Component
         $presetArchiveId = StateManager::get('preset_archive_id');
         if ($presetArchiveId) {
             $this->archiveId = $presetArchiveId;
+            $this->dropdownValue = 'archive_' . $presetArchiveId;
             StateManager::remove('preset_archive_id');
             return;
         }
@@ -67,6 +77,7 @@ class CreateChecklistView extends Component
         $presetFolderId = StateManager::get('preset_folder_id');
         if ($presetFolderId) {
             $this->folderId = $presetFolderId;
+            $this->dropdownValue = (string) $presetFolderId;
             StateManager::remove('preset_folder_id');
         }
     }
@@ -74,88 +85,6 @@ class CreateChecklistView extends Component
     public function cancel(): void
     {
         $this->dispatch('navigateTo', 'dashboard');
-    }
-
-    public function saveWithLocation(): void
-    {
-        if ($this->isSafeSelected($this->folderId)) {
-            $this->safeId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        if ($this->isArchiveSelected($this->folderId)) {
-            $this->archiveId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        $this->save();
-    }
-
-    public function save(): void
-    {
-        try {
-            $this->validateOnly('title');
-        } catch (\Illuminate\Validation\ValidationException) {
-            $this->dispatch('showError', 'Название обязательно и не должно превышать 255 символов');
-            return;
-        }
-
-        try {
-            // Если заметка уже создана через автосохранение, обновляем ее
-            if ($this->noteId) {
-                if (!$this->cachedNote) {
-                    $this->cachedNote = Note::where('user_id', Auth::id())
-                        ->where('type', Note::TYPE_CHECKLIST)
-                        ->find($this->noteId);
-                }
-
-                if (!$this->cachedNote) {
-                    $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Список не найден', 'type' => 'danger']);
-                    return;
-                }
-
-                $this->updateTitle($this->cachedNote);
-                $this->updateContent($this->cachedNote);
-                $this->updateLocation($this->cachedNote);
-                $this->cachedNote->save();
-            } else {
-                // Создаем новую заметку
-                $note = new Note();
-                $note->title = trim($this->title);
-                $note->type = Note::TYPE_CHECKLIST;
-                $note->content = $this->normalizeContent($this->content);
-                $note->is_favorite = $this->is_favorite;
-                $note->user_id = Auth::id();
-
-                if ($this->folderId !== null) {
-                    $note->folder_id = $this->folderId;
-                    $note->safe_id = null;
-                    $note->archive_id = null;
-                } elseif ($this->safeId !== null) {
-                    $note->safe_id = $this->safeId;
-                    $note->folder_id = null;
-                    $note->archive_id = null;
-                } elseif ($this->archiveId !== null) {
-                    $note->archive_id = $this->archiveId;
-                    $note->folder_id = null;
-                    $note->safe_id = null;
-                } else {
-                    $note->archive_id = Auth::user()->archive->id;
-                }
-
-                $note->save();
-                $this->noteId = $note->id;
-                $this->cachedNote = $note;
-            }
-
-            $this->dispatch('checklistCreated');
-            $this->dispatch('navigateTo', 'dashboard');
-        } catch (\Throwable $e) {
-            report($e);
-            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось сохранить список', 'type' => 'danger']);
-        }
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     public function updatedDropdownValue(): void
@@ -222,7 +151,7 @@ class CreateChecklistView extends Component
     public function handleContentReady(string $content): void
     {
         $this->content = $content;
-        $this->save();
+        $this->autoSave();
     }
 
     public function autoSave(): void
@@ -244,6 +173,11 @@ class CreateChecklistView extends Component
         // 2. Title должен иметь длину хотя бы 1 символ
         if (($this->folderId === null && $this->safeId === null && $this->archiveId === null) || trim($this->title) === '') {
             return;
+        }
+
+        // Проверка уникальности title (исключая текущий список если он уже создан)
+        if ($this->isTitleExists(trim($this->title), $this->noteId)) {
+            $this->dispatch('notification', ['title' => 'Внимание', 'content' => 'Список с таким названием уже есть. Чтобы избежать путаницы измените название.', 'type' => 'warning']);
         }
 
         try {
@@ -422,6 +356,23 @@ class CreateChecklistView extends Component
         }
 
         return 'Архив';
+    }
+
+    /**
+     * Проверить существование списка с указанным названием у текущего пользователя
+     */
+    private function isTitleExists(string $title, ?int $excludeNoteId = null): bool
+    {
+        $query = Note::where('user_id', Auth::id())
+            ->where('type', Note::TYPE_CHECKLIST)
+            ->where('title', $title)
+            ->whereNull('trash_id');
+
+        if ($excludeNoteId) {
+            $query->where('id', '!=', $excludeNoteId);
+        }
+
+        return $query->exists();
     }
 
     public function render(): \Illuminate\View\View

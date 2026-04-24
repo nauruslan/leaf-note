@@ -9,6 +9,7 @@ class FavoriteView extends BaseView
 {
     public string $heading = 'Избранное';
     public string $subheading = 'Ваши избранные заметки и списки';
+    public bool $isFavorite = true;
 
     /**
      * Скоупы для избранного - только избранные активные заметки.

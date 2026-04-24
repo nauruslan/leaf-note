@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Livewire\Traits\WithComponentPagination;
 use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithFolderOpening;
-use App\Livewire\Traits\WithNoteCreating;
 use App\Livewire\Traits\WithNoteOpening;
 use App\Livewire\Traits\WithSearch;
 use App\Models\Note;
@@ -20,7 +19,6 @@ abstract class BaseView extends Component
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
-    use WithNoteCreating;
     use WithNoteOpening;
     use WithFolderOpening;
 

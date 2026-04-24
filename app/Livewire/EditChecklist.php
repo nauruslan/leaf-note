@@ -11,6 +11,7 @@ use App\Models\Note;
 use App\Models\Safe;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -171,55 +172,6 @@ class EditChecklist extends Component
         $this->dispatch('navigateTo', 'dashboard');
     }
 
-    public function saveWithLocation(): void
-    {
-        if ($this->isSafeSelected($this->folderId)) {
-            $this->safeId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        $this->save();
-    }
-
-    public function save(): void
-    {
-        if (!$this->noteId) {
-            return;
-        }
-
-        try {
-            $this->validateOnly('title');
-        } catch (\Illuminate\Validation\ValidationException) {
-            $this->dispatch('showError', 'Название обязательно и не должно превышать 255 символов');
-            return;
-        }
-
-        try {
-            if (!$this->cachedChecklist) {
-                $this->cachedChecklist = Note::where('user_id', Auth::id())
-                    ->where('type', Note::TYPE_CHECKLIST)
-                    ->find($this->noteId);
-            }
-
-            if (!$this->cachedChecklist) {
-                $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Список не найден', 'type' => 'danger']);
-                return;
-            }
-
-            $this->updateTitle($this->cachedChecklist);
-            $this->updateContent($this->cachedChecklist);
-            $this->updateLocation($this->cachedChecklist);
-
-            $this->cachedChecklist->save();
-
-            $this->dispatch('navigateTo', 'dashboard');
-        } catch (\Throwable $e) {
-            report($e);
-            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось сохранить список', 'type' => 'danger']);
-        }
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
-    }
 
     public function updatedDropdownValue(): void
     {
@@ -296,6 +248,11 @@ class EditChecklist extends Component
     {
         if (!$this->noteId) {
             return;
+        }
+
+        // Проверка уникальности title (исключая текущий список)
+        if ($this->isTitleExists(trim($this->title), $this->noteId)) {
+            $this->dispatch('notification', ['title' => 'Внимание', 'content' => 'Список с таким названием уже есть. Чтобы избежать путаницы измените название.', 'type' => 'warning']);
         }
 
         try {
@@ -447,6 +404,23 @@ class EditChecklist extends Component
         }
 
         return 'Архив';
+    }
+
+    /**
+     * Проверить существование списка с указанным названием у текущего пользователя
+     */
+    private function isTitleExists(string $title, ?int $excludeNoteId = null): bool
+    {
+        $query = Note::where('user_id', Auth::id())
+            ->where('type', Note::TYPE_CHECKLIST)
+            ->where('title', $title)
+            ->whereNull('trash_id');
+
+        if ($excludeNoteId) {
+            $query->where('id', '!=', $excludeNoteId);
+        }
+
+        return $query->exists();
     }
 
     public function render(): \Illuminate\View\View

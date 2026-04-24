@@ -11,8 +11,8 @@
             <!-- Left Block: Create Buttons -->
             @if ($showCreateButtons)
                 <div class="flex flex-wrap items-center gap-3">
-                    <x-button-create-note wire:click="createNote" />
-                    <x-button-create-checklist wire:click="createChecklist" />
+                    <x-button-create-note wire:click="openCreateNotePage" />
+                    <x-button-create-checklist wire:click="openCreateChecklistPage" />
                 </div>
             @endif
             <!-- Right Block: Filters -->

@@ -12,6 +12,7 @@ use App\Models\Safe;
 use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -335,6 +336,11 @@ class EditNote extends Component
             return;
         }
 
+        // Проверка уникальности title - показываем предупреждение, но продолжаем сохранение
+        if ($this->isTitleExists(trim($this->title), $this->noteId)) {
+            $this->dispatch('notification', ['title' => 'Внимание', 'content' => 'Заметка с таким названием уже есть. Чтобы избежать путаницы измените название.', 'type' => 'warning']);
+        }
+
         try {
             $this->validateOnly('title');
         } catch (\Illuminate\Validation\ValidationException) {
@@ -561,20 +567,6 @@ class EditNote extends Component
         return 'Архив';
     }
 
-    public function saveWithLocation(): void
-    {
-        if ($this->isSafeSelected($this->folderId)) {
-            $this->safeId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        $this->save();
-    }
-
-    public function save(): void
-    {
-        $this->dispatch('getEditorContent');
-    }
 
     private function deleteImagesFromStorage(array $paths): void
     {
@@ -600,6 +592,23 @@ class EditNote extends Component
                 ->where('type', Note::TYPE_NOTE)
                 ->find($this->noteId)
             : null;
+    }
+
+    /**
+     * Проверить существование заметки с указанным названием у текущего пользователя
+     */
+    private function isTitleExists(string $title, ?int $excludeNoteId = null): bool
+    {
+        $query = Note::where('user_id', Auth::id())
+            ->where('type', Note::TYPE_NOTE)
+            ->where('title', $title)
+            ->whereNull('trash_id');
+
+        if ($excludeNoteId) {
+            $query->where('id', '!=', $excludeNoteId);
+        }
+
+        return $query->exists();
     }
 
     public function render()

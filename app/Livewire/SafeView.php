@@ -11,6 +11,8 @@ use Livewire\Attributes\Computed;
 
 class SafeView extends BaseView
 {
+    public ?int $safeId = null;
+
     public string $heading = 'Сейф';
     public string $subheading = 'Защищённые заметки';
     public string $section = 'safe';
@@ -19,7 +21,6 @@ class SafeView extends BaseView
     public bool $isUnlocked = false;
     public ?string $errorMessage = null;
     public bool $showUnprotectedModal = false;
-    public ?int $safeId = null;
     public int $attemptResetPollInterval;
 
     public function mount(): void
@@ -33,6 +34,12 @@ class SafeView extends BaseView
         }
 
         $this->loadSafe();
+
+        // Устанавливаем safeId для предустановки при создании заметок
+        $safe = $this->safe();
+        if ($safe) {
+            $this->safeId = $safe->id;
+        }
     }
 
     protected function getBaseConditions(): array

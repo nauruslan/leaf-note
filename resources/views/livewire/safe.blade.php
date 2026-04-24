@@ -12,8 +12,8 @@
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Left Block: Create Buttons -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <x-button-create-note wire:click="createNote" />
-                        <x-button-create-checklist wire:click="createChecklist" />
+                        <x-button-create-note wire:click="openCreateNotePage" />
+                        <x-button-create-checklist wire:click="openCreateChecklistPage" />
                     </div>
                     <!-- Right Block: Filters -->
                     <div class="flex flex-wrap items-center gap-4 justify-end">
