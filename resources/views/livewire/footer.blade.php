@@ -10,25 +10,19 @@
 
                  <!-- Links Section -->
                  <div class="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-5">
-                     <a href="#"
-                         class="group flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors duration-200"
-                         aria-label="Политика конфиденциальности">
+                     <x-link href="#" variant="footer" aria-label="Политика конфиденциальности">
                          <i data-lucide="shield-check" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
                          <span>Политика конфиденциальности</span>
-                     </a>
-                     <a href="#"
-                         class="group flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors duration-200"
-                         aria-label="Условия использования">
+                     </x-link>
+                     <x-link href="#" variant="footer" aria-label="Условия использования">
                          <i data-lucide="file-text" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
                          <span>Условия использования</span>
-                     </a>
+                     </x-link>
 
-                     <a href="#"
-                         class="group flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors duration-200"
-                         aria-label="О нас">
+                     <x-link href="#" variant="footer" aria-label="О нас">
                          <i data-lucide="info" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
                          <span>Написать автору</span>
-                     </a>
+                     </x-link>
                  </div>
              </div>
          </div>

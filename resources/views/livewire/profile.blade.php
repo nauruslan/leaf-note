@@ -202,11 +202,8 @@
                         @endif
                         <!-- Кнопка-ссылка "Забыли пароль аккаунта?" -->
                         <div class="mt-2">
-                            <button type="button" wire:click="openAccountPasswordResetModal()"
-                                {{ !$canChangePassword ? 'disabled' : '' }}
-                                class="text-sm text-indigo-600 hover:text-indigo-700 hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:no-underline">
-                                Забыли пароль аккаунта?
-                            </button>
+                            <x-button-forgot text="Забыли пароль аккаунта?"
+                                wireClick="openAccountPasswordResetModal()" :disabled="!$canChangePassword" />
                         </div>
                     </div>
                     <!-- Секция: Пароль сейфа -->
@@ -275,11 +272,8 @@
                         </div>
                         <!-- Кнопка-ссылка "Забыли пароль сейфа?" -->
                         <div class="mt-2">
-                            <button type="button" wire:click="openSafePasswordResetModal()"
-                                {{ !$hasSafePassword ? 'disabled' : '' }}
-                                class="text-sm text-indigo-600 hover:text-indigo-700 hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:no-underline">
-                                Забыли пароль сейфа?
-                            </button>
+                            <x-button-forgot text="Забыли пароль сейфа?" wireClick="openSafePasswordResetModal()"
+                                :disabled="!$hasSafePassword" />
                         </div>
                     </div>
                 </div>
