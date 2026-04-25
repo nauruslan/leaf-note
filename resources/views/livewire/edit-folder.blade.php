@@ -65,7 +65,8 @@
                         <div class="folder-color-picker h-[160px] rounded-lg border border-gray-200 overflow-hidden"
                             wire:ignore>
                             <input type="text" id="folder-color" data-coloris data-livewire-color
-                                class="folder-color-input" placeholder="Выберите цвет" value="{{ $this->color }}">
+                                class="folder-color-input text-gray-700" placeholder="Выберите цвет"
+                                value="{{ $this->color }}">
                         </div>
                         @error('color')
                             <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>

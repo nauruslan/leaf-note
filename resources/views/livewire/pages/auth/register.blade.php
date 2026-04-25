@@ -244,10 +244,8 @@ new #[Layout('layouts.guest')] class extends Component {
                 </div>
                 <span class="ml-3 text-sm text-gray-700">
                     Я согласен с
-                    <a href="#" class="text-indigo-400 hover:text-indigo-600 font-medium">политикой
-                        конфиденциальности</a> и <a href="#"
-                        class="text-indigo-400 hover:text-indigo-600 font-medium">условиями
-                        использования</a>
+                    <x-link href="#">политикой конфиденциальности</x-link> и <x-link href="#">условиями
+                        использования</x-link>
                 </span>
             </label>
             @error('agree_to_terms')
@@ -361,9 +359,7 @@ new #[Layout('layouts.guest')] class extends Component {
     <!-- Login Link -->
     <p class="text-center mt-6 text-sm text-gray-600">
         Уже есть аккаунт?
-        <a href="{{ route('login') }}" class="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-            Войти
-        </a>
+        <x-link href="{{ route('login') }}">Войти</x-link>
     </p>
 
 

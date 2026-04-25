@@ -171,10 +171,7 @@ new #[Layout('layouts.guest')] class extends Component {
                 <span class="ml-3 text-sm font-medium text-gray-700">Запомнить меня</span>
             </label>
 
-            <a href="{{ route('password.request') }}"
-                class="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
-                Забыли пароль?
-            </a>
+            <x-link href="{{ route('password.request') }}" class="text-sm">Забыли пароль?</x-link>
         </div>
 
         <!-- Submit Button -->
@@ -262,10 +259,7 @@ new #[Layout('layouts.guest')] class extends Component {
     <!-- Register Link -->
     <p class="text-center mt-6 text-sm text-gray-600">
         Нет аккаунта?
-        <a href="{{ route('register') }}"
-            class="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-            Зарегистрироваться
-        </a>
+        <x-link href="{{ route('register') }}">Зарегистрироваться</x-link>
     </p>
 
 </div>
