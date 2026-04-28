@@ -94,6 +94,8 @@ class AppLayout extends Component
         $this->folderId = $folderId;
         $this->noteId = $noteId;
         $this->componentKey++;
+
+        $this->dispatch('stateUpdated', section:$section, folderId:$folderId);
     }
 
     public function render()

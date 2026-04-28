@@ -64,6 +64,7 @@ class EditFolder extends Component
     public function createFolder()
     {
         $this->save();
+
     }
 
     public function save()
@@ -151,12 +152,10 @@ class EditFolder extends Component
             $folder->icon = $this->icon;
             $folder->user_id = Auth::id();
             $folder->save();
-            $message = 'Папка успешно создана';
-            $event = 'folderCreated';
+
         }
 
-        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Изменения сохранены', 'type' => 'success']);
-        $this->dispatch($event);
+        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Изменения сохранены', 'type' => 'info']);
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
 
@@ -207,14 +206,15 @@ class EditFolder extends Component
         if ($success) {
             $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Папка «{$folder->title}» отправлена в корзину", 'type' => 'danger']);
             $this->dispatch('navigateTo', section: 'dashboard');
+            // Обновляем sidebar (получит новое значение section через проп от AppLayout)
+            $this->dispatch('refreshSidebar');
+            // Закрыть модальное окно
             $this->confirmingDeletion = false;
         } else {
             // Корзина переполнена
             $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Корзина переполнена. Очистите корзину перед удалением.', 'type' => 'danger']);
             $this->confirmingDeletion = false;
         }
-        // Обновляем sidebar
-        $this->dispatch('refreshSidebar');
     }
 
     public function render()

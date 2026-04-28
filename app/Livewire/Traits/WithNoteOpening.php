@@ -52,7 +52,6 @@ trait WithNoteOpening
         $section = $note->type === Note::TYPE_CHECKLIST ? 'edit-checklist' : 'edit-note';
 
         $this->dispatch('navigateTo', section: $section, noteId: $noteId);
-        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Переход к заметке', 'type' => 'success']);
         $this->js('window.scrollTo(0, 0)');
     }
 }

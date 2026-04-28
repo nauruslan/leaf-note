@@ -244,6 +244,8 @@ class TrashView extends Component
         $trash->resetQuantity();
         $trash->save();
 
+        // Отправляем уведомление
+        $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Корзина очищена', 'type' => 'info']);
         // Обновляем сайдбар
         $this->dispatch('refreshSidebar');
         $this->closeEmptyTrashModal();
@@ -283,6 +285,9 @@ class TrashView extends Component
         $trash->resetQuantity();
         $trash->save();
 
+        // Отправляем уведомление
+        $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Данные восстановлены', 'type' => 'info']);
+
         // Обновляем сайдбар
         $this->dispatch('refreshSidebar');
         $this->closeRestoreAllModal();
@@ -298,6 +303,14 @@ class TrashView extends Component
         }
 
         $note->restoreFromTrash();
+
+        // Отправляем уведомление
+        if($note->type==='note'){
+            $this->dispatch('notification', ['title' => 'Информация', 'content' => "Заметка «{$note->title}» помещена в Архив", 'type' => 'info']);
+        }else{
+            $this->dispatch('notification', ['title' => 'Информация', 'content' => "Список «{$note->title}» помещен в Архив", 'type' => 'info']);
+        }
+
         $this->dispatch('refreshSidebar');
     }
 
@@ -312,6 +325,9 @@ class TrashView extends Component
 
         // Восстанавливаем папку и её заметки
         $folder->restoreFromTrash();
+
+        // Отправляем уведомление
+        $this->dispatch('notification', ['title' => 'Информация', 'content' => "Папка «{$folder->title}» восстановлена", 'type' => 'info']);
 
         $this->dispatch('refreshSidebar');
     }
@@ -332,6 +348,13 @@ class TrashView extends Component
         $trash->save();
 
         $this->dispatch('refreshSidebar');
+
+        // Отправляем уведомление
+        if($note->type==='note'){
+            $this->dispatch('notification', ['title' => 'Информация', 'content' => "Заметка «{$note->title}» удалена", 'type' => 'info']);
+        }else{
+            $this->dispatch('notification', ['title' => 'Информация', 'content' => "Список «{$note->title}» удален", 'type' => 'info']);
+        }
     }
 
     public function deleteFolder(int $folderId): void
@@ -357,6 +380,9 @@ class TrashView extends Component
         $trash->save();
 
         $this->dispatch('refreshSidebar');
+
+        // Отправляем уведомление
+        $this->dispatch('notification', ['title' => 'Информация', 'content' => "Папка «{$folder->title}» удалена", 'type' => 'info']);
     }
 
     public function render()

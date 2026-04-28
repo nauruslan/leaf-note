@@ -104,12 +104,12 @@ class Notifications {
 
         notification.innerHTML = `
             <div class="flex items-start gap-3 p-4 pointer-events-auto">
-                <div class="flex-shrink-0">
-                    <i data-lucide="${iconName}" class="w-5 h-5 ${iconColor}"></i>
-                </div>
                 <div class="flex-1 min-w-0">
-                    ${title ? `<div class="font-semibold text-sm text-slate-800 dark:text-slate-100">${title}</div>` : ''}
-                    <div class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${content}</div>
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="${iconName}" class="w-5 h-5 flex-shrink-0 ${iconColor}"></i>
+                        ${title ? `<div class="font-semibold text-base text-slate-800 dark:text-slate-100">${title}</div>` : ''}
+                    </div>
+                    <div class="text-sm text-slate-600 dark:text-slate-300 leading-tight pl-8 mt-1">${content}</div>
                 </div>
                 <button class="notification-close flex-shrink-0 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors cursor-pointer bg-transparent border-none" aria-label="Закрыть">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -176,6 +176,7 @@ if (document.readyState === 'loading') {
 
 // Статический массив всех динамических классов.
 // Гарантирует, что компилятор Tailwind не вырежет их при сборке.
+// eslint-disable-next-line no-unused-vars
 const __tw_scan_block__ = [
     'bg-emerald-50',
     'dark:bg-emerald-900',
@@ -208,4 +209,8 @@ const __tw_scan_block__ = [
     'border-l-4',
     'shadow-xl',
     'overflow-hidden',
+    'pl-8',
+    'mt-1',
+    'items-start',
+    'items-center',
 ];

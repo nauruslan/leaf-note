@@ -42,6 +42,11 @@ class CreateNoteView extends Component
     private ?Note $cachedNote = null;
     private array $originalImagePaths = [];
 
+    // Для отслеживания изменений местоположения
+    public ?int $originalFolderId = null;
+    public ?int $originalSafeId = null;
+    public ?int $originalArchiveId = null;
+
     protected function rules(): array
     {
         return [
@@ -79,6 +84,9 @@ class CreateNoteView extends Component
         if ($presetSafeId) {
             $this->safeId = $presetSafeId;
             $this->dropdownValue = 'safe_' . $presetSafeId;
+            $this->originalFolderId = null;
+            $this->originalSafeId = $presetSafeId;
+            $this->originalArchiveId = null;
             StateManager::remove('preset_safe_id');
             return;
         }
@@ -87,6 +95,9 @@ class CreateNoteView extends Component
         if ($presetArchiveId) {
             $this->archiveId = $presetArchiveId;
             $this->dropdownValue = 'archive_' . $presetArchiveId;
+            $this->originalFolderId = null;
+            $this->originalSafeId = null;
+            $this->originalArchiveId = $presetArchiveId;
             StateManager::remove('preset_archive_id');
             return;
         }
@@ -95,6 +106,9 @@ class CreateNoteView extends Component
         if ($presetFolderId) {
             $this->folderId = $presetFolderId;
             $this->dropdownValue = (string) $presetFolderId;
+            $this->originalFolderId = $presetFolderId;
+            $this->originalSafeId = null;
+            $this->originalArchiveId = null;
             StateManager::remove('preset_folder_id');
         }
     }
@@ -129,6 +143,11 @@ class CreateNoteView extends Component
 
     public function updatedDropdownValue(): void
     {
+        // Сохраняем старое местоположение перед изменением
+        $oldFolderId = $this->folderId;
+        $oldSafeId = $this->safeId;
+        $oldArchiveId = $this->archiveId;
+
         // Обработка префиксов safe_ и archive_
         if (is_string($this->dropdownValue)) {
             if (str_starts_with($this->dropdownValue, 'safe_')) {
@@ -145,7 +164,13 @@ class CreateNoteView extends Component
                 $this->archiveId = null;
             }
         }
-        $this->autoSave();
+
+        // Проверяем, изменилось ли местоположение по сравнению с оригиналом
+        $locationChanged = ($this->folderId !== $this->originalFolderId) ||
+                           ($this->safeId !== $this->originalSafeId) ||
+                           ($this->archiveId !== $this->originalArchiveId);
+
+        $this->autoSave($locationChanged);
     }
 
     public function updatedFolderId(): void
@@ -201,7 +226,7 @@ class CreateNoteView extends Component
         $this->autoSave();
     }
 
-    public function autoSave(): void
+    public function autoSave(bool $locationChanged = false): void
     {
         // Если выбранный folderId является сейфом, перемещаем его в safeId
         if ($this->folderId && $this->isSafeSelected($this->folderId)) {
@@ -263,6 +288,17 @@ class CreateNoteView extends Component
                 // Обновляем оригинальные пути изображений для текущего запроса
                 $currentImagePaths = $this->extractImagePathsFromContent($this->content);
                 $this->originalImagePaths = $currentImagePaths;
+
+                // Показываем уведомление если изменилось местоположение
+                if ($locationChanged) {
+                    $locationName = $this->getLocationName($this->cachedNote);
+                    $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'info']);
+
+                    // Обновляем оригинальное местоположение
+                    $this->originalFolderId = $this->cachedNote->folder_id;
+                    $this->originalSafeId = $this->cachedNote->safe_id;
+                    $this->originalArchiveId = $this->cachedNote->archive_id;
+                }
             } else {
                 // Создаем новую заметку (первое сохранение)
                 $note = new Note();
@@ -297,6 +333,11 @@ class CreateNoteView extends Component
                 $this->cachedNote = $note;
                 // Инициализируем оригинальные пути изображений после создания
                 $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
+
+                // Инициализируем оригинальное местоположение после первого сохранения
+                $this->originalFolderId = $note->folder_id;
+                $this->originalSafeId = $note->safe_id;
+                $this->originalArchiveId = $note->archive_id;
 
                 // Показываем уведомление о первом сохранении только если это первое сохранение
                 if ($this->isFirstSave) {

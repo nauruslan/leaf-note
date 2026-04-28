@@ -381,7 +381,7 @@ class EditNote extends Component
             // Показываем уведомление если изменилось местоположение
             if ($locationChanged) {
                 $locationName = $this->getLocationName($this->cachedNote);
-                $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'success']);
+                $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'info']);
 
                 // Обновляем оригинальное местоположение
                 $this->originalFolderId = $this->cachedNote->folder_id;

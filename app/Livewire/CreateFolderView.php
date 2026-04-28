@@ -84,9 +84,12 @@ class CreateFolderView extends Component
         $this->color = '';
         $this->icon = '';
 
-        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Папка успешно создана', 'type' => 'success']);
+        // Отправляем уведомление
+        $this->dispatch('notification', ['title' => 'Успешно', 'content' => "Папка «{$folder->title}» успешно создана", 'type' => 'success']);
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
+        // Переходим к папке
+        $this->dispatch('navigateTo', section:'folder', folderId:$folder->id);
     }
 
     public function render()

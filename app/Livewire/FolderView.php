@@ -13,9 +13,6 @@ class FolderView extends BaseView
     public bool $confirmingDeletion = false;
 
     protected $listeners = [
-        'stateUpdated' => 'updateState',
-        'noteAdded' => 'refreshCurrentFolder',
-        'noteDeleted' => 'refreshCurrentFolder',
         'closeModal' => 'closeModal',
     ];
 
@@ -106,9 +103,9 @@ class FolderView extends BaseView
         if ($success) {
             $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Папка «{$folder->title}» отправлена в корзину", 'type' => 'danger']);
             // После удаления перенаправить на дашборд
-            $this->dispatch('navigateTo', 'dashboard');
-            // Уведомить навигацию об удалении папки
-            $this->dispatch('folderDeleted');
+            $this->dispatch('navigateTo', section: 'dashboard');
+            // Обновляем sidebar (получит новое значение section через проп от AppLayout)
+            $this->dispatch('refreshSidebar');
             // Закрыть модальное окно
             $this->confirmingDeletion = false;
         } else {

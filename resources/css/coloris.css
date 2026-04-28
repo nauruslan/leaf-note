@@ -252,7 +252,7 @@ input.clr-color {
     color: #444;
     background-color: #fff;
     font-family: sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     text-align: center;
     box-shadow: none;
 }
@@ -631,12 +631,8 @@ input.clr-color:focus {
     outline: none;
 }
 
-.folder-color-picker .clr-field:focus-within input[data-coloris] {
-    background-color: rgba(99, 102, 241, 0.1);
-}
-
 .folder-color-picker .clr-field input[data-coloris] {
-    width: 60%;
+    width: 50%;
     height: 100%;
     border-radius: 0;
     border: none;
@@ -648,8 +644,7 @@ input.clr-color:focus {
     transition:
         box-shadow 0.15s ease-in-out,
         border-color 0.15s ease-in-out;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+    font-size: 1rem;
     box-sizing: border-box;
     background-color: transparent;
 }
@@ -664,7 +659,7 @@ input.clr-color:focus {
     position: absolute;
     right: 0;
     top: 0;
-    width: 40%;
+    width: 50%;
     height: 100%;
     border-radius: 0;
     border: none;

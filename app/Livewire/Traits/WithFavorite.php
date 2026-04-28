@@ -22,9 +22,9 @@ trait WithFavorite
 
                 // Показываем уведомление
                 if ($note->is_favorite) {
-                    $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Добавлено в избранное', 'type' => 'success']);
+                    $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Добавлено в избранное', 'type' => 'info']);
                 } else {
-                    $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Удалено из избранного', 'type' => 'success']);
+                    $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Удалено из избранного', 'type' => 'info']);
                 }
             }
         } else {

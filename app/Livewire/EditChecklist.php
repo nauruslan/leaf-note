@@ -52,16 +52,14 @@ class EditChecklist extends Component
         ];
     }
 
-    public function mount(?int $noteId = null, ?int $folderId = null): RedirectResponse|null
+    public function mount(?int $noteId = null, ?int $folderId = null)
     {
         $this->noteId = $noteId;
 
         if ($noteId === null) {
-            return redirect()->route('dashboard')->with('notification', [
-                'title' => 'Внимание',
-                'content' => 'Список не найден. Вы будете перенаправлены на главную страницу.',
-                'type' => 'warning',
-            ]);
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Заметка не найдена', 'type' => 'danger']);
+            $this->dispatch('navigateTo', section:'dashboard');
+            return;
         }
 
         $this->cachedChecklist = Note::where('user_id', Auth::id())
@@ -69,11 +67,9 @@ class EditChecklist extends Component
             ->find($noteId);
 
         if (!$this->cachedChecklist) {
-            return redirect()->route('dashboard')->with('notification', [
-                'title' => 'Внимание',
-                'content' => 'Список не найден. Вы будете перенаправлены на главную страницу.',
-                'type' => 'warning',
-            ]);
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Список не найден', 'type' => 'danger']);
+            $this->dispatch('navigateTo', section:'dashboard');
+            return;
         }
 
         $this->title = $this->cachedChecklist->title;
@@ -170,6 +166,8 @@ class EditChecklist extends Component
         }
 
         $this->dispatch('navigateTo', 'dashboard');
+        // Обновляем sidebar
+        $this->dispatch('refreshSidebar');
     }
 
 
@@ -286,7 +284,7 @@ class EditChecklist extends Component
             // Показываем уведомление если изменилось местоположение
             if ($locationChanged) {
                 $locationName = $this->getLocationName($this->cachedChecklist);
-                $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'success']);
+                $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'info']);
 
                 // Обновляем оригинальное местоположение
                 $this->originalFolderId = $this->cachedChecklist->folder_id;
