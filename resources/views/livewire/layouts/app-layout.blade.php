@@ -3,7 +3,11 @@
     <livewire:navigation-sidebar :section="$section" :folder-id="$folderId" key="navigation-sidebar" />
     <div class="ml-16 flex-1">
         {{-- Content Dinamic --}}
-        @if ($section === 'edit-checklist')
+        @if ($isLoading)
+            <div class="flex items-center justify-center h-full min-h-[400px]">
+                <x-loader class="w-10 h-10 animate-spin text-indigo-600" />
+            </div>
+        @elseif ($section === 'edit-checklist')
             <livewire:edit-checklist :note-id="$noteId" key="{{ $section }}-{{ $componentKey }}" />
         @elseif($section === 'edit-note')
             <livewire:edit-note :note-id="$noteId" key="{{ $section }}-{{ $componentKey }}" />

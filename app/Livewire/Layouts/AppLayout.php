@@ -16,6 +16,8 @@ class AppLayout extends Component
     public int $componentKey = 0;
     public bool $showDemoModal = false;
     public string $demoExpirationTime = '';
+    public bool $isLoading = false;
+    public ?string $loadingSection = null;
 
 
     public function mount(): void
@@ -62,7 +64,21 @@ class AppLayout extends Component
 
     protected $listeners = [
         'navigateTo' => 'navigateTo',
+        'startLoading' => 'startLoading',
+        'finishLoading' => 'finishLoading',
     ];
+
+    public function startLoading(string $section, ?int $folderId = null): void
+    {
+        $this->isLoading = true;
+        $this->loadingSection = $section;
+    }
+
+    public function finishLoading(): void
+    {
+        $this->isLoading = false;
+        $this->loadingSection = null;
+    }
 
     public function navigateTo(string $section, ?int $folderId=null, ?int $noteId=null): void
     {
@@ -96,6 +112,7 @@ class AppLayout extends Component
         $this->componentKey++;
 
         $this->dispatch('stateUpdated', section:$section, folderId:$folderId);
+        $this->dispatch('finishLoading');
     }
 
     public function render()

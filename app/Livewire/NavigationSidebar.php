@@ -18,11 +18,15 @@ class NavigationSidebar extends Component
     public ?int $folderId = null;
     public bool $isExpanded = false;
     public bool $confirmingLogout = false;
+    public bool $isLoading = false;
+    public ?string $loadingSection = null;
 
 
     protected $listeners = [
         'refreshSidebar' => 'refreshSidebar',
-        'stateUpdated' => 'updateState'
+        'stateUpdated' => 'updateState',
+        'startLoading' => 'startLoading',
+        'finishLoading' => 'finishLoading',
     ];
 
     public function mount(): void
@@ -113,6 +117,9 @@ class NavigationSidebar extends Component
             return;
         }
 
+        $this->isLoading = true;
+        $this->loadingSection = $section;
+
         $this->section = $section;
         $this->folderId = $folderId;
 
@@ -133,8 +140,21 @@ class NavigationSidebar extends Component
         }
 
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
+        $this->dispatch('startLoading', section: $section, folderId: $folderId);
 
         $this->js('window.scrollTo(0, 0)');
+    }
+
+    public function startLoading(string $section, ?int $folderId = null): void
+    {
+        $this->isLoading = true;
+        $this->loadingSection = $section;
+    }
+
+    public function finishLoading(): void
+    {
+        $this->isLoading = false;
+        $this->loadingSection = null;
     }
 
     public function updateState(string $section, ?int $folderId = null): void
