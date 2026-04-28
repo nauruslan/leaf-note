@@ -7,8 +7,8 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <!-- Left Block: Actions -->
                 <div class="flex flex-wrap items-center gap-3">
-                    <x-button-restore-all wire:click="confirmRestoreAll" />
-                    <x-button-delete-all wire:click="confirmEmptyTrash" />
+                    <x-button-restore-all wire:click="confirmRestoreAll" :class="$this->totalCount ? '' : '!cursor-not-allowed'" />
+                    <x-button-delete-all wire:click="confirmEmptyTrash" :class="$this->totalCount ? '' : '!cursor-not-allowed'" />
                 </div>
                 <!-- Right Block: Filters -->
                 <div class="flex flex-wrap items-center gap-4 justify-end">
@@ -86,8 +86,7 @@
                     <x-no-data icon="search-x" title="Совпадений не найдено"
                         description="Попробуйте изменить поисковый запрос" />
                 @else
-                    <x-no-data icon="trash" title="Совпадений нет"
-                        description="Попробуйте изменить фильтры" />
+                    <x-no-data icon="trash" title="Совпадений нет" description="Попробуйте изменить фильтры" />
                 @endif
             </div>
         @endforelse

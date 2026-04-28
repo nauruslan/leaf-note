@@ -79,6 +79,9 @@ class TrashView extends Component
 
     public function confirmRestoreAll(): void
     {
+        if ($this->totalCount === 0) {
+            return;
+        }
         $this->confirmingRestoreAll = true;
     }
 
@@ -90,6 +93,9 @@ class TrashView extends Component
 
     public function confirmEmptyTrash(): void
     {
+        if ($this->totalCount === 0) {
+            return;
+        }
         $this->confirmingEmptyTrash = true;
     }
 

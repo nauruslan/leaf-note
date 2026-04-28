@@ -292,16 +292,22 @@ class ProfileView extends Component
     {
         $user = Auth::user();
 
-        $status = Password::sendResetLink($this->only('email'));
+        try {
+            $status = Password::sendResetLink($this->only('email'));
 
-        if ($status != Password::RESET_LINK_SENT) {
+            if ($status != Password::RESET_LINK_SENT) {
+                $this->closeAccountPasswordResetModal();
+                $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось отправить ссылку для сброса пароля', 'type' => 'danger']);
+                return;
+            }
+
             $this->closeAccountPasswordResetModal();
-            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось отправить ссылку для сброса пароля', 'type' => 'danger']);
-            return;
+            $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Ссылка для сброса пароля отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для установки нового пароля.', 'type' => 'success']);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Account password reset error: ' . $e->getMessage());
+            $this->closeAccountPasswordResetModal();
+             $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось отправить ссылку для сброса пароля', 'type' => 'danger']);
         }
-
-        $this->closeAccountPasswordResetModal();
-        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Ссылка для сброса пароля отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для установки нового пароля.', 'type' => 'success']);
     }
 
     // Отправить ссылку для сброса пароля сейфа (с модальным окном)
@@ -339,7 +345,7 @@ class ProfileView extends Component
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Safe password reset error: ' . $e->getMessage());
             $this->closeSafePasswordResetModal();
-            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Произошла ошибка при отправке ссылки: ' . $e->getMessage(), 'type' => 'danger']);
+             $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось отправить ссылку для сброса пароля', 'type' => 'danger']);
         } finally {
             $this->sendingSafePasswordReset = false;
         }
