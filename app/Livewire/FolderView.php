@@ -56,6 +56,15 @@ class FolderView extends BaseView
     }
 
     /**
+     * Общее количество заметок в текущей папке.
+     */
+    #[Computed(cache: true, seconds: 10*60)]
+    public function totalFolderNotesCount(): int
+    {
+        return $this->getTotalCount();
+    }
+
+    /**
      * Переопределяем notes() для обработки случая без folderId.
      */
     #[Computed]
