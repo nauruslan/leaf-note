@@ -23,22 +23,22 @@
                 <ul class="mt-1 space-y-1">
                     <li>
                         <x-sidebar-item icon="layout-grid" label="Главная доска" wireClick="goTo('dashboard')"
-                            :active="$section === 'dashboard'" :count="$this->noteCounts->dashboard" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'dashboard'" />
+                            :active="$this->activeSection === 'dashboard'" :count="$this->noteCounts->dashboard" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'dashboard'" />
                     </li>
                     <li>
-                        <x-sidebar-item icon="star" label="Избранное" wireClick="goTo('favorite')" :active="$section === 'favorite'"
+                        <x-sidebar-item icon="star" label="Избранное" wireClick="goTo('favorite')" :active="$this->activeSection === 'favorite'"
                             :count="$this->noteCounts->favorite" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'favorite'" />
                     </li>
                     <li>
-                        <x-sidebar-item icon="lock" label="Сейф" wireClick="goTo('safe')" :active="$section === 'safe'"
+                        <x-sidebar-item icon="lock" label="Сейф" wireClick="goTo('safe')" :active="$this->activeSection === 'safe'"
                             :count="$this->noteCounts->safe" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'safe'" />
                     </li>
                     <li>
-                        <x-sidebar-item icon="package" label="Архив" wireClick="goTo('archive')" :active="$section === 'archive'"
+                        <x-sidebar-item icon="package" label="Архив" wireClick="goTo('archive')" :active="$this->activeSection === 'archive'"
                             :count="$this->noteCounts->archive" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'archive'" />
                     </li>
                     <li>
-                        <x-sidebar-item icon="trash" label="Корзина" wireClick="goTo('trash')" :active="$section === 'trash'"
+                        <x-sidebar-item icon="trash" label="Корзина" wireClick="goTo('trash')" :active="$this->activeSection === 'trash'"
                             :count="$this->trashCount" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'trash'" />
                     </li>
                 </ul>
@@ -53,15 +53,15 @@
                 <ul class="mt-1 space-y-1">
                     <li>
                         <x-sidebar-item icon="file-plus" label="Создать заметку" wireClick="goTo('create-note')"
-                            :active="$section === 'create-note'" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'create-note'" />
+                            :active="$this->activeSection === 'create-note'" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'create-note'" />
                     </li>
                     <li>
                         <x-sidebar-item icon="list-plus" label="Создать список" wireClick="goTo('create-checklist')"
-                            :active="$section === 'create-checklist'" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'create-checklist'" />
+                            :active="$this->activeSection === 'create-checklist'" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'create-checklist'" />
                     </li>
                     <li>
                         <x-sidebar-item icon="folder-plus" label="Создать папку" wireClick="goTo('create-folder')"
-                            :active="$section === 'create-folder'" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'create-folder'" />
+                            :active="$this->activeSection === 'create-folder'" :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'create-folder'" />
                     </li>
                 </ul>
             </li>
@@ -76,7 +76,7 @@
                     @foreach ($this->folders as $folder)
                         <li wire:key="folder-{{ $folder->id }}">
                             <x-sidebar-item icon="{{ $folder->icon }}" label="{{ $folder->title }}"
-                                wireClick="goTo('folder', {{ $folder->id }})" :active="$section === 'folder' && $folderId == $folder->id" :count="$folder->notes_count"
+                                wireClick="goTo('folder', {{ $folder->id }})" :active="$this->activeSection === 'folder' && ($folderId ?? $previousFolderId) == $folder->id" :count="$folder->notes_count"
                                 :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'folder' && $folderId == $folder->id" />
                         </li>
                     @endforeach
@@ -91,12 +91,12 @@
                     Аккаунт</h4>
                 <ul class="mt-1 space-y-1">
                     <li>
-                        <x-sidebar-item icon="user" label="Профиль" wireClick="goTo('profile')" :active="$section === 'profile'"
+                        <x-sidebar-item icon="user" label="Профиль" wireClick="goTo('profile')" :active="$this->activeSection === 'profile'"
                             :isExpanded="$isExpanded" :isLoading="$isLoading && $loadingSection === 'profile'" />
                     </li>
 
                     <li>
-                        <x-sidebar-item icon="log-out" label="Выйти" wireClick="confirmLogout" :active="$section === 'logout'"
+                        <x-sidebar-item icon="log-out" label="Выйти" wireClick="confirmLogout" :active="$this->activeSection === 'logout'"
                             :isExpanded="$isExpanded" />
                     </li>
                 </ul>

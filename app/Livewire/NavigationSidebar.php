@@ -20,6 +20,8 @@ class NavigationSidebar extends Component
     public bool $confirmingLogout = false;
     public bool $isLoading = false;
     public ?string $loadingSection = null;
+    public ?string $previousSection = null;
+    public ?int $previousFolderId = null;
 
 
     protected $listeners = [
@@ -37,7 +39,26 @@ class NavigationSidebar extends Component
 
         $this->section = StateManager::get('section', 'dashboard');
         $this->folderId = StateManager::get('folderId', null);
+        $this->previousSection = StateManager::get('previous_section', null);
+        $this->previousFolderId = StateManager::get('previous_folderId', null);
         $this->isExpanded = Session::get('sidebar_expanded', false);
+    }
+
+    /**
+     * Возвращает секцию для подсветки активного элемента в сайдбаре.
+     * Если текущая секция является "дочерней" (edit-note, edit-checklist),
+     * возвращается предыдущая секция для сохранения подсветки.
+     */
+    #[Computed]
+    public function activeSection(): string
+    {
+        $editingSections = ['edit-note', 'edit-checklist', 'edit-folder'];
+
+        if (in_array($this->section, $editingSections) && $this->previousSection) {
+            return $this->previousSection;
+        }
+
+        return $this->section;
     }
 
     #[Computed]
@@ -120,12 +141,18 @@ class NavigationSidebar extends Component
         $this->isLoading = true;
         $this->loadingSection = $section;
 
+        // Сохраняем текущую секцию как предыдущую перед переходом
+        $this->previousSection = $this->section;
+        $this->previousFolderId = $this->folderId;
+
         $this->section = $section;
         $this->folderId = $folderId;
 
         // Сохраняем состояние в сессию
         StateManager::set('section', $section);
         StateManager::set('folderId', $folderId);
+        StateManager::set('previous_section', $this->previousSection);
+        StateManager::set('previous_folderId', $this->previousFolderId);
 
         Session::put('sidebar_expanded', $isExpanded);
         $this->isExpanded = $isExpanded;
@@ -157,14 +184,20 @@ $this->loadingSection = null;
 }
 
 public function updateState(string $section, ?int $folderId = null): void
-    {
-        $this->section = $section;
-        $this->folderId = $folderId;
+{
+    // Сохраняем текущую секцию как предыдущую перед обновлением
+    $this->previousSection = $this->section;
+    $this->previousFolderId = $this->folderId;
 
-        // Сохраняем состояние в сессию
-        StateManager::set('section', $section);
-        StateManager::set('folderId', $folderId);
-    }
+    $this->section = $section;
+    $this->folderId = $folderId;
+
+    // Сохраняем состояние в сессию
+    StateManager::set('section', $section);
+    StateManager::set('folderId', $folderId);
+    StateManager::set('previous_section', $this->previousSection);
+    StateManager::set('previous_folderId', $this->previousFolderId);
+}
 
     public function refreshSidebar(): void
     {
