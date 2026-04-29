@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 
-class FavoriteView extends BaseView
+class FavoriteSection extends Base
 {
     public string $heading = 'Избранное';
     public string $subheading = 'Ваши избранные заметки и списки';

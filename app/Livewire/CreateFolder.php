@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
-class CreateFolderView extends Component
+class CreateFolder extends Component
 {
     use WithBackSection;
 

@@ -14,7 +14,7 @@ use Livewire\Component;
 
 class NavigationSidebar extends Component
 {
-    public string $section = 'dashboard';
+    public string $section = 'dashboard-section';
     public ?int $folderId = null;
     public bool $isExpanded = false;
     public bool $confirmingLogout = false;
@@ -37,7 +37,7 @@ class NavigationSidebar extends Component
             return;
         }
 
-        $this->section = StateManager::get('section', 'dashboard');
+        $this->section = StateManager::get('section', 'dashboard-section');
         $this->folderId = StateManager::get('folderId', null);
         $this->previousSection = StateManager::get('previous_section', null);
         $this->previousFolderId = StateManager::get('previous_folderId', null);
@@ -86,9 +86,8 @@ class NavigationSidebar extends Component
                 COUNT(CASE WHEN trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as dashboard,
                 COUNT(CASE WHEN safe_id IS NOT NULL THEN 1 END) as safe,
                 COUNT(CASE WHEN archive_id IS NOT NULL THEN 1 END) as archive,
-                COUNT(CASE WHEN type = ? AND trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as checklist,
                 COUNT(CASE WHEN is_favorite = 1 AND trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as favorite
-            ", [Note::TYPE_CHECKLIST])
+            ")
             ->first();
 
         return $counts;

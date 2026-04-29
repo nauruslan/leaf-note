@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class TrashView extends Component
+class TrashSection extends Component
 {
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
 
-    public $section = 'trash';
+    public $section = 'trash-section';
     public $heading = 'Корзина';
     public string $subheading = '';
 

@@ -47,8 +47,7 @@ new #[Layout('layouts.guest')] class extends Component {
                 cookie()->queue(cookie()->forget('remembered_email'));
             }
 
-            $this->dispatch('navigateTo', section: 'dashboard');
-            $this->redirectIntended(default: route('app', absolute: false));
+            $this->redirect(route('app'));
         } catch (\Exception $e) {
             $this->dispatch('stopLoading');
             throw $e;
@@ -68,7 +67,7 @@ new #[Layout('layouts.guest')] class extends Component {
                 cookie()->queue(cookie('remembered_email', 'demo', 43200)); // 30 дней
             }
 
-            $this->redirectIntended(default: route('app', absolute: false));
+            $this->redirect(route('app'));
         } catch (\Exception $e) {
             $this->dispatch('stopLoading');
             throw $e;

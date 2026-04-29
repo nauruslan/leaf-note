@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
-class ProfileView extends Component
+class ProfileSection extends Component
 {
 
     public $heading='Настройки профиля';
@@ -54,6 +54,7 @@ class ProfileView extends Component
 
     public function mount(): void
     {
+
         $user = Auth::user();
 
         // Личные данные

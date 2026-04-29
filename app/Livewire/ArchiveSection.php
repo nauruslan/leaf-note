@@ -6,10 +6,9 @@ use App\Models\Archive;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 
-class ArchiveView extends BaseView
+class ArchiveSection extends Base
 {
     public ?int $archiveId = null;
-
     public string $heading = 'Архив';
     public string $subheading = 'Заметки и списки помещенные в архив';
 

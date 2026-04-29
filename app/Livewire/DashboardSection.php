@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 
-class DashboardView extends BaseView
+class DashboardSection extends Base
 {
     public string $heading = 'Главная доска';
     public string $subheading = 'Все ваши заметки и списки в одном месте';

@@ -8,7 +8,7 @@
     }
 @endphp
 
-@if ($section === 'trash' && $type === 'folder')
+@if ($section === 'trash-section' && $type === 'folder')
     <div
         {{ $attributes->merge(['class' => 'min-w-[320px] h-[340px] flex flex-col py-4 px-5 bg-gradient-to-b from-amber-200 to-amber-300 rounded-xl shadow-md border border-amber-400 hover:shadow-lg transition-all']) }}>
         <div class="flex items-start justify-between mb-4">
@@ -45,7 +45,7 @@
             <div class="flex flex-1 flex-col">
                 <h3 class="font-bold text-lg text-gray-900">{{ $item->title ?: 'Без названия' }}</h3>
                 <p class="text-xs text-gray-500">
-                    @if ($section === 'trash')
+                    @if ($section === 'trash-section')
                         Удалено: {{ $deletedAt?->locale('ru')->isoFormat('D MMMM YYYY HH:mm') ?? 'неизвестно' }}
                     @else
                         @if ($item->created_at->eq($item->updated_at))
@@ -67,14 +67,14 @@
             @endif
         </div>
 
-        @if ($section === 'trash')
+        @if ($section === 'trash-section')
             <div class="flex justify-between border-t border-gray-200 pt-4 mt-auto">
                 <x-button-restore wire:click="restoreItem({{ $item->id }}, 'note')" />
                 <x-button-delete wire:click="deleteItem({{ $item->id }}, 'note')" />
             </div>
         @else
             <div class="flex justify-between border-t border-gray-200 pt-5 mt-auto">
-                @if ($item->isInFolder() && $section === 'folder')
+                @if ($item->isInFolder() && $section === 'folder-section')
                     <x-note-location>
                         @if ($item->folder)
                             <i data-lucide="{{ $item->folder->icon ?? 'folder' }}" class="w-4 h-4"></i>

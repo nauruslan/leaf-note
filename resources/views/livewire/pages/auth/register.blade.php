@@ -61,7 +61,7 @@ new #[Layout('layouts.guest')] class extends Component {
             throw $e;
         }
 
-        $this->redirect(route('app', absolute: false), navigate: true);
+        $this->redirect(route('app'));
     }
 
     // Создать демо-пользователя и войти в него.
@@ -77,7 +77,7 @@ new #[Layout('layouts.guest')] class extends Component {
                 cookie()->queue(cookie('remembered_email', 'demo', 43200)); // 30 дней
             }
 
-            $this->redirectIntended(default: route('app', absolute: false));
+            $this->redirect(route('app'));
         } catch (\Exception $e) {
             $this->dispatch('stopLoading');
             throw $e;

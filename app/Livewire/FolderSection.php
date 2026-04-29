@@ -7,9 +7,9 @@ use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 
-class FolderView extends BaseView
+class FolderSection extends Base
 {
-    public string $section = 'folder';
+    public string $section = 'folder-section';
     public bool $confirmingDeletion = false;
 
     protected function getListeners()
@@ -22,8 +22,6 @@ class FolderView extends BaseView
     public function mount(?int $folderId = null): void
     {
         $this->folderId = $folderId;
-        $this->heading = 'Папка';
-        $this->subheading = $this->folder?->title ?? '';
     }
 
     protected function getBaseConditions(): array
@@ -106,7 +104,7 @@ class FolderView extends BaseView
         if ($success) {
             $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Папка «{$folder->title}» отправлена в корзину", 'type' => 'danger']);
             // После удаления перенаправить на дашборд
-            $this->dispatch('navigateTo', section: 'dashboard');
+            $this->dispatch('navigateTo', section: 'dashboard-section');
             // Обновляем sidebar (получит новое значение section через проп от AppLayout)
             $this->dispatch('refreshSidebar');
             // Закрыть модальное окно

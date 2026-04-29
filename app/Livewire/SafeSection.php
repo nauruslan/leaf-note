@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
 
-class SafeView extends BaseView
+class SafeSection extends Base
 {
     public ?int $safeId = null;
 
     public string $heading = 'Сейф';
     public string $subheading = 'Защищённые заметки';
-    public string $section = 'safe';
+    public string $section = 'safe-section';
     public bool $confirmingPassword = false;
     public string $password = '';
     public bool $isUnlocked = false;
@@ -25,6 +25,7 @@ class SafeView extends BaseView
 
     public function mount(): void
     {
+
         $this->attemptResetPollInterval = Safe::getAttemptResetPollInterval();
 
         // Проверяем, был ли сброшен пароль сейфа через email

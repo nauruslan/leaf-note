@@ -11,8 +11,9 @@ trait WithFolderOpening
         }
 
         // Обновляем активную секцию в навигации (глобальное событие)
-        $this->js("Livewire.dispatch('stateUpdated', {section: 'folder', folderId: {$folderId}})");
+        // $this->js("Livewire.dispatch('stateUpdated', {section: 'folder-section', folderId: {$folderId}})");
+        $this->dispatch('stateUpdated', section: 'folder-section', folderId: $folderId);
         // Навигируем к папке
-        $this->dispatch('navigateTo', section: 'folder', folderId: $folderId);
+        $this->dispatch('navigateTo', section: 'folder-section', folderId: $folderId);
     }
 }

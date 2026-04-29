@@ -10,7 +10,7 @@ use Livewire\Component;
 
 class AppLayout extends Component
 {
-    public string $section = 'dashboard';
+    public string $section = 'dashboard-section';
     public ?int $folderId = null;
     public ?int $noteId = null;
     public int $componentKey = 0;
@@ -22,7 +22,7 @@ class AppLayout extends Component
 
     public function mount(): void
     {
-        $this->section = StateManager::get('section', 'dashboard');
+        $this->section = StateManager::get('section', 'dashboard-section');
         $this->folderId = StateManager::get('folderId', null);
         $this->noteId = StateManager::get('noteId', null);
 
@@ -93,7 +93,7 @@ class AppLayout extends Component
 
         // Если покидаем контекст сейфа (переход из safe-секции в другую секцию),
         // Safe-контекст: safe, edit-note, edit-checklist, create-note, create-checklist
-        $safeContextSections = ['safe', 'edit-note', 'edit-checklist', 'create-note', 'create-checklist'];
+        $safeContextSections = ['safe-section', 'edit-note', 'edit-checklist', 'create-note', 'create-checklist'];
         $leavingSafeContext = in_array($this->section, $safeContextSections) && !in_array($section, $safeContextSections);
         if ($leavingSafeContext) {
             StateManager::remove('safe_unlocked');

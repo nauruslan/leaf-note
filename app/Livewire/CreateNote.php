@@ -17,7 +17,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-class CreateNoteView extends Component
+class CreateNote extends Component
 {
     use WithBackSection;
     use WithNoteStore;

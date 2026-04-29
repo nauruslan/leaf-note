@@ -17,7 +17,7 @@
                 </h1>
                 @if ($subheading)
                     <p class="text-sm text-gray-500 mt-0.5">{{ $subheading }}</p>
-                @elseif($section === 'folder')
+                @elseif($section === 'folder-section')
                     <div class="flex items-center gap-3 mt-1">
                         <button class="text-gray-500 hover:text-indigo-600 focus:outline-none" title="Редактировать папку"
                             wire:click="openEditFolder({{ $this->folder->id }})">

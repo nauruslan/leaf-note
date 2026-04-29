@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-abstract class BaseView extends Component
+abstract class Base extends Component
 {
     use WithComponentPagination;
     use WithSearch;
@@ -45,9 +45,6 @@ abstract class BaseView extends Component
      * Показывать ли удалённые элементы.
      */
     public bool $withTrashed = false;
-
-    public string $heading = '';
-    public string $subheading = '';
 
     public bool $isLoading = false;
     public ?string $loadingSection = null;

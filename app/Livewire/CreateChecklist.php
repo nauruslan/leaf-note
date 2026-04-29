@@ -15,7 +15,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-class CreateChecklistView extends Component
+class CreateChecklist extends Component
 {
     use WithBackSection;
     use WithNoteStore;

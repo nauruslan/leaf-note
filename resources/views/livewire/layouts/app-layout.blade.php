@@ -7,15 +7,8 @@
             <div class="flex-1 flex items-center justify-center">
                 <x-loader class="w-20 h-20 animate-spin text-indigo-600" />
             </div>
-        @elseif ($section === 'edit-checklist')
-            <livewire:edit-checklist :note-id="$noteId" key="{{ $section }}-{{ $componentKey }}" />
-        @elseif($section === 'edit-note')
-            <livewire:edit-note :note-id="$noteId" key="{{ $section }}-{{ $componentKey }}" />
-        @elseif ($section === 'edit-folder' && $folderId)
-            <livewire:edit-folder :folder-id="$folderId" key="{{ $section }}-{{ $componentKey }}" />
         @else
-            <livewire:is :component="$section . '-view'" :section="$section" :folder-id="$folderId"
-                key="{{ $section }}-{{ $componentKey }}" />
+            <livewire:is :component="$section" :section="$section" :folder-id="$folderId" :note-id="$noteId" :key="$section . '-' . $componentKey" />
         @endif
     </div>
     <div class="ml-16">

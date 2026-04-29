@@ -14,13 +14,13 @@ trait WithBackSection
      */
     public function back(): void
     {
-        $previousSection = StateManager::get('previous_section', 'dashboard');
+        $previousSection = StateManager::get('previous_section', 'dashboard-section');
         $previousFolderId = StateManager::get('previous_folderId');
         $previousNoteId = StateManager::get('previous_noteId');
 
         // Если предыдущая секция - сейф, возвращаемся в сейф
-        if ($previousSection === 'safe') {
-            $previousSection = 'safe';
+        if ($previousSection === 'safe-section') {
+            $previousSection = 'safe-section';
             $previousFolderId = null;
             $previousNoteId = null;
         }
