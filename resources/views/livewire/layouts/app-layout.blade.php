@@ -1,11 +1,11 @@
 <div class="min-h-screen flex flex-col">
     {{-- Sidebar --}}
     <livewire:navigation-sidebar :section="$section" :folder-id="$folderId" key="navigation-sidebar" />
-    <div class="ml-16 flex-1">
+    <div class="ml-16 flex-1 flex flex-col">
         {{-- Content Dinamic --}}
         @if ($isLoading)
-            <div class="flex items-center justify-center h-full min-h-[400px]">
-                <x-loader class="w-10 h-10 animate-spin text-indigo-600" />
+            <div class="flex-1 flex items-center justify-center">
+                <x-loader class="w-20 h-20 animate-spin text-indigo-600" />
             </div>
         @elseif ($section === 'edit-checklist')
             <livewire:edit-checklist :note-id="$noteId" key="{{ $section }}-{{ $componentKey }}" />
