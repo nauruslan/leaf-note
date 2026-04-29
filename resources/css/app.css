@@ -17,6 +17,10 @@
 @tailwind components;
 @tailwind utilities;
 
+[x-cloak] {
+    display: none !important;
+}
+
 body {
     background-color: #f5f4ff;
 }

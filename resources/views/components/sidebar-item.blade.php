@@ -1,4 +1,12 @@
-@props(['icon', 'label', 'active' => false, 'wireClick', 'count' => null, 'isExpanded' => false, 'isLoading' => false])
+@props([
+    'icon',
+    'label',
+    'active' => false,
+    'wireClick',
+    'count' => null,
+    'isExpanded' => false,
+    'isLoading' => false,
+])
 
 <a href="#" wire:click.prevent="{{ $wireClick }}"
     {{ $attributes->merge([

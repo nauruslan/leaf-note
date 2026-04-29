@@ -51,6 +51,7 @@ trait WithNoteOpening
 
         $section = $note->type === Note::TYPE_CHECKLIST ? 'edit-checklist' : 'edit-note';
 
+        $this->dispatch('startLoading', section: $section, noteId: $noteId);
         $this->dispatch('navigateTo', section: $section, noteId: $noteId);
         $this->js('window.scrollTo(0, 0)');
     }

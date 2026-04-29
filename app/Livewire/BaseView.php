@@ -49,6 +49,29 @@ abstract class BaseView extends Component
     public string $heading = '';
     public string $subheading = '';
 
+    public bool $isLoading = false;
+    public ?string $loadingSection = null;
+    public ?int $loadingNoteId = null;
+
+    protected $listeners = [
+        'startLoading' => 'startLoading',
+        'finishLoading' => 'finishLoading',
+    ];
+
+    public function startLoading(string $section, ?int $folderId = null, ?int $noteId = null): void
+    {
+        $this->isLoading = true;
+        $this->loadingSection = $section;
+        $this->loadingNoteId = $noteId;
+    }
+
+    public function finishLoading(): void
+    {
+        $this->isLoading = false;
+        $this->loadingSection = null;
+        $this->loadingNoteId = null;
+    }
+
     /**
      * Получить карту фильтров для типов заметок.
      */

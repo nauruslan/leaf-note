@@ -23,6 +23,29 @@ class TrashView extends Component
     public $heading = 'Корзина';
     public string $subheading = '';
 
+    public bool $isLoading = false;
+    public ?string $loadingSection = null;
+    public ?int $loadingNoteId = null;
+
+    protected $listeners = [
+        'startLoading' => 'startLoading',
+        'finishLoading' => 'finishLoading',
+    ];
+
+    public function startLoading(string $section, ?int $folderId = null, ?int $noteId = null): void
+    {
+        $this->isLoading = true;
+        $this->loadingSection = $section;
+        $this->loadingNoteId = $noteId;
+    }
+
+    public function finishLoading(): void
+    {
+        $this->isLoading = false;
+        $this->loadingSection = null;
+        $this->loadingNoteId = null;
+    }
+
     public function mount(): void
     {
         $this->sort = 'deleted';

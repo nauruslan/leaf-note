@@ -12,9 +12,12 @@ class FolderView extends BaseView
     public string $section = 'folder';
     public bool $confirmingDeletion = false;
 
-    protected $listeners = [
-        'closeModal' => 'closeModal',
-    ];
+    protected function getListeners()
+    {
+        return array_merge(parent::getListeners(), [
+            'closeModal' => 'closeModal',
+        ]);
+    }
 
     public function mount(?int $folderId = null): void
     {

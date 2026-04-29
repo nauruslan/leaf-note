@@ -138,26 +138,25 @@ class NavigationSidebar extends Component
                 $this->dispatch('openSafePasswordModal');
             }
         }
+$this->dispatch('navigateTo', section: $section, folderId: $folderId);
+$this->dispatch('startLoading', section: $section, folderId: $folderId);
 
-        $this->dispatch('navigateTo', section: $section, folderId: $folderId);
-        $this->dispatch('startLoading', section: $section, folderId: $folderId);
+$this->js('window.scrollTo(0, 0)');
+}
 
-        $this->js('window.scrollTo(0, 0)');
-    }
+public function startLoading(string $section, ?int $folderId = null): void
+{
+$this->isLoading = true;
+$this->loadingSection = $section;
+}
 
-    public function startLoading(string $section, ?int $folderId = null): void
-    {
-        $this->isLoading = true;
-        $this->loadingSection = $section;
-    }
+public function finishLoading(): void
+{
+$this->isLoading = false;
+$this->loadingSection = null;
+}
 
-    public function finishLoading(): void
-    {
-        $this->isLoading = false;
-        $this->loadingSection = null;
-    }
-
-    public function updateState(string $section, ?int $folderId = null): void
+public function updateState(string $section, ?int $folderId = null): void
     {
         $this->section = $section;
         $this->folderId = $folderId;

@@ -68,16 +68,20 @@ class AppLayout extends Component
         'finishLoading' => 'finishLoading',
     ];
 
-    public function startLoading(string $section, ?int $folderId = null): void
+    public ?int $loadingNoteId = null;
+
+    public function startLoading(string $section, ?int $folderId = null, ?int $noteId = null): void
     {
         $this->isLoading = true;
         $this->loadingSection = $section;
+        $this->loadingNoteId = $noteId;
     }
 
     public function finishLoading(): void
     {
         $this->isLoading = false;
         $this->loadingSection = null;
+        $this->loadingNoteId = null;
     }
 
     public function navigateTo(string $section, ?int $folderId=null, ?int $noteId=null): void

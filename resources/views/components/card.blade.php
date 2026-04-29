@@ -111,7 +111,7 @@
                     </x-note-location>
                 @endif
 
-                <x-button-open-note wire:click="openNote({{ $item->id }})" />
+                <x-button-open-note wire:click="openNote({{ $item->id }})" :isLoading="$this->isLoading && $this->loadingNoteId == $item->id" />
 
             </div>
         @endif
