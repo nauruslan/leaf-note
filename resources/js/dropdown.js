@@ -112,9 +112,8 @@ class Dropdown {
         // Обновляем скрытый input
         if (this.hiddenInput) {
             this.hiddenInput.value = this.value;
-            // Генерируем событие input для Livewire 4 (wire:model.live требует input, а не change)
+            // Генерируем событие input
             this.hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
-
             // Livewire автоматически обновит свойство через событие input
             // (скрытый input имеет wire:model.live)
         }

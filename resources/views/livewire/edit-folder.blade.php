@@ -77,7 +77,7 @@
                 <!-- Кнопки действий -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
                     <!-- Save Button -->
-                    <x-button-save wire:click.prevent="save" wire:loading.attr="disabled" />
+                    <x-button-save wire:click.prevent="save" target="save" />
                 </div>
             </form>
         </div>

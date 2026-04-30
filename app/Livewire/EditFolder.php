@@ -21,6 +21,14 @@ class EditFolder extends Component
     public string $icon = '';
     public bool $confirmingDeletion = false;
 
+    // Публичное свойство для отслеживания изменений
+    public bool $hasUnsavedChanges = false;
+
+    // Исходные значения для сравнения
+    public string $originalTitle = '';
+    public string $originalColor = '';
+    public string $originalIcon = '';
+
     private ?Folder $folder = null;
 
     public function mount(?int $folderId = null)
@@ -39,6 +47,49 @@ class EditFolder extends Component
             $this->color = $this->folder->color;
             $this->icon = $this->folder->icon;
         }
+
+        // Сохраняем исходные значения для отслеживания изменений
+        $this->initOriginalValues();
+    }
+
+    // Инициализация оригинальных значений
+    private function initOriginalValues(): void
+    {
+        $this->originalTitle = $this->title;
+        $this->originalColor = $this->color;
+        $this->originalIcon = $this->icon;
+    }
+
+    // Отслеживаем изменения полей
+    public function updatedTitle(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedColor(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedIcon(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    // Проверка наличия изменений
+    public function hasChanges(): bool
+    {
+        if ($this->originalTitle !== $this->title) {
+            return true;
+        }
+        if ($this->originalColor !== $this->color) {
+            return true;
+        }
+        if ($this->originalIcon !== $this->icon) {
+            return true;
+        }
+
+        return false;
     }
 
     public function getIconsProperty(): array
@@ -69,6 +120,12 @@ class EditFolder extends Component
 
     public function save()
     {
+        // Если нет изменений - не сохраняем
+        if (!$this->hasChanges()) {
+            $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Нет изменений для сохранения', 'type' => 'info']);
+            return;
+        }
+
         // Если передан folderId, но папка не загружена, попробуем загрузить
         if ($this->folderId && !$this->folder) {
             $this->folder = Folder::where('user_id', Auth::id())
@@ -142,8 +199,6 @@ class EditFolder extends Component
             $this->folder->color = $this->color;
             $this->folder->icon = $this->icon;
             $this->folder->save();
-            $message = 'Папка успешно обновлена';
-            $event = 'folderUpdated';
         } else {
             // Создание новой папки
             $folder = new Folder();
@@ -155,10 +210,13 @@ class EditFolder extends Component
 
         }
 
+        // Обновляем исходные значения после сохранения
+        $this->initOriginalValues();
+        $this->hasUnsavedChanges = false;
+
         $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Изменения сохранены', 'type' => 'info']);
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
-
     }
 
     public function cancel(): void
