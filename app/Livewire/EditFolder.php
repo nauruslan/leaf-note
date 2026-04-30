@@ -243,7 +243,7 @@ class EditFolder extends Component
 
     public function deleteFolder(): void
     {
-        // Загружаем папку, если она не загружена (свойство private не сохраняется между запросами)
+        // Загружаем папку
         $folder = $this->folder;
 
         if (!$folder && $this->folderId) {
@@ -263,8 +263,8 @@ class EditFolder extends Component
 
         if ($success) {
             $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Папка «{$folder->title}» отправлена в корзину", 'type' => 'danger']);
-            $this->dispatch('navigateTo', section: 'dashboard');
-            // Обновляем sidebar (получит новое значение section через проп от AppLayout)
+            $this->dispatch('navigateTo', section: 'dashboard-section');
+            // Обновляем sidebar
             $this->dispatch('refreshSidebar');
             // Закрыть модальное окно
             $this->confirmingDeletion = false;

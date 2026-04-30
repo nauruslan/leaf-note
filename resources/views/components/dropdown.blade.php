@@ -53,7 +53,7 @@
     <div wire:ignore>
         <div {{ $attributes->merge(['class' => 'custom-select' . ($disabled ? ' disabled' : ''), 'id' => $id, 'style' => "width: {$width}", 'data-dropdown' => true]) }}
             @if ($disabled) data-disabled="true" @endif>
-            <div class="custom-select-trigger h-10" data-dropdown-trigger>
+            <div class="custom-select-trigger h-9" data-dropdown-trigger>
                 <span class="custom-select-label">{{ $selectedText }}</span>
                 <span style="font-size: 10px; opacity: 0.6">▼</span>
             </div>

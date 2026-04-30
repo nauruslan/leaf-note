@@ -46,40 +46,10 @@
                         <i data-lucide="bar-chart-2" class="w-5 h-5 text-indigo-600"></i>
                         Статистика
                     </h3>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                                    <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500">Заметок</p>
-                                    <p class="text-2xl font-bold text-gray-900">{{ $notesCount }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                    <i data-lucide="list-checks" class="w-5 h-5 text-purple-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500">Списков</p>
-                                    <p class="text-2xl font-bold text-gray-900">{{ $checklistsCount }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                                    <i data-lucide="folder" class="w-5 h-5 text-green-600"></i>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500">Папок</p>
-                                    <p class="text-2xl font-bold text-gray-900">{{ $foldersCount }}</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="flex flex-wrap justify-evenly gap-8">
+                        <x-card-profile icon="file-text" title="Заметок" :content="$notesCount" accentColor="#4f46e5" />
+                        <x-card-profile icon="list-checks" title="Списков" :content="$checklistsCount" accentColor="#4f46e5" />
+                        <x-card-profile icon="folder" title="Папок" :content="$foldersCount" accentColor="#4f46e5" />
                     </div>
                 </div>
                 <!-- Разделитель -->
@@ -288,6 +258,9 @@
     </div>
 
     <script>
+        // Инициализация иконок Lucide
+        lucide.createIcons();
+
         (function() {
             function updateSaveButton() {
                 const button = document.getElementById('saveProfileButton');
@@ -325,9 +298,14 @@
 
             // Обновление после инициализации Livewire
             document.addEventListener('livewire:initialized', () => {
+                // Инициализируем иконки после загрузки Livewire
+                lucide.createIcons();
+
                 // Обновляем после каждого запроса
                 Livewire.hook('message.processed', () => {
                     setTimeout(updateSaveButton, 10);
+                    // Переинициализируем иконки после обновления
+                    lucide.createIcons();
                 });
             });
         })();
