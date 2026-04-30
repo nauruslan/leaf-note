@@ -52,9 +52,17 @@ class ProfileSection extends Component
     public bool $showPasswordResetModal = false;
     public bool $showSafePasswordResetModal = false;
 
+    // Публичное свойство для отслеживания изменений
+    public bool $hasUnsavedChanges = false;
+
+    // Исходные значения для сравнения (публичные для сериализации Livewire)
+    public string $originalName = '';
+    public string $originalEmail = '';
+    public string $originalNotificationsEnabled = '0';
+    public string $originalAutoDeleteDays = 'disabled';
+
     public function mount(): void
     {
-
         $user = Auth::user();
 
         // Личные данные
@@ -74,6 +82,102 @@ class ProfileSection extends Component
 
         // Проверка возможности смены пароля (только не демо)
         $this->canChangePassword = !$user->isDemoUser();
+
+        // Сохраняем исходные значения для отслеживания изменений
+        $this->initOriginalValues();
+    }
+
+    // Инициализация оригинальных значений
+    private function initOriginalValues(): void
+    {
+        $this->originalName = $this->name;
+        $this->originalEmail = $this->email;
+        $this->originalNotificationsEnabled = $this->notificationsEnabled;
+        $this->originalAutoDeleteDays = $this->autoDeleteDays;
+    }
+
+    // Отслеживаем изменения полей
+    public function updatedName(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedEmail(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedNotificationsEnabled(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedAutoDeleteDays(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedCurrentPassword(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedNewPassword(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedConfirmPassword(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedSafeCurrentPassword(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedSafePassword(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    public function updatedSafeConfirmPassword(): void
+    {
+        $this->hasUnsavedChanges = $this->hasChanges();
+    }
+
+    // Проверка наличия изменений
+    public function hasChanges(): bool
+    {
+        // Проверяем личные данные и настройки
+        if ($this->originalName !== $this->name) {
+            return true;
+        }
+        if ($this->originalEmail !== $this->email) {
+            return true;
+        }
+        if ($this->originalNotificationsEnabled !== $this->notificationsEnabled) {
+            return true;
+        }
+        if ($this->originalAutoDeleteDays !== $this->autoDeleteDays) {
+            return true;
+        }
+
+        // Проверяем поля смены пароля аккаунта
+        if (!empty($this->currentPassword) || !empty($this->newPassword) || !empty($this->confirmPassword)) {
+            return true;
+        }
+
+        // Проверяем поля пароля сейфа
+        if (!empty($this->safePassword) || !empty($this->safeConfirmPassword)) {
+            return true;
+        }
+        if ($this->hasSafePassword && !empty($this->safeCurrentPassword)) {
+            return true;
+        }
+
+        return false;
     }
 
     // Получить настройку автоудаления из корзины.
@@ -114,6 +218,12 @@ class ProfileSection extends Component
     // Сохранить профиль
     public function saveProfile(): void
     {
+        // Если нет изменений - не сохраняем
+        if (!$this->hasChanges()) {
+            $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Нет изменений для сохранения', 'type' => 'info']);
+            return;
+        }
+
         // Сохраняем личные данные
         $this->validate([
             'name' => 'required|string|max:255',
@@ -142,6 +252,16 @@ class ProfileSection extends Component
             $this->saveSafePassword();
         }
 
+        $this->currentPassword = '';
+        $this->newPassword = '';
+        $this->confirmPassword = '';
+        $this->safeCurrentPassword = '';
+        $this->safePassword = '';
+        $this->safeConfirmPassword = '';
+
+        // Обновляем исходные значения после сохранения
+        $this->initOriginalValues();
+        $this->hasUnsavedChanges = false;
         $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Настройки сохранены', 'type' => 'success']);
     }
 

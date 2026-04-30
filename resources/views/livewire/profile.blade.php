@@ -281,12 +281,57 @@
                 <div class="border-t border-gray-200"></div>
                 <!-- Кнопки действий -->
                 <div class="flex flex-wrap items-center gap-3 justify-end">
-                    <x-button-save wire:click.prevent="saveProfile" wire:loading.attr="disabled"
-                        target="saveProfile" />
+                    <x-button-save id="saveProfileButton" wire:click.prevent="saveProfile" target="saveProfile" />
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+        (function() {
+            function updateSaveButton() {
+                const button = document.getElementById('saveProfileButton');
+                if (!button) return;
+
+                const wireElement = button.closest('[wire\\:id]');
+                if (!wireElement) return;
+
+                const wireId = wireElement.getAttribute('wire:id');
+                if (!wireId) return;
+
+                const component = Livewire.find(wireId);
+                if (!component) return;
+
+                // В Livewire 4 используем component.get() для получения значения свойства
+                const hasChanges = component.get('hasUnsavedChanges');
+
+                console.log('updateSaveButton: hasChanges =', hasChanges);
+
+                // Кнопка всегда активна, независимо от наличия изменений
+                // Проверка изменений происходит на сервере в методе saveProfile()
+                if (hasChanges) {
+                    button.removeAttribute('disabled');
+                    button.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                } else {
+                    // Не блокируем кнопку, даже если нет изменений
+                    // Пользователь может нажать и получит уведомление "Нет изменений для сохранения"
+                }
+            }
+
+            // Инициализация при загрузке страницы
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(updateSaveButton, 100);
+            });
+
+            // Обновление после инициализации Livewire
+            document.addEventListener('livewire:initialized', () => {
+                // Обновляем после каждого запроса
+                Livewire.hook('message.processed', () => {
+                    setTimeout(updateSaveButton, 10);
+                });
+            });
+        })();
+    </script>
 
     <!-- Модальное окно подтверждения сброса пароля аккаунта -->
     <x-modal :show="$showPasswordResetModal" type="confirm" title="Сброс пароля аккаунта"
