@@ -19,28 +19,28 @@
                     <p class="text-sm text-gray-500 mt-0.5">{{ $subheading }}</p>
                 @elseif($section === 'folder-section')
                     <div class="flex items-center gap-3 mt-1">
-                        <button class="text-gray-500 hover:text-indigo-600 focus:outline-none" title="Редактировать папку"
+                        <button class="text-gray-500 hover:text-indigo-600 focus:outline-none" title="Редактировать"
                             wire:click="openEditFolder({{ $this->folder->id }})">
                             Редактировать
                         </button>|
-                        <button class="text-gray-500 hover:text-red-600 focus:outline-none" title="Удалить папку"
+                        <button class="text-gray-500 hover:text-red-600 focus:outline-none" title="Удалить"
                             wire:click="confirmDeletion">Удалить
                         </button>
                     </div>
                 @elseif($section === 'edit-note' || $section === 'edit-checklist' || $section === 'edit-folder')
                     <div class="flex items-center gap-3 mt-1">
-                        <button class="text-gray-500 hover:text-indigo-600 focus:outline-none"
-                            title="Редактировать папку" wire:click.prevent="back" wire:loading.attr="disabled">
+                        <button class="text-gray-500 hover:text-indigo-600 focus:outline-none" title="Назад"
+                            wire:click.prevent="back" wire:loading.attr="disabled">
                             Назад
                         </button>|
-                        <button class="text-gray-500 hover:text-red-600 focus:outline-none" title="Удалить папку"
+                        <button class="text-gray-500 hover:text-red-600 focus:outline-none" title="Удалить"
                             wire:click.prevent="confirmDeletion" wire:loading.attr="disabled">Удалить
                         </button>
                     </div>
                 @elseif($section === 'create-note' || $section === 'create-checklist' || $section === 'create-folder')
                     <div class="flex items-center gap-3 mt-1">
-                        <button class="text-gray-500 hover:text-indigo-600 focus:outline-none"
-                            title="Редактировать папку" wire:click.prevent="back" wire:loading.attr="disabled">
+                        <button class="text-gray-500 hover:text-indigo-600 focus:outline-none" title="Назад"
+                            wire:click.prevent="back" wire:loading.attr="disabled">
                             Назад
                         </button>
                     </div>

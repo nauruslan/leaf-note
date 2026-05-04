@@ -87,9 +87,16 @@ class AppLayout extends Component
     public function navigateTo(string $section, ?int $folderId=null, ?int $noteId=null): void
     {
         // Сохраняем текущую секцию как предыдущую перед переходом
-        StateManager::set('previous_section', $this->section);
-        StateManager::set('previous_folderId', $this->folderId);
-        StateManager::set('previous_noteId', $this->noteId);
+        // Но не перезаписываем, если:
+        // 1. Переходим на страницу создания (create-note, create-checklist, create-folder)
+        // 2. Уходим с страницы создания (текущая секция - create-секция)
+        // потому что previous_section уже был правильно сохранен в NavigationSidebar::goTo()
+        $createSections = ['create-note', 'create-checklist', 'create-folder'];
+        if (!in_array($section, $createSections) && !in_array($this->section, $createSections)) {
+            StateManager::set('previous_section', $this->section);
+            StateManager::set('previous_folderId', $this->folderId);
+            StateManager::set('previous_noteId', $this->noteId);
+        }
 
         // Если покидаем контекст сейфа (переход из safe-секции в другую секцию),
         // Safe-контекст: safe, edit-note, edit-checklist, create-note, create-checklist

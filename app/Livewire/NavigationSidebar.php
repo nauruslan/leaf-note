@@ -141,8 +141,16 @@ class NavigationSidebar extends Component
         $this->loadingSection = $section;
 
         // Сохраняем текущую секцию как предыдущую перед переходом
-        $this->previousSection = $this->section;
-        $this->previousFolderId = $this->folderId;
+        // Но только если мы не уходим со страницы создания (create-note, create-checklist, create-folder)
+        $createSections = ['create-note', 'create-checklist', 'create-folder'];
+        if (!in_array($this->section, $createSections)) {
+            $this->previousSection = $this->section;
+            $this->previousFolderId = $this->folderId;
+
+            // Сохраняем предыдущую секцию в StateManager, чтобы она была доступна в WithBackSection
+            StateManager::set('previous_section', $this->previousSection);
+            StateManager::set('previous_folderId', $this->previousFolderId);
+        }
 
         $this->section = $section;
         $this->folderId = $folderId;
@@ -150,8 +158,6 @@ class NavigationSidebar extends Component
         // Сохраняем состояние в сессию
         StateManager::set('section', $section);
         StateManager::set('folderId', $folderId);
-        StateManager::set('previous_section', $this->previousSection);
-        StateManager::set('previous_folderId', $this->previousFolderId);
 
         Session::put('sidebar_expanded', $isExpanded);
         $this->isExpanded = $isExpanded;
@@ -185,8 +191,16 @@ $this->loadingSection = null;
 public function updateState(string $section, ?int $folderId = null): void
 {
     // Сохраняем текущую секцию как предыдущую перед обновлением
-    $this->previousSection = $this->section;
-    $this->previousFolderId = $this->folderId;
+    // Но только если мы не уходим со страницы создания (create-note, create-checklist, create-folder)
+    $createSections = ['create-note', 'create-checklist', 'create-folder'];
+    if (!in_array($this->section, $createSections)) {
+        $this->previousSection = $this->section;
+        $this->previousFolderId = $this->folderId;
+
+        // Сохраняем предыдущую секцию в StateManager, чтобы она была доступна в WithBackSection
+        StateManager::set('previous_section', $this->previousSection);
+        StateManager::set('previous_folderId', $this->previousFolderId);
+    }
 
     $this->section = $section;
     $this->folderId = $folderId;
@@ -194,8 +208,6 @@ public function updateState(string $section, ?int $folderId = null): void
     // Сохраняем состояние в сессию
     StateManager::set('section', $section);
     StateManager::set('folderId', $folderId);
-    StateManager::set('previous_section', $this->previousSection);
-    StateManager::set('previous_folderId', $this->previousFolderId);
 }
 
     public function refreshSidebar(): void
