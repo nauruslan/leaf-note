@@ -16,7 +16,7 @@ function scrollToBottom() {
     setTimeout(() => {
         window.scrollTo({
             top: document.body.scrollHeight,
-            behavior: 'smooth',
+            // behavior: 'smooth',
         });
-    }, 50);
+    }, 0);
 }

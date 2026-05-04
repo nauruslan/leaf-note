@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\NoteImageController;
+use App\Http\Controllers\PrivacyPolicyController;
 use App\Http\Controllers\SafePasswordResetController;
+use App\Http\Controllers\TermsOfServiceController;
 use Illuminate\Support\Facades\Route;
 
 // Очистка сессии на время разработки
@@ -51,3 +53,11 @@ Route::middleware(['auth'])->group(function () {
 // Подписанный маршрут для сброса пароля сейфа (не требует аутентификации)
 Route::get('/safe-password/reset', [SafePasswordResetController::class, 'reset'])
     ->name('safe-password.reset');
+
+// Политика конфиденциальности (открывается в новом окне)
+Route::get('/privacy-policy', [PrivacyPolicyController::class, 'index'])
+    ->name('privacy-policy');
+
+// Условия использования (открываются в новом окне)
+Route::get('/terms-of-service', [TermsOfServiceController::class, 'index'])
+    ->name('terms-of-service');
