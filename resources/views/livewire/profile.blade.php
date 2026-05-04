@@ -13,29 +13,11 @@
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Имя -->
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                Имя
-                            </label>
-                            <input type="text" id="name" wire:model="name" autofocus
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow"
-                                placeholder="Введите имя">
-                            @error('name')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <x-input-group label="Имя" for="name" type="text" id="name" wireModel="name"
+                            autofocus placeholder="Введите имя" field="name" />
                         <!-- Email -->
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                Электронная почта
-                            </label>
-                            <input type="email" id="email" wire:model="email"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow"
-                                placeholder="email@example.com">
-                            @error('email')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <x-input-group label="Электронная почта" for="email" type="email" id="email"
+                            wireModel="email" placeholder="Введите почту" field="email" />
                     </div>
                 </div>
                 <!-- Разделитель -->
@@ -107,73 +89,42 @@
                         @if ($canChangePassword)
                             <!-- Текущий пароль -->
                             <div class="mb-4">
-                                <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Текущий пароль
-                                </label>
-                                <input type="password" id="currentPassword" wire:model="currentPassword"
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
-                                    placeholder="Введите текущий пароль">
-                                @error('currentPassword')
-                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                <x-input-group label="Текущий пароль" for="currentPassword" type="password"
+                                    id="currentPassword" wireModel="currentPassword"
+                                    placeholder="Введите текущий пароль" field="currentPassword" />
                             </div>
                             <!-- Новый пароль -->
                             <div class="mb-4">
-                                <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Новый пароль
-                                </label>
-                                <input type="password" id="newPassword" wire:model="newPassword"
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
-                                    placeholder="Минимум 8 символов">
-                                @error('newPassword')
-                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                <x-input-group label="Новый пароль" for="newPassword" type="password" id="newPassword"
+                                    wireModel="newPassword" placeholder="Минимум 8 символов" field="newPassword" />
                             </div>
                             <!-- Подтверждение пароля -->
                             <div class="mb-4">
-                                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Подтверждение пароля
-                                </label>
-                                <input type="password" id="confirmPassword" wire:model="confirmPassword"
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
-                                    placeholder="Повторите новый пароль">
-                                @error('confirmPassword')
-                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                <x-input-group label="Подтверждение пароля" for="confirmPassword" type="password"
+                                    id="confirmPassword" wireModel="confirmPassword"
+                                    placeholder="Повторите новый пароль" field="confirmPassword" />
                             </div>
                         @else
                             <!-- Текущий пароль (заблокирован) -->
                             <div class="mb-4">
-                                <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Текущий пароль
-                                </label>
-                                <input type="password" id="currentPassword" disabled readonly
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-600 cursor-not-allowed h-11 transition-shadow"
-                                    placeholder="Недоступно">
+                                <x-input-group label="Текущий пароль" for="currentPassword" type="password"
+                                    id="currentPassword" disabled readonly placeholder="Недоступно" />
                             </div>
                             <!-- Новый пароль (заблокирован) -->
                             <div class="mb-4">
-                                <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Новый пароль
-                                </label>
-                                <input type="password" id="newPassword" disabled readonly
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-600 cursor-not-allowed h-11 transition-shadow"
-                                    placeholder="Недоступно">
+                                <x-input-group label="Новый пароль" for="newPassword" type="password" id="newPassword"
+                                    disabled readonly placeholder="Недоступно" />
                             </div>
                             <!-- Подтверждение пароля (заблокирован) -->
                             <div class="mb-4">
-                                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Подтверждение пароля
-                                </label>
-                                <input type="password" id="confirmPassword" disabled readonly
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-600 cursor-not-allowed h-11 transition-shadow"
-                                    placeholder="Недоступно">
+                                <x-input-group label="Подтверждение пароля" for="confirmPassword" type="password"
+                                    id="confirmPassword" disabled readonly placeholder="Недоступно" />
                             </div>
                         @endif
                         <!-- Кнопка-ссылка "Забыли пароль аккаунта?" -->
                         <div class="mt-2">
-                            <x-button-forgot text="Забыли пароль аккаунта?"
-                                wireClick="openAccountPasswordResetModal()" :disabled="!$canChangePassword" />
+                            <x-button-forgot text="Забыли пароль аккаунта?" wireClick="openAccountPasswordResetModal()"
+                                :disabled="!$canChangePassword" />
                         </div>
                     </div>
                     <!-- Секция: Пароль сейфа -->
@@ -191,20 +142,13 @@
                         @if ($hasSafePassword)
                             <!-- Текущий пароль сейфа -->
                             <div class="mb-4">
-                                <label for="safeCurrentPassword"
-                                    class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Текущий пароль сейфа
-                                </label>
-                                <input type="password" id="safeCurrentPassword" wire:model="safeCurrentPassword"
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
-                                    placeholder="Введите текущий пароль сейфа">
-                                @error('safeCurrentPassword')
-                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                <x-input-group label="Текущий пароль сейфа" for="safeCurrentPassword" type="password"
+                                    id="safeCurrentPassword" wireModel="safeCurrentPassword"
+                                    placeholder="Введите текущий пароль сейфа" field="safeCurrentPassword" />
                             </div>
                         @else
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Информация
                                 </label>
                                 <div class="relative">
@@ -212,34 +156,21 @@
                                         <i data-lucide="info" class="w-5 h-5 text-gray-500"></i>
                                     </div>
                                     <input type="text" disabled readonly
-                                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-600 cursor-not-allowed pr-10 h-11 transition-shadow"
+                                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-600 cursor-not-allowed pr-10 h-9 transition-shadow"
                                         value="Установите пароль для защиты ваших заметок в сейфе">
                                 </div>
                             </div>
                         @endif
                         <!-- Новый пароль сейфа -->
                         <div class="mb-4">
-                            <label for="safePassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                {{ $hasSafePassword ? 'Новый пароль сейфа' : 'Создать пароль сейфа' }}
-                            </label>
-                            <input type="password" id="safePassword" wire:model="safePassword"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
-                                placeholder="Минимум 4 символа">
-                            @error('safePassword')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-input-group :label="$hasSafePassword ? 'Новый пароль сейфа' : 'Создать пароль сейфа'" for="safePassword" type="password" id="safePassword"
+                                wireModel="safePassword" placeholder="Минимум 4 символа" field="safePassword" />
                         </div>
                         <!-- Подтверждение пароля сейфа -->
                         <div class="mb-4">
-                            <label for="safeConfirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                {{ $hasSafePassword ? 'Подтверждение нового пароля' : 'Подтверждение пароля сейфа' }}
-                            </label>
-                            <input type="password" id="safeConfirmPassword" wire:model="safeConfirmPassword"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
-                                placeholder="Повторите пароль">
-                            @error('safeConfirmPassword')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <x-input-group :label="$hasSafePassword ? 'Подтверждение нового пароля' : 'Подтверждение пароля сейфа'" for="safeConfirmPassword" type="password"
+                                id="safeConfirmPassword" wireModel="safeConfirmPassword"
+                                placeholder="Повторите пароль" field="safeConfirmPassword" />
                         </div>
                         <!-- Кнопка-ссылка "Забыли пароль сейфа?" -->
                         <div class="mt-2">
