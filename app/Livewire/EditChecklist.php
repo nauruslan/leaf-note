@@ -58,7 +58,7 @@ class EditChecklist extends Component
 
         if ($noteId === null) {
             $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Заметка не найдена', 'type' => 'danger']);
-            $this->dispatch('navigateTo', section:'dashboard');
+            $this->dispatch('navigateTo', section: 'dashboard-section');
             return;
         }
 
@@ -68,7 +68,7 @@ class EditChecklist extends Component
 
         if (!$this->cachedChecklist) {
             $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Список не найден', 'type' => 'danger']);
-            $this->dispatch('navigateTo', section:'dashboard');
+            $this->dispatch('navigateTo', section: 'dashboard-section');
             return;
         }
 
@@ -128,7 +128,7 @@ class EditChecklist extends Component
         }
 
         $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Список «{$checklist->title}» отправлен в корзину", 'type' => 'danger']);
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', section: 'dashboard-section');
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
     }
@@ -165,7 +165,7 @@ class EditChecklist extends Component
             return;
         }
 
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', section: 'dashboard-section');
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
     }
@@ -238,7 +238,7 @@ class EditChecklist extends Component
     #[On('checklistUpdated')]
     public function onChecklistUpdated(): void
     {
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', section: 'dashboard-section');
     }
 
     #[On('triggerAutoSave')]

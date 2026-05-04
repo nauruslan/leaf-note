@@ -122,7 +122,7 @@ class FolderSection extends Base
             return;
         }
 
-        $this->dispatch('navigateTo', section: 'edit-folder', folderId: $id);
+        $this->dispatch('navigateTo', section: 'edit-folder', folderId: $id, noteId: null);
     }
 
     public function render()

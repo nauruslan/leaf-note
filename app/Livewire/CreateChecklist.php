@@ -98,7 +98,7 @@ class CreateChecklist extends Component
 
     public function cancel(): void
     {
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', section: 'dashboard-section');
     }
 
     public function updatedDropdownValue(): void

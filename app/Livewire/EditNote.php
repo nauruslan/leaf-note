@@ -81,7 +81,7 @@ class EditNote extends Component
 
     public function handleNavigateTo(string $section, ?int $folderId = null): void
     {
-        if ($section === 'note' && $folderId) {
+        if ($section === 'edit-note' && $folderId) {
             $this->openNote($folderId);
         }
     }
@@ -173,7 +173,7 @@ class EditNote extends Component
 
     public function onNoteUpdated(): void
     {
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', section: 'dashboard-section');
     }
 
     public function cancel(): void
@@ -184,7 +184,7 @@ class EditNote extends Component
 
         $this->js('localStorage.clear()');
         $this->dispatch('restoreNoteOriginalState');
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', section: 'dashboard-section');
     }
 
     public function confirmDelete(): void
@@ -208,7 +208,7 @@ class EditNote extends Component
 
         $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Заметка «{$note->title}» отправлена в корзину", 'type' => 'danger']);
         $this->dispatch('noteUpdated');
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', section: 'dashboard-section');
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
     }
@@ -416,7 +416,7 @@ class EditNote extends Component
             $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
 
             $this->dispatch('noteUpdated');
-            $this->dispatch('navigateTo', 'dashboard');
+            $this->dispatch('navigateTo', section: 'dashboard-section');
 
         } catch (\Throwable $e) {
             report($e);

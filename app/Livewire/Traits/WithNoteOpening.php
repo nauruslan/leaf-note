@@ -31,13 +31,13 @@ trait WithNoteOpening
     public function openCreateNotePage(): void
     {
         $this->setPresets();
-        $this->dispatch('navigateTo', 'create-note');
+        $this->dispatch('navigateTo', section: 'create-note');
     }
 
     public function openCreateChecklistPage(): void
     {
         $this->setPresets();
-        $this->dispatch('navigateTo', 'create-checklist');
+        $this->dispatch('navigateTo', section: 'create-checklist');
     }
 
     public function openNote(int $noteId): void

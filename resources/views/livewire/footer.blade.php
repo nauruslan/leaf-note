@@ -10,18 +10,18 @@
 
                  <!-- Links Section -->
                  <div class="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-5">
-                     <x-link href="{{ route('privacy-policy') }}" variant="footer" external="true"
+                     <x-link href="{{ route('privacy-policy') }}" variant="footer" external
                          aria-label="Политика конфиденциальности">
                          <i data-lucide="shield-check" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
                          <span>Политика конфиденциальности</span>
                      </x-link>
-                     <x-link href="{{ route('terms-of-service') }}" variant="footer" external="true"
+                     <x-link href="{{ route('terms-of-service') }}" variant="footer" external
                          aria-label="Условия использования">
                          <i data-lucide="file-text" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
                          <span>Условия использования</span>
                      </x-link>
 
-                     <x-link href="https://t.me/+375336590520" variant="footer" aria-label="О нас">
+                     <x-link href="https://t.me/+375336590520" variant="footer" aria-label="О нас" external>
                          <i data-lucide="info" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
                          <span>Написать автору</span>
                      </x-link>

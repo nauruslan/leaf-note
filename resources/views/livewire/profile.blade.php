@@ -8,7 +8,7 @@
                 <!-- Секция: Личные данные -->
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i>
+                        <i data-lucide="user" class="w-5 h-5 w-5 h-5 text-indigo-600"></i>
                         Личные данные
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -18,7 +18,7 @@
                                 Имя
                             </label>
                             <input type="text" id="name" wire:model="name" autofocus
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow"
                                 placeholder="Введите имя">
                             @error('name')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -30,7 +30,7 @@
                                 Электронная почта
                             </label>
                             <input type="email" id="email" wire:model="email"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow"
                                 placeholder="email@example.com">
                             @error('email')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -47,9 +47,9 @@
                         Статистика
                     </h3>
                     <div class="flex flex-wrap justify-evenly gap-8">
-                        <x-card-profile icon="file-text" title="Заметок" :content="$notesCount" accentColor="#4f46e5" />
-                        <x-card-profile icon="list-checks" title="Списков" :content="$checklistsCount" accentColor="#4f46e5" />
-                        <x-card-profile icon="folder" title="Папок" :content="$foldersCount" accentColor="#4f46e5" />
+                        <x-card-profile icon="file-text" title="Заметок" :content="$notesCount" />
+                        <x-card-profile icon="list-checks" title="Списков" :content="$checklistsCount" />
+                        <x-card-profile icon="folder" title="Папок" :content="$foldersCount" />
                     </div>
                 </div>
                 <!-- Разделитель -->
@@ -111,7 +111,7 @@
                                     Текущий пароль
                                 </label>
                                 <input type="password" id="currentPassword" wire:model="currentPassword"
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
                                     placeholder="Введите текущий пароль">
                                 @error('currentPassword')
                                     <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -123,7 +123,7 @@
                                     Новый пароль
                                 </label>
                                 <input type="password" id="newPassword" wire:model="newPassword"
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
                                     placeholder="Минимум 8 символов">
                                 @error('newPassword')
                                     <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -135,7 +135,7 @@
                                     Подтверждение пароля
                                 </label>
                                 <input type="password" id="confirmPassword" wire:model="confirmPassword"
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
                                     placeholder="Повторите новый пароль">
                                 @error('confirmPassword')
                                     <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -182,7 +182,8 @@
                             <i data-lucide="lock" class="w-5 h-5 text-indigo-600"></i>
                             Пароль сейфа
                             @if ($hasSafePassword)
-                                <span class="text-indigo-700">установлен</span>
+                                <span
+                                    class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">установлен</span>
                             @else
                                 <span class="text-red-600">не установлен</span>
                             @endif
@@ -195,7 +196,7 @@
                                     Текущий пароль сейфа
                                 </label>
                                 <input type="password" id="safeCurrentPassword" wire:model="safeCurrentPassword"
-                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
                                     placeholder="Введите текущий пароль сейфа">
                                 @error('safeCurrentPassword')
                                     <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -222,7 +223,7 @@
                                 {{ $hasSafePassword ? 'Новый пароль сейфа' : 'Создать пароль сейфа' }}
                             </label>
                             <input type="password" id="safePassword" wire:model="safePassword"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
                                 placeholder="Минимум 4 символа">
                             @error('safePassword')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -234,7 +235,7 @@
                                 {{ $hasSafePassword ? 'Подтверждение нового пароля' : 'Подтверждение пароля сейфа' }}
                             </label>
                             <input type="password" id="safeConfirmPassword" wire:model="safeConfirmPassword"
-                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow h-11"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow h-11"
                                 placeholder="Повторите пароль">
                             @error('safeConfirmPassword')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -256,6 +257,7 @@
             </form>
         </div>
     </div>
+
 
     <script>
         // Инициализация иконок Lucide

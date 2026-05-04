@@ -135,7 +135,7 @@ class CreateNote extends Component
         $temporaryImageService->executePendingDeletion();
         $temporaryImageService->deleteUnsavedImages();
 
-        $this->dispatch('navigateTo', 'dashboard');
+        $this->dispatch('navigateTo', section: 'dashboard-section');
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
     }

@@ -163,7 +163,7 @@ class NavigationSidebar extends Component
         $this->isExpanded = $isExpanded;
 
         // Для сейфа - проверить нужно ли показывать модальное окно пароля
-        if ($section === 'safe') {
+        if ($section === 'safe-section') {
             $safe = Safe::where('user_id', Auth::id())->first();
             if ($safe && $safe->hasPassword()) {
                 // Сейф защищён паролем - отправить событие для открытия модального окна

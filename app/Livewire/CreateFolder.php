@@ -89,7 +89,7 @@ class CreateFolder extends Component
         // Обновляем sidebar
         $this->dispatch('refreshSidebar');
         // Переходим к папке
-        $this->dispatch('navigateTo', section:'folder', folderId:$folder->id);
+        $this->dispatch('navigateTo', section: 'folder-section', folderId: $folder->id);
     }
 
     public function render()

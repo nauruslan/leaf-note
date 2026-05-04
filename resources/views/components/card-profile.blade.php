@@ -2,81 +2,19 @@
     'icon' => 'file-text',
     'title' => '',
     'content' => '',
-    'accentColor' => '#4f46e5',
 ])
 
-<div class="card-profile" style="--accent-color: {{ $accentColor }}">
-    <div class="circle"></div>
-    <div class="icon">
-        <i data-lucide="{{ $icon }}"></i>
+<div
+    class="relative flex flex-col w-full max-w-[400px] p-[3rem_1rem_2rem_1rem] rounded-xl font-system-ui text-[#333] bg-[#eef1fd] shadow-[0_4px_6px_-1px_rgb(0_0_0/0.1),0_2px_4px_-2px_rgb(0_0_0/0.1)] transition-shadow duration-200 overflow-hidden hover:shadow-[0_10px_15px_-3px_rgb(0_0_0/0.1),0_4px_6px_-4px_rgb(0_0_0/0.1)]">
+    <div
+        class="absolute top-[-100px] left-[-100px] w-[200px] h-[200px] rounded-full bg-gradient-to-r from-indigo-600 to-purple-600">
     </div>
-    <div class="title">{{ $title }}</div>
-    <div class="content">{{ $content }}</div>
+    <div
+        class="absolute top-[10px] left-[10px] w-[40px] aspect-square grid place-items-center text-white bg-transparent rounded-full">
+        <i data-lucide="{{ $icon }}" class="w-6 h-6 stroke-white"></i>
+    </div>
+    <div
+        class="text-xl font-bold text-center uppercase mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+        {{ $title }}</div>
+    <div class="text-[2.5rem] font-bold text-center text-[#333]">{{ $content }}</div>
 </div>
-
-<style>
-    .card-profile {
-        display: flex;
-        position: relative;
-        flex-direction: column;
-        width: 100%;
-        max-width: 400px;
-        padding: 3rem 1rem 2rem 1rem;
-        border-radius: 1rem;
-        font-family: system-ui, -apple-system, sans-serif;
-        color: #333;
-        background-color: #eef1fd;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        transition: box-shadow 0.2s;
-        overflow: hidden;
-    }
-
-    .card-profile:hover {
-        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    .card-profile .circle {
-        position: absolute;
-        top: -100px;
-        left: -100px;
-        width: 200px;
-        height: 200px;
-        background-color: var(--accent-color);
-        border-radius: 50%;
-    }
-
-    .card-profile .icon {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        width: 40px;
-        aspect-ratio: 1;
-        display: grid;
-        place-items: center;
-        color: #fff;
-        background-color: transparent;
-        border-radius: 50%;
-    }
-
-    .card-profile .icon i {
-        width: 24px;
-        height: 24px;
-        stroke: #fff;
-    }
-
-    .card-profile .title {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--accent-color);
-        text-align: center;
-        text-transform: uppercase;
-        margin-top: 1rem;
-    }
-
-    .card-profile .content {
-        font-size: 2.5rem;
-        font-weight: 700;
-        text-align: center;
-        color: #333;
-    }
-</style>

@@ -26,7 +26,7 @@ trait WithBackSection
         }
 
         // Уведомляем AppLayout об изменении состояния
-        $this->dispatch('navigateTo', $previousSection, $previousFolderId, $previousNoteId);
+        $this->dispatch('navigateTo', section: $previousSection, folderId: $previousFolderId, noteId: $previousNoteId);
         // Уведомляем NavigationSidebar об изменении состояния
         $this->dispatch('stateUpdated', section: $previousSection, folderId: $previousFolderId);
     }
