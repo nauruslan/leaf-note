@@ -27,6 +27,7 @@ trait WithComponentPagination
     public function gotoPage(int $page): void
     {
         $this->page = max(1, $page);
+        $this->dispatch('page-changed');
     }
 
     /**
@@ -35,6 +36,7 @@ trait WithComponentPagination
     public function nextPage(): void
     {
         $this->page++;
+        $this->dispatch('page-changed');
     }
 
     /**
@@ -44,6 +46,7 @@ trait WithComponentPagination
     {
         if ($this->page > 1) {
             $this->page--;
+            $this->dispatch('page-changed');
         }
     }
 

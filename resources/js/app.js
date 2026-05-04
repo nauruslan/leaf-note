@@ -9,6 +9,7 @@ import './toggle';
 import './search';
 import './notifications';
 import './coloris';
+import './pagination';
 
 // import './sidebar';
 import { createIcons, icons } from 'lucide';

@@ -170,45 +170,45 @@ class NavigationSidebar extends Component
                 $this->dispatch('openSafePasswordModal');
             }
         }
-$this->dispatch('navigateTo', section: $section, folderId: $folderId);
-$this->dispatch('startLoading', section: $section, folderId: $folderId);
+        $this->dispatch('navigateTo', section: $section, folderId: $folderId);
+        $this->dispatch('startLoading', section: $section, folderId: $folderId);
 
-$this->js('window.scrollTo(0, 0)');
-}
-
-public function startLoading(string $section, ?int $folderId = null): void
-{
-$this->isLoading = true;
-$this->loadingSection = $section;
-}
-
-public function finishLoading(): void
-{
-$this->isLoading = false;
-$this->loadingSection = null;
-}
-
-public function updateState(string $section, ?int $folderId = null): void
-{
-    // Сохраняем текущую секцию как предыдущую перед обновлением
-    // Но только если мы не уходим со страницы создания (create-note, create-checklist, create-folder)
-    $createSections = ['create-note', 'create-checklist', 'create-folder'];
-    if (!in_array($this->section, $createSections)) {
-        $this->previousSection = $this->section;
-        $this->previousFolderId = $this->folderId;
-
-        // Сохраняем предыдущую секцию в StateManager, чтобы она была доступна в WithBackSection
-        StateManager::set('previous_section', $this->previousSection);
-        StateManager::set('previous_folderId', $this->previousFolderId);
+        $this->js('window.scrollTo(0, 0)');
     }
 
-    $this->section = $section;
-    $this->folderId = $folderId;
+    public function startLoading(string $section, ?int $folderId = null): void
+    {
+        $this->isLoading = true;
+        $this->loadingSection = $section;
+    }
 
-    // Сохраняем состояние в сессию
-    StateManager::set('section', $section);
-    StateManager::set('folderId', $folderId);
-}
+    public function finishLoading(): void
+    {
+        $this->isLoading = false;
+        $this->loadingSection = null;
+    }
+
+    public function updateState(string $section, ?int $folderId = null): void
+    {
+        // Сохраняем текущую секцию как предыдущую перед обновлением
+        // Но только если мы не уходим со страницы создания (create-note, create-checklist, create-folder)
+        $createSections = ['create-note', 'create-checklist', 'create-folder'];
+        if (!in_array($this->section, $createSections)) {
+            $this->previousSection = $this->section;
+            $this->previousFolderId = $this->folderId;
+
+            // Сохраняем предыдущую секцию в StateManager, чтобы она была доступна в WithBackSection
+            StateManager::set('previous_section', $this->previousSection);
+            StateManager::set('previous_folderId', $this->previousFolderId);
+        }
+
+        $this->section = $section;
+        $this->folderId = $folderId;
+
+        // Сохраняем состояние в сессию
+        StateManager::set('section', $section);
+        StateManager::set('folderId', $folderId);
+    }
 
     public function refreshSidebar(): void
     {
