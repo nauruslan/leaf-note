@@ -136,8 +136,6 @@ class Notifications {
 
         const timeoutId = setTimeout(() => this.close(notification), duration);
         notification.dataset.timeoutId = timeoutId;
-
-        this.updatePositions();
     }
 
     close(notification) {
@@ -149,17 +147,8 @@ class Notifications {
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
-                this.updatePositions();
             }
         }, 300);
-    }
-
-    updatePositions() {
-        if (!this.container) return;
-        const items = this.container.querySelectorAll('.notification-item');
-        items.forEach((item, i) => {
-            item.style.marginTop = `${i * 10}px`;
-        });
     }
 }
 
