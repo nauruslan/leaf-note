@@ -31,7 +31,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 14px;
-    background: var(--checklist-accent);
+    background: linear-gradient(to right, #4f46e5, #9333ea);
     color: #fff;
     border-radius: 8px;
     border: 0;
@@ -43,7 +43,7 @@
 }
 
 .checklist-editor .btn-add:hover {
-    background: #4f46e5;
+    background: linear-gradient(to right, #4338ca, #7e22ce);
     transform: translateY(-1px);
     box-shadow: 0 8px 20px rgba(99, 102, 241, 0.16);
 }
