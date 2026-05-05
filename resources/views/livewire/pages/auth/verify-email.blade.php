@@ -40,14 +40,18 @@ new #[Layout('layouts.guest')] class extends Component {
         </div>
     @endif
 
-    <div class="mt-4 flex items-center justify-between">
-        <x-primary-button wire:click="sendVerification">
-            Получить письмо верификации
-        </x-primary-button>
+    <x-button-save wire:click="sendVerification" height="h-12" target="sendVerification" text="Получить письмо верификации"
+        loadingText="Отправка..." class="w-full" />
 
-        <button wire:click="logout" type="submit"
-            class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            Выйти
-        </button>
-    </div>
+    <!-- Back to login -->
+    <p class="text-center mt-6 text-sm text-gray-600">
+        <a wire:click="logout"
+            class="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors flex items-center justify-center gap-1 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+            Назад
+        </a>
+    </p>
 </div>
