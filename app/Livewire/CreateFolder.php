@@ -5,6 +5,7 @@ use App\Livewire\Traits\WithBackSection;
 use App\Models\Folder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class CreateFolder extends Component
@@ -41,7 +42,8 @@ class CreateFolder extends Component
 
     public function save()
     {
-        $this->validate([
+        try {
+            $this->validate([
             'title' => [
                 'required',
                 'string',
@@ -71,6 +73,15 @@ class CreateFolder extends Component
             'icon.in' => 'Выберите корректную иконку из списка',
             'icon.unique' => 'Эта иконка уже используется в другой папке',
         ]);
+        } catch (ValidationException $e) {
+            // Отправляем уведомление об ошибке валидации
+            $this->dispatch('notification', [
+                'title' => 'Внимание',
+                'content' => 'Пожалуйста, исправьте ошибки в форме',
+                'type' => 'warning'
+            ]);
+            throw $e;
+        }
 
         $folder = new Folder();
         $folder->title = $this->title;

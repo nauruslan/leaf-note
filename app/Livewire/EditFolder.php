@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithBackSection;
 use App\Models\Folder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class EditFolder extends Component
@@ -181,17 +182,27 @@ class EditFolder extends Component
 
         $rules['icon'][] = $iconUniqueRule;
 
-        $this->validate($rules, [
-            'title.required' => 'Название папки обязательно',
-            'title.min' => 'Название должно содержать минимум 1 символ',
-            'title.max' => 'Название не должно превышать 12 символов',
-            'title.unique' => 'Папка с таким названием уже существует',
-            'color.required' => 'Выберите цвет папки',
-            'color.regex' => 'Цвет должен быть в формате HEX (например, #FF0000)',
-            'icon.required' => 'Выберите иконку папки',
-            'icon.in' => 'Выберите корректную иконку из списка',
-            'icon.unique' => 'Эта иконка уже используется в другой папке',
-        ]);
+        try {
+            $this->validate($rules, [
+                'title.required' => 'Название папки обязательно',
+                'title.min' => 'Название должно содержать минимум 1 символ',
+                'title.max' => 'Название не должно превышать 12 символов',
+                'title.unique' => 'Папка с таким названием уже существует',
+                'color.required' => 'Выберите цвет папки',
+                'color.regex' => 'Цвет должен быть в формате HEX (например, #FF0000)',
+                'icon.required' => 'Выберите иконку папки',
+                'icon.in' => 'Выберите корректную иконку из списка',
+                'icon.unique' => 'Эта иконка уже используется в другой папке',
+            ]);
+        } catch (ValidationException $e) {
+            // Отправляем уведомление об ошибке валидации
+            $this->dispatch('notification', [
+                'title' => 'Внимание',
+                'content' => 'Пожалуйста, исправьте ошибки в форме',
+                'type' => 'warning'
+            ]);
+            throw $e;
+        }
 
         if ($this->folder) {
             // Обновление существующей папки
