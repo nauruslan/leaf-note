@@ -16,18 +16,17 @@
             'iconBg' => 'bg-red-100',
             'iconColor' => 'text-red-600',
             'confirmText' => 'Удалить',
-            'confirmClass' => 'bg-red-600 hover:bg-red-700 text-white',
+            'variant' => 'danger',
             'showCancel' => true,
             'cancelText' => 'Отменить',
             'buttonsAlign' => 'justify-end',
         ],
         'restore' => [
-            'icon' => 'history',
+            'icon' => 'help-circle',
             'iconBg' => 'bg-indigo-100',
             'iconColor' => 'text-indigo-600',
             'confirmText' => 'Восстановить',
-            'confirmClass' =>
-                'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg',
+            'variant' => 'default',
             'showCancel' => true,
             'cancelText' => 'Отменить',
             'buttonsAlign' => 'justify-end',
@@ -37,8 +36,7 @@
             'iconBg' => 'bg-indigo-100',
             'iconColor' => 'text-indigo-600',
             'confirmText' => $confirmText,
-            'confirmClass' =>
-                'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg',
+            'variant' => 'default',
             'showCancel' => true,
             'cancelText' => 'Отмена',
             'buttonsAlign' => 'justify-end',
@@ -48,8 +46,7 @@
             'iconBg' => 'bg-indigo-100',
             'iconColor' => 'text-indigo-600',
             'confirmText' => 'Ок',
-            'confirmClass' =>
-                'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg',
+            'variant' => 'default',
             'showCancel' => false,
             'cancelText' => '',
             'buttonsAlign' => 'justify-center',
@@ -82,18 +79,14 @@
 
                 <div class="flex gap-4 mt-6 {{ $config['buttonsAlign'] }}">
                     @if ($config['showCancel'])
-                        <button type="button"
-                            class="px-5 py-2.5 text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-                            wire:click="{{ $cancelMethod }}">
+                        <x-secondary-button wire:click="{{ $cancelMethod }}">
                             {{ $config['cancelText'] }}
-                        </button>
+                        </x-secondary-button>
                     @endif
 
-                    <button type="button"
-                        class="px-5 py-2.5 {{ $config['confirmClass'] }} font-medium rounded-lg transition-all flex items-center gap-2"
-                        wire:click="{{ $confirmMethod }}">
+                    <x-primary-button height="h-10" :variant="$config['variant']" wire:click="{{ $confirmMethod }}">
                         {{ $config['confirmText'] }}
-                    </button>
+                    </x-primary-button>
                 </div>
             </div>
         </div>

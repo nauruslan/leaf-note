@@ -24,6 +24,9 @@
     };
 
     $hasError = $error !== null ? (bool) $error : ($field ? $errors->has($field) : false);
+
+    $hasIcon = $slot->isNotEmpty();
+    $paddingLeft = $hasIcon ? 'pl-10' : 'px-4';
 @endphp
 
 <div>
@@ -34,13 +37,21 @@
         </label>
     @endif
 
-    <input type="{{ $type }}" @if ($id) id="{{ $id }}" @endif
-        @if ($wireModel) wire:model="{{ $wireModel }}" @endif
-        @if ($autofocus) autofocus @endif @if ($disabled) disabled @endif
-        @if ($readonly) readonly @endif
-        @if ($placeholder) placeholder="{{ $placeholder }}" @endif
-        class="w-full border {{ $hasError ? 'border-red-500' : 'border-gray-300' }} rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gradient-to-r focus:from-indigo-500 focus:to-purple-500 focus:border-gradient-to-r focus:from-indigo-500 focus:to-purple-500 transition-shadow {{ $disabled ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : '' }} {{ $heightClass }}">
+    <div class="relative">
+        @if ($hasIcon)
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                {{ $slot }}
+            </div>
+        @endif
+
+        <input type="{{ $type }}" @if ($id) id="{{ $id }}" @endif
+            @if ($wireModel) wire:model="{{ $wireModel }}" @endif
+            @if ($autofocus) autofocus @endif @if ($disabled) disabled @endif
+            @if ($readonly) readonly @endif
+            @if ($placeholder) placeholder="{{ $placeholder }}" @endif
+            class="w-full {{ $paddingLeft }} pr-4 py-3 border {{ $hasError ? 'border-red-500' : 'border-gray-300' }} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all {{ $disabled ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : '' }} {{ $heightClass }}">
+    </div>
     @error($field)
-        <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+        <span class="text-red-500 text-sm mt-1 inline-block">{{ $message }}</span>
     @enderror
 </div>

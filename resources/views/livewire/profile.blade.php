@@ -133,8 +133,10 @@
                             <i data-lucide="lock" class="w-5 h-5 text-indigo-600"></i>
                             Пароль сейфа
                             @if ($hasSafePassword)
-                                <span
-                                    class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">установлен</span>
+                                <button type="button" wire:click="openSafePasswordResetModal"
+                                    class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-medium hover:opacity-80 transition-opacity cursor-pointer">
+                                    cбросить
+                                </button>
                             @else
                                 <span class="text-red-600">не установлен</span>
                             @endif

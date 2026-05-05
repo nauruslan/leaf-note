@@ -316,18 +316,18 @@ class ProfileSection extends Component
         } catch (ValidationException $e) {
             // Отправляем уведомление об ошибке валидации
             $this->dispatch('notification', [
-                'title' => 'Ошибка валидации',
+                'title' => 'Внимание',
                 'content' => 'Пожалуйста, исправьте ошибки в форме',
-                'type' => 'danger'
+                'type' => 'warning'
             ]);
             throw $e;
         }
 
         if (!Hash::check($this->currentPassword, $user->password)) {
             $this->dispatch('notification', [
-                'title' => 'Ошибка',
+                'title' => 'Внимание',
                 'content' => 'Текущий пароль указан неверно',
-                'type' => 'danger'
+                'type' => 'warning'
             ]);
             throw ValidationException::withMessages([
                 'currentPassword' => ['Текущий пароль указан неверно'],
@@ -361,9 +361,9 @@ class ProfileSection extends Component
             } catch (ValidationException $e) {
                 // Отправляем уведомление об ошибке валидации
                 $this->dispatch('notification', [
-                    'title' => 'Ошибка валидации',
+                    'title' => 'Внимание',
                     'content' => 'Пожалуйста, исправьте ошибки в форме',
-                    'type' => 'danger'
+                    'type' => 'warning'
                 ]);
                 throw $e;
             }
@@ -373,9 +373,9 @@ class ProfileSection extends Component
 
             if (!$safe->verifyPassword($this->safeCurrentPassword)) {
                 $this->dispatch('notification', [
-                    'title' => 'Ошибка',
+                    'title' => 'Внимание',
                     'content' => 'Текущий пароль сейфа указан неверно',
-                    'type' => 'danger'
+                    'type' => 'warning'
                 ]);
                 throw ValidationException::withMessages([
                     'safeCurrentPassword' => ['Текущий пароль сейфа указан неверно'],
@@ -395,9 +395,9 @@ class ProfileSection extends Component
             } catch (ValidationException $e) {
                 // Отправляем уведомление об ошибке валидации
                 $this->dispatch('notification', [
-                    'title' => 'Ошибка валидации',
+                    'title' => 'Внимание',
                     'content' => 'Пожалуйста, исправьте ошибки в форме',
-                    'type' => 'danger'
+                    'type' => 'warning'
                 ]);
                 throw $e;
             }

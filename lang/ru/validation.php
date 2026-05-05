@@ -36,7 +36,7 @@ return [
     'distinct' => 'Поле :attribute содержит повторяющееся значение.',
     'doesnt_end_with' => 'Поле :attribute не должно заканчиваться одним из следующих значений: :values.',
     'doesnt_start_with' => 'Поле :attribute не должно начинаться с одного из следующих значений: :values.',
-    'email' => 'Поле :attribute должно быть действительным email адресом.',
+    'email' => 'Это поле должно быть действительным email адресом.',
     'ends_with' => 'Поле :attribute должно заканчиваться одним из следующих значений: :values.',
     'enum' => 'Выбранное значение для :attribute недопустимо.',
     'exists' => 'Выбранное значение для :attribute не существует.',
@@ -52,7 +52,7 @@ return [
         'array' => 'Поле :attribute должно содержать :value элементов или больше.',
         'file' => 'Размер файла :attribute должен быть не менее :value килобайт.',
         'numeric' => 'Поле :attribute должно быть не менее :value.',
-        'string' => 'Длина поля :attribute должна быть не менее :value символов.',
+        'string' => 'Длина поля должна быть не менее :value символов.',
     ],
     'image' => 'Поле :attribute должно быть изображением.',
     'in' => 'Выбранное значение для :attribute недопустимо.',
@@ -114,7 +114,7 @@ return [
     'prohibited_unless' => 'Поле :attribute запрещено, если :other не равно :values.',
     'prohibits' => 'Поле :attribute запрещает присутствие :other.',
     'regex' => 'Формат поля :attribute недопустим.',
-    'required' => 'Поле :attribute обязательно для заполнения.',
+    'required' => 'Пожалуйста, заполните это поле.',
     'required_array_keys' => 'Поле :attribute должно содержать записи: :values.',
     'required_if' => 'Поле :attribute обязательно для заполнения, когда :other равно :value.',
     'required_if_accepted' => 'Поле :attribute обязательно для заполнения, когда :other принято.',
@@ -148,5 +148,24 @@ return [
         'password' => 'пароль',
         'password_confirmation' => 'подтверждение пароля',
         'remember' => 'запомнить меня',
+        'safePassword' => 'пароль сейфа',
+        'safeCurrentPassword' => 'текущий пароль сейфа',
+        'safeConfirmPassword' => 'подтверждение пароля сейфа',
+    ],
+    // Кастомные сообщения для конкретных полей
+
+    'custom' => [
+        'safePassword' => [
+            'min' => 'Длина поля должна быть не менее :min символов.',
+        ],
+        'newPassword' => [
+            'min' => 'Длина поля должна быть не менее :min символов.',
+        ],
+        'confirmPassword' => [
+            'same' => 'Несовпадение паролей',
+        ],
+        'safeConfirmPassword' => [
+            'same' => 'Несовпадение паролей',
+        ],
     ],
 ];

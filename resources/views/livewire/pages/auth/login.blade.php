@@ -9,6 +9,14 @@ use Livewire\Volt\Component;
 
 new #[Layout('layouts.guest')] class extends Component {
     public LoginForm $form;
+    public bool $isLoading = false;
+    public ?string $loadingMethod = null;
+
+    protected $listeners = [
+        'startLoading' => 'startLoading',
+        'finishLoading' => 'finishLoading',
+    ];
+
     public function mount(): void
     {
         // Восстанавливаем email из cookie, если он был сохранён
@@ -36,6 +44,11 @@ new #[Layout('layouts.guest')] class extends Component {
     {
         try {
             $this->validate();
+
+            // Устанавливаем флаг загрузки только после успешной валидации
+            $this->isLoading = true;
+            $this->loadingMethod = 'login';
+
             $this->form->authenticate();
 
             Session::regenerate();
@@ -49,15 +62,32 @@ new #[Layout('layouts.guest')] class extends Component {
 
             $this->redirect(route('app'));
         } catch (\Exception $e) {
-            $this->dispatch('stopLoading');
+            $this->isLoading = false;
+            $this->loadingMethod = null;
             throw $e;
         }
+    }
+
+    public function startLoading(string $method): void
+    {
+        $this->isLoading = true;
+        $this->loadingMethod = $method;
+    }
+
+    public function finishLoading(): void
+    {
+        $this->isLoading = false;
+        $this->loadingMethod = null;
     }
 
     // Создать демо-пользователя и войти в него.
     public function loginAsDemo(DemoUserService $demoUserService): void
     {
         try {
+            // Устанавливаем флаг загрузки
+            $this->isLoading = true;
+            $this->loadingMethod = 'demo';
+
             $demoUserService->createAndLogin($this->form->remember);
 
             Session::regenerate();
@@ -69,7 +99,8 @@ new #[Layout('layouts.guest')] class extends Component {
 
             $this->redirect(route('app'));
         } catch (\Exception $e) {
-            $this->dispatch('stopLoading');
+            $this->isLoading = false;
+            $this->loadingMethod = null;
             throw $e;
         }
     }
@@ -78,6 +109,10 @@ new #[Layout('layouts.guest')] class extends Component {
     public function loginWithGoogle(): void
     {
         try {
+            // Устанавливаем флаг загрузки
+            $this->isLoading = true;
+            $this->loadingMethod = 'google';
+
             // Сохраняем состояние remember в сессию для использования в callback
             session(['google_remember' => $this->form->remember]);
 
@@ -88,19 +123,22 @@ new #[Layout('layouts.guest')] class extends Component {
 
             $this->redirect(route('auth.google.redirect'));
         } catch (\Exception $e) {
-            $this->dispatch('stopLoading');
+            $this->isLoading = false;
+            $this->loadingMethod = null;
             throw $e;
         }
     }
 }; ?>
-
-<div x-data="{ loading: false }" x-on:stop-loading.window="loading = false" class="min-h-[450px] flex flex-col relative">
-    <div x-show="loading" x-cloak class="absolute inset-0 bg-white flex flex-col items-center justify-center z-50">
-        <x-loader class="w-20 h-20 animate-spin text-indigo-600" />
-        <p class="mt-4 text-gray-600 text-lg font-medium text-center">Пожалуйста, подождите...</p>
+<div class="min-h-[450px] flex flex-col relative" id="login-container">
+    <!-- Loader Overlay -->
+    <div id="loader-overlay" class="absolute inset-0 bg-white flex items-center justify-center z-50 hidden">
+        <div class="flex flex-col items-center">
+            <x-loader class="w-20 h-20 text-indigo-600 mb-4" />
+            <p class="text-gray-700 font-medium">Вход в систему...</p>
+        </div>
     </div>
 
-    <div :class="{ 'invisible': loading }" class="flex-1 flex flex-col">
+    <div id="login-content" class="flex-1 flex flex-col">
         <!-- Header -->
         <div class="text-center mb-8">
             <div class="flex items-center justify-center gap-2 mb-3">
@@ -125,50 +163,26 @@ new #[Layout('layouts.guest')] class extends Component {
         @endif
 
         <!-- Login Form -->
-        <form wire:submit.prevent="login" @submit="loading = true" class="space-y-6">
+        <form wire:submit.prevent="login" class="space-y-4">
             <!-- Email Field -->
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
-                            </path>
-                        </svg>
-                    </div>
-                    <input type="email" id="email" wire:model="form.email"
-                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        placeholder="Введите ваш email" />
-                </div>
-                @error('form.email')
-                    <span class="text-red-500 text-sm mt-1 inline-block">{{ $message }}</span>
-                @enderror
-            </div>
+            <x-input-group label="Email" for="email" type="email" id="email" wireModel="form.email"
+                field="form.email" placeholder="Введите ваш email" height="48px">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                    </path>
+                </svg>
+            </x-input-group>
 
             <!-- Password Field -->
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                    Пароль
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                            </path>
-                        </svg>
-                    </div>
-                    <input type="password" id="password" wire:model="form.password"
-                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        placeholder="Введите ваш пароль" />
-                </div>
-                @error('form.password')
-                    <span class="text-red-500 text-sm mt-1 inline-block">{{ $message }}</span>
-                @enderror
-            </div>
+            <x-input-group label="Пароль" for="password" type="password" id="password" wireModel="form.password"
+                field="form.password" placeholder="Введите ваш пароль" height="48px">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                    </path>
+                </svg>
+            </x-input-group>
 
             <!-- Remember Me & Forgot Password -->
             <div class="flex items-center justify-between">
@@ -193,10 +207,9 @@ new #[Layout('layouts.guest')] class extends Component {
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" :disabled="loading"
-                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform  disabled:opacity-50 disabled:cursor-not-allowed">
-                <span>Войти в аккаунт</span>
-            </button>
+            <x-primary-button type="submit" height="h-12" class="w-full" onclick="showLoader()">
+                Войти в аккаунт
+            </x-primary-button>
         </form>
 
         <!-- Divider -->
@@ -211,18 +224,18 @@ new #[Layout('layouts.guest')] class extends Component {
 
         <!-- Demo & Social Login -->
         <div class="space-y-3">
-            <button wire:click="loginAsDemo" @click="loading = true" :disabled="loading"
-                class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <x-secondary-button wire:click="loginAsDemo" height="h-12" bgColor="bg-gray-50" class="w-full"
+                onclick="showLoader()">
                 <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
                     </path>
                 </svg>
-                Войти как демо-пользователь
-            </button>
+                <span class="ml-2">Войти как демо-пользователь</span>
+            </x-secondary-button>
 
-            <button wire:click="loginWithGoogle" @click="loading = true" :disabled="loading"
-                class="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <x-secondary-button wire:click="loginWithGoogle" height="h-12" bgColor="bg-white" class="w-full"
+                onclick="showLoader()">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -237,8 +250,8 @@ new #[Layout('layouts.guest')] class extends Component {
                         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                         fill="#EA4335" />
                 </svg>
-                Войти через Google
-            </button>
+                <span class="ml-2">Войти через Google</span>
+            </x-secondary-button>
         </div>
 
         <!-- Register Link -->
@@ -247,6 +260,7 @@ new #[Layout('layouts.guest')] class extends Component {
             <x-link href="{{ route('register') }}">Зарегистрироваться</x-link>
         </p>
     </div>
+</div>
 </div>
 
 <!-- Custom Toggle JavaScript -->
@@ -281,6 +295,34 @@ new #[Layout('layouts.guest')] class extends Component {
         Livewire.hook('element.updated', (el, component) => {
             if (el.id === 'remember-checkbox') {
                 setTimeout(updateToggleState, 0);
+            }
+        });
+
+        // Show loader function
+        window.showLoader = function() {
+            const loaderOverlay = document.getElementById('loader-overlay');
+            const loginContent = document.getElementById('login-content');
+
+            if (loaderOverlay) {
+                loaderOverlay.classList.remove('hidden');
+            }
+
+            if (loginContent) {
+                loginContent.classList.add('opacity-50', 'pointer-events-none');
+            }
+        };
+
+        // Hide loader on validation error
+        Livewire.hook('message.failed', (message, component) => {
+            const loaderOverlay = document.getElementById('loader-overlay');
+            const loginContent = document.getElementById('login-content');
+
+            if (loaderOverlay) {
+                loaderOverlay.classList.add('hidden');
+            }
+
+            if (loginContent) {
+                loginContent.classList.remove('opacity-50', 'pointer-events-none');
             }
         });
     });

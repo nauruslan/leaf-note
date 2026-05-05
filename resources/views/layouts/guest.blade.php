@@ -22,6 +22,14 @@
             sessionStorage.clear();
         </script>
     @endif
+
+    <!-- Global Loader -->
+    <div x-data="{ loading: false }" x-on:loading-start="loading = true" x-on:loading-stop="loading = false"
+        x-show="loading" x-cloak class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
+        <x-loader class="w-20 h-20 animate-spin text-indigo-600" />
+        <p class="mt-4 text-gray-600 text-lg font-medium text-center">Пожалуйста, подождите...</p>
+    </div>
+
     <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
         <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
             {{ $slot }}
