@@ -86,26 +86,19 @@
                         Для доступа к защищённым заметкам введите пароль
                     </p>
                     @if ($errorMessage)
-                        <div class="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg text-red-700 text-sm">
+                        <div class="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg text-red-700 text-sm h-12">
                             {{ $errorMessage }}
                         </div>
                     @endif
                     <form wire:submit="verifyPassword" class="space-y-4">
-                        <div>
-                            <input type="password" wire:model="password" placeholder="Пароль"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @if ($errorMessage) border-red-500 @endif"
-                                autofocus>
-                            @error('password')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div class="pt-2">
-                            <button type="submit"
-                                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                                <i data-lucide="lock" class="w-4 h-4"></i>
-                                Открыть сейф
-                            </button>
-                        </div>
+                        <x-input-group type="password" wireModel="password" placeholder="Пароль" height="48px"
+                            autofocus :error="$errorMessage ? true : false" />
+
+                        <x-primary-button type="submit" class="w-full" height="h-12">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                            Открыть сейф
+                        </x-primary-button>
+
                     </form>
                 </div>
             </div>

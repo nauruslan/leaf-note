@@ -224,11 +224,21 @@ class ProfileSection extends Component
             return;
         }
 
-        // Сохраняем личные данные
-        $this->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-        ]);
+        // Сохраняем личные данные с обработкой ошибок валидации
+        try {
+            $this->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+            ]);
+        } catch (ValidationException $e) {
+            // Отправляем уведомление об ошибке валидации
+            $this->dispatch('notification', [
+                'title' => 'Внимание',
+                'content' => 'Пожалуйста, исправьте ошибки в форме',
+                'type' => 'warning'
+            ]);
+            throw $e;
+        }
 
         $user = Auth::user();
         $user->name = $this->name;
@@ -297,13 +307,28 @@ class ProfileSection extends Component
 
         $user = Auth::user();
 
-        $this->validate([
-            'currentPassword' => 'required|string',
-            'newPassword' => 'required|string|min:8',
-            'confirmPassword' => 'required|string|same:newPassword',
-        ]);
+        try {
+            $this->validate([
+                'currentPassword' => 'required|string',
+                'newPassword' => 'required|string|min:8',
+                'confirmPassword' => 'required|string|same:newPassword',
+            ]);
+        } catch (ValidationException $e) {
+            // Отправляем уведомление об ошибке валидации
+            $this->dispatch('notification', [
+                'title' => 'Ошибка валидации',
+                'content' => 'Пожалуйста, исправьте ошибки в форме',
+                'type' => 'danger'
+            ]);
+            throw $e;
+        }
 
         if (!Hash::check($this->currentPassword, $user->password)) {
+            $this->dispatch('notification', [
+                'title' => 'Ошибка',
+                'content' => 'Текущий пароль указан неверно',
+                'type' => 'danger'
+            ]);
             throw ValidationException::withMessages([
                 'currentPassword' => ['Текущий пароль указан неверно'],
             ]);
@@ -327,16 +352,31 @@ class ProfileSection extends Component
                 return;
             }
 
-            $this->validate([
-                'safeCurrentPassword' => 'required|string',
-                'safePassword' => 'required|string|min:4',
-                'safeConfirmPassword' => 'required|string|same:safePassword',
-            ]);
+            try {
+                $this->validate([
+                    'safeCurrentPassword' => 'required|string',
+                    'safePassword' => 'required|string|min:4',
+                    'safeConfirmPassword' => 'required|string|same:safePassword',
+                ]);
+            } catch (ValidationException $e) {
+                // Отправляем уведомление об ошибке валидации
+                $this->dispatch('notification', [
+                    'title' => 'Ошибка валидации',
+                    'content' => 'Пожалуйста, исправьте ошибки в форме',
+                    'type' => 'danger'
+                ]);
+                throw $e;
+            }
 
             $user = Auth::user();
             $safe = Safe::where('user_id', $user->id)->first();
 
             if (!$safe->verifyPassword($this->safeCurrentPassword)) {
+                $this->dispatch('notification', [
+                    'title' => 'Ошибка',
+                    'content' => 'Текущий пароль сейфа указан неверно',
+                    'type' => 'danger'
+                ]);
                 throw ValidationException::withMessages([
                     'safeCurrentPassword' => ['Текущий пароль сейфа указан неверно'],
                 ]);
@@ -347,10 +387,20 @@ class ProfileSection extends Component
                 return;
             }
 
-            $this->validate([
-                'safePassword' => 'required|string|min:4',
-                'safeConfirmPassword' => 'required|string|same:safePassword',
-            ]);
+            try {
+                $this->validate([
+                    'safePassword' => 'required|string|min:4',
+                    'safeConfirmPassword' => 'required|string|same:safePassword',
+                ]);
+            } catch (ValidationException $e) {
+                // Отправляем уведомление об ошибке валидации
+                $this->dispatch('notification', [
+                    'title' => 'Ошибка валидации',
+                    'content' => 'Пожалуйста, исправьте ошибки в форме',
+                    'type' => 'danger'
+                ]);
+                throw $e;
+            }
         }
 
         $user = Auth::user();

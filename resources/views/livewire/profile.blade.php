@@ -4,7 +4,7 @@
     <!-- Content Section -->
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 py-6">
         <div class="bg-white rounded-xl shadow-md p-6">
-            <form wire:submit.prevent="saveProfile" class="space-y-8">
+            <form wire:submit.prevent="saveProfile" class="space-y-7">
                 <!-- Секция: Личные данные -->
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -156,7 +156,7 @@
                                         <i data-lucide="info" class="w-5 h-5 text-gray-500"></i>
                                     </div>
                                     <input type="text" disabled readonly
-                                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-600 cursor-not-allowed pr-10 h-9 transition-shadow"
+                                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-600 cursor-not-allowed pr-10 h-10 transition-shadow"
                                         value="Установите пароль для защиты ваших заметок в сейфе">
                                 </div>
                             </div>

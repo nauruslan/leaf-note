@@ -6,24 +6,15 @@
         <div class="bg-white rounded-xl shadow-md p-6">
             <form wire:submit.prevent="save" class="space-y-8">
                 <!-- Название папки -->
-                <div>
-                    <label for="folder-title" class="block text-lg font-medium text-gray-700 mb-1.5">
-                        Название папки <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="folder-title" wire:model="title"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                        placeholder="Введите название папки">
-                    @error('title')
-                        <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                <x-input-group label="Название папки" for="folder-title" id="folder-title" wireModel="title" field="title"
+                    height="48px" placeholder="Введите название папки" labelSize="text-lg" />
 
                 <!-- Иконка и Цвет папки на одной строке -->
                 <div class="flex flex-col lg:flex-row gap-6">
                     <!-- Иконка папки -->
                     <div class="flex-1">
                         <label class="block text-lg font-medium text-gray-700 mb-2">
-                            Иконка папки <span class="text-red-500">*</span>
+                            Иконка папки
                         </label>
                         <div class="rounded-lg border border-gray-200 overflow-hidden">
                             <div
@@ -60,7 +51,7 @@
                     <!-- Цвет папки -->
                     <div class="flex-1">
                         <label for="folder-color" class="block text-lg font-medium text-gray-700 mb-2">
-                            Цвет папки <span class="text-red-500">*</span>
+                            Цвет папки
                         </label>
                         <div class="folder-color-picker h-[160px] rounded-lg border border-gray-200 overflow-hidden"
                             wire:ignore>
