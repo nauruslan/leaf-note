@@ -1,4 +1,7 @@
-class Notifications {
+/**
+ * Модуль управления уведомлениями
+ */
+export default class Notifications {
     constructor() {
         this.container = null;
         this.initialized = false;
@@ -39,9 +42,21 @@ class Notifications {
         };
     }
 
+    /**
+     * Инициализация модуля
+     */
     init() {
         if (this.initialized) return;
 
+        this.setupContainer();
+        this.setupEventListeners();
+        this.initialized = true;
+    }
+
+    /**
+     * Настройка контейнера для уведомлений
+     */
+    setupContainer() {
         this.container = document.getElementById('notifications-container');
         if (!this.container) {
             this.container = document.createElement('div');
@@ -50,39 +65,34 @@ class Notifications {
                 'fixed top-5 right-[2%] z-[999999] pointer-events-none flex flex-col items-end gap-2.5';
             document.body.appendChild(this.container);
         }
-
-        this.initialized = true;
-
-        const bindEvent = () => {
-            if (window.Livewire) {
-                Livewire.on('notification', (params) => {
-                    // Проверяем, включены ли уведомления в настройках пользователя
-                    if (document.documentElement.dataset.notifications === 'false') {
-                        return;
-                    }
-
-                    // Поддержка массива [{}] и объекта {}
-                    const data = Array.isArray(params) ? params[0] : params;
-
-                    this.show(data.title, data.content, data.type, data.duration || 3000);
-                });
-
-                // Слушаем событие обновления настроек уведомлений
-                Livewire.on('notifications-settings-updated', (data) => {
-                    document.documentElement.dataset.notifications = data.enabled
-                        ? 'true'
-                        : 'false';
-                });
-            }
-        };
-
-        if (window.Livewire) {
-            bindEvent();
-        } else {
-            document.addEventListener('livewire:init', bindEvent);
-        }
     }
 
+    /**
+     * Настройка обработчиков событий
+     */
+    setupEventListeners() {
+        // Слушаем событие notification от Livewire
+        document.addEventListener('notification', (e) => {
+            // Проверяем, включены ли уведомления в настройках пользователя
+            if (document.documentElement.dataset.notifications === 'false') {
+                return;
+            }
+
+            // Поддержка массива [{}] и объекта {}
+            const data = Array.isArray(e.detail) ? e.detail[0] : e.detail;
+
+            this.show(data.title, data.content, data.type, data.duration || 3000);
+        });
+
+        // Слушаем событие обновления настроек уведомлений
+        document.addEventListener('notifications-settings-updated', (e) => {
+            document.documentElement.dataset.notifications = e.detail.enabled ? 'true' : 'false';
+        });
+    }
+
+    /**
+     * Показать уведомление
+     */
     show(title, content, type, duration) {
         if (!this.initialized) this.init();
         if (!this.container) return;
@@ -138,6 +148,9 @@ class Notifications {
         notification.dataset.timeoutId = timeoutId;
     }
 
+    /**
+     * Закрыть уведомление
+     */
     close(notification) {
         if (!notification || !notification.parentNode) return;
         const timeoutId = notification.dataset.timeoutId;
@@ -150,17 +163,6 @@ class Notifications {
             }
         }, 300);
     }
-}
-
-const notifications = new Notifications();
-
-function initialize() {
-    notifications.init();
-}
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
-} else {
-    initialize();
 }
 
 // Статический массив всех динамических классов.

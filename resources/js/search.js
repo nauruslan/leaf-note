@@ -1,23 +1,54 @@
-export function initSearch() {
-    // Фокус на поле поиска при нажатии клавиши '/'
-    document.addEventListener('keydown', (e) => {
-        if (e.key === '/' && !isInputFocused()) {
-            e.preventDefault();
-            const searchInput = document.querySelector('[data-search-input]');
-            if (searchInput) {
-                searchInput.focus();
-            }
-        }
-    });
+/**
+ * Модуль для управления поиском
+ */
+export default class Search {
+    constructor() {
+        this.initialized = false;
+        this.keydownHandler = null;
+        this.containerObserver = null;
+    }
 
-    // Инициализация всех компонентов поиска
-    const initSearchContainer = (container) => {
+    /**
+     * Инициализация модуля
+     */
+    init() {
+        if (this.initialized) return;
+
+        this.initSearchContainers();
+        this.setupContainerObserver();
+        this.initialized = true;
+    }
+
+    /**
+     * Проверка, сфокусирован ли какой-то input
+     */
+    isInputFocused() {
+        const active = document.activeElement;
+        if (!active) return false;
+        return (
+            active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable
+        );
+    }
+
+    /**
+     * Инициализация всех контейнеров поиска
+     */
+    initSearchContainers() {
+        document.querySelectorAll('[data-search-container]').forEach((container) => {
+            this.initSearchContainer(container);
+        });
+    }
+
+    /**
+     * Инициализация отдельного контейнера поиска
+     */
+    initSearchContainer(container) {
         const input = container.querySelector('[data-search-input]');
         const clearButton = container.querySelector('[data-search-clear]');
 
         if (!input || !clearButton) return;
 
-        // Обновление видимости кнопки очистки в зависимости от значения поля
+        // Обновление видимости кнопки очистки
         const updateClearButton = () => {
             if (input.value.trim().length > 0) {
                 clearButton.classList.remove('hidden');
@@ -29,79 +60,54 @@ export function initSearch() {
         // Начальное состояние
         updateClearButton();
 
-        // Слушаем события input (Livewire также может изменять значение)
+        // Слушаем события input
         input.addEventListener('input', updateClearButton);
         input.addEventListener('change', updateClearButton);
 
         // Клик по кнопке очистки
         clearButton.addEventListener('click', () => {
             input.value = '';
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
+            input.dispatchEvent(new window.Event('input', { bubbles: true }));
+            input.dispatchEvent(new window.Event('change', { bubbles: true }));
             updateClearButton();
             input.focus();
         });
 
-        // Livewire может обновлять значение через wire:model, отслеживаем через MutationObserver
+        // MutationObserver для отслеживания изменений значения
         const observer = new MutationObserver(() => {
             updateClearButton();
         });
         observer.observe(input, { attributes: true, attributeFilter: ['value'] });
 
-        // Сохраняем observer для возможной очистки (необязательно)
+        // Сохраняем observer для возможной очистки
         container._searchObserver = observer;
-    };
+    }
 
-    // Инициализация существующих контейнеров
-    document.querySelectorAll('[data-search-container]').forEach(initSearchContainer);
+    /**
+     * Настройка наблюдателя за добавлением новых контейнеров поиска
+     */
+    setupContainerObserver() {
+        if (this.containerObserver) return;
 
-    // Наблюдение за добавлением новых контейнеров (например, после навигации Livewire)
-    const containerObserver = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1) {
-                    if (node.matches('[data-search-container]')) {
-                        initSearchContainer(node);
+        this.containerObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) {
+                        if (node.matches('[data-search-container]')) {
+                            this.initSearchContainer(node);
+                        }
+                        // Проверяем вложенные контейнеры
+                        node.querySelectorAll('[data-search-container]').forEach((container) => {
+                            this.initSearchContainer(container);
+                        });
                     }
-                    // Также проверяем вложенные контейнеры
-                    node.querySelectorAll('[data-search-container]').forEach(initSearchContainer);
-                }
+                });
             });
         });
-    });
 
-    containerObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-
-    // Также переинициализируем при событиях Livewire
-    if (window.Livewire) {
-        window.Livewire.hook('commit', ({ succeed }) => {
-            succeed(() => {
-                // После успешного обновления компонента инициализируем новые контейнеры
-                setTimeout(() => {
-                    document.querySelectorAll('[data-search-container]').forEach((container) => {
-                        if (!container._searchInitialized) {
-                            initSearchContainer(container);
-                            container._searchInitialized = true;
-                        }
-                    });
-                }, 10);
-            });
+        this.containerObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
         });
     }
-}
-
-function isInputFocused() {
-    const active = document.activeElement;
-    if (!active) return false;
-    return active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable;
-}
-
-// Автоматическая инициализация при импорте через бандл
-if (typeof window !== 'undefined') {
-    window.addEventListener('DOMContentLoaded', () => {
-        initSearch();
-    });
 }

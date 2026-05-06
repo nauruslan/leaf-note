@@ -1,4 +1,84 @@
-class Dropdown {
+/**
+ * Модуль управления dropdown-меню
+ */
+export default class Dropdown {
+    constructor() {
+        this.initialized = false;
+        this.observer = null;
+        this.dropdowns = new Map();
+    }
+
+    /**
+     * Инициализация модуля
+     */
+    init() {
+        if (this.initialized) return;
+
+        this.initDropdowns();
+        this.setupDropdownObserver();
+        this.initialized = true;
+    }
+
+    /**
+     * Инициализация всех dropdown на странице
+     */
+    initDropdowns() {
+        const dropdownContainers = document.querySelectorAll(
+            '.custom-select:not([data-dropdown-initialized])',
+        );
+
+        dropdownContainers.forEach((container) => {
+            container.setAttribute('data-dropdown-initialized', 'true');
+            this.createDropdownInstance(container);
+        });
+    }
+
+    /**
+     * Создание экземпляра dropdown для контейнера
+     */
+    createDropdownInstance(container) {
+        const instance = new DropdownInstance(container);
+        this.dropdowns.set(container, instance);
+    }
+
+    /**
+     * Настройка MutationObserver для динамически добавленных dropdown
+     */
+    setupDropdownObserver() {
+        if (this.observer) return;
+
+        this.observer = new MutationObserver((mutationsList) => {
+            let hasNewDropdowns = false;
+
+            for (const mutation of mutationsList) {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) {
+                        if (
+                            node.matches('.custom-select') ||
+                            node.querySelector('.custom-select')
+                        ) {
+                            hasNewDropdowns = true;
+                        }
+                    }
+                });
+            }
+
+            if (hasNewDropdowns) {
+                this.initDropdowns();
+            }
+        });
+
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    }
+}
+
+/**
+ * Класс отдельного dropdown-экземпляра
+ */
+class DropdownInstance {
     constructor(container) {
         this.container = container;
         this.trigger = container.querySelector('.custom-select-trigger');
@@ -17,7 +97,18 @@ class Dropdown {
         this.init();
     }
 
+    /**
+     * Инициализация dropdown
+     */
     init() {
+        this.setupEventListeners();
+        this.initializeSelectedValue();
+    }
+
+    /**
+     * Настройка обработчиков событий
+     */
+    setupEventListeners() {
         // Открытие/закрытие по клику на триггер
         this.trigger.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -51,7 +142,12 @@ class Dropdown {
                 this.close();
             }
         });
+    }
 
+    /**
+     * Инициализация выбранного значения
+     */
+    initializeSelectedValue() {
         // Установка изначально выбранного элемента
         const selectedItem = Array.from(this.items).find((item) =>
             item.classList.contains('selected'),
@@ -74,6 +170,9 @@ class Dropdown {
         }
     }
 
+    /**
+     * Переключение состояния dropdown
+     */
     toggle() {
         if (this.container.hasAttribute('data-disabled')) {
             return;
@@ -86,14 +185,23 @@ class Dropdown {
         }
     }
 
+    /**
+     * Открытие dropdown
+     */
     open() {
         this.dropdown.style.display = 'block';
     }
 
+    /**
+     * Закрытие dropdown
+     */
     close() {
         this.dropdown.style.display = 'none';
     }
 
+    /**
+     * Выбор элемента dropdown
+     */
     select(item) {
         // Удаляем класс selected у всех элементов
         this.items.forEach((i) => i.classList.remove('selected'));
@@ -113,7 +221,7 @@ class Dropdown {
         if (this.hiddenInput) {
             this.hiddenInput.value = this.value;
             // Генерируем событие input
-            this.hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+            this.hiddenInput.dispatchEvent(new window.Event('input', { bubbles: true }));
             // Livewire автоматически обновит свойство через событие input
             // (скрытый input имеет wire:model.live)
         }
@@ -122,7 +230,7 @@ class Dropdown {
         const isSafe = item.dataset.safe === 'true';
         const isArchive = item.dataset.archive === 'true';
         this.container.dispatchEvent(
-            new CustomEvent('dropdown-change', {
+            new window.CustomEvent('dropdown-change', {
                 detail: {
                     value: this.value,
                     text: item.textContent,
@@ -136,7 +244,7 @@ class Dropdown {
         // Если выбран safe, генерируем событие для Livewire
         if (isSafe) {
             const safeId = this.value.replace('safe_', '');
-            const event = new CustomEvent('update-safe-id', {
+            const event = new window.CustomEvent('update-safe-id', {
                 detail: { id: safeId },
             });
             document.dispatchEvent(event);
@@ -145,7 +253,7 @@ class Dropdown {
         // Если выбран archive, генерируем событие для Livewire
         if (isArchive) {
             const archiveId = this.value.replace('archive_', '');
-            const event = new CustomEvent('update-archive-id', {
+            const event = new window.CustomEvent('update-archive-id', {
                 detail: { id: archiveId },
             });
             document.dispatchEvent(event);
@@ -155,6 +263,9 @@ class Dropdown {
         this.updateFavoriteDropdownState(isSafe || isArchive);
     }
 
+    /**
+     * Обновление состояния dropdown "Избранное"
+     */
     updateFavoriteDropdownState(disabled) {
         // Находим все dropdown "Избранное" на странице
         const favoriteDropdowns = document.querySelectorAll(
@@ -176,87 +287,20 @@ class Dropdown {
         });
     }
 
+    /**
+     * Получение текущего значения
+     */
     getValue() {
         return this.value;
     }
 
+    /**
+     * Установка значения dropdown
+     */
     setValue(value) {
         const item = Array.from(this.items).find((i) => i.dataset.value === value);
         if (item) {
             this.select(item);
         }
     }
-}
-
-// Помечаем инициализированные dropdown, чтобы избежать повторной инициализации
-function initDropdowns() {
-    const dropdownContainers = document.querySelectorAll(
-        '.custom-select:not([data-dropdown-initialized])',
-    );
-
-    dropdownContainers.forEach((container) => {
-        container.setAttribute('data-dropdown-initialized', 'true');
-        new Dropdown(container);
-    });
-}
-
-// MutationObserver для динамически добавленных dropdown
-let dropdownObserver = null;
-
-function setupDropdownObserver() {
-    if (dropdownObserver) return;
-
-    dropdownObserver = new MutationObserver((mutationsList) => {
-        let hasNewDropdowns = false;
-
-        for (const mutation of mutationsList) {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1) {
-                    if (node.matches('.custom-select') || node.querySelector('.custom-select')) {
-                        hasNewDropdowns = true;
-                    }
-                }
-            });
-        }
-
-        if (hasNewDropdowns) {
-            // Повторно инициализируем dropdown
-            initDropdowns();
-        }
-    });
-
-    dropdownObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-}
-
-// Основная инициализация
-function initialize() {
-    initDropdowns();
-    setupDropdownObserver();
-}
-
-// Инициализация при готовности DOM
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
-} else {
-    initialize();
-}
-
-// Повторная инициализация после обновлений Livewire
-if (typeof Livewire !== 'undefined') {
-    Livewire.hook('element.updated', (el) => {
-        // Проверяем, содержит ли обновлённый элемент dropdown
-        const dropdownsInside = el.querySelectorAll(
-            '.custom-select:not([data-dropdown-initialized])',
-        );
-        if (dropdownsInside.length) {
-            setTimeout(initDropdowns, 10);
-        }
-    });
-    Livewire.hook('message.processed', () => {
-        // Небольшая задержка для гарантии полного обновления DOM
-        setTimeout(initDropdowns, 10);
-    });
 }

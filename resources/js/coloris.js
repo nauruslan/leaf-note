@@ -394,7 +394,7 @@
         }
 
         // Вызвать событие "open"
-        currentEl.dispatchEvent(new Event('open', { bubbles: false }));
+        currentEl.dispatchEvent(new window.Event('open', { bubbles: false }));
     }
 
     /**
@@ -541,7 +541,7 @@
                     prevEl.value = oldColor;
 
                     // Вызвать событие "input" для принудительного обновления миниатюры рядом с полем ввода
-                    prevEl.dispatchEvent(new Event('input', { bubbles: true }));
+                    prevEl.dispatchEvent(new window.Event('input', { bubbles: true }));
                 }
             }
 
@@ -549,7 +549,7 @@
             setTimeout(() => {
                 // Добавить это в конец цикла событий
                 if (oldColor !== prevEl.value) {
-                    prevEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    prevEl.dispatchEvent(new window.Event('change', { bubbles: true }));
                 }
             });
 
@@ -562,7 +562,7 @@
             }
 
             // Вызвать событие "close"
-            prevEl.dispatchEvent(new Event('close', { bubbles: false }));
+            prevEl.dispatchEvent(new window.Event('close', { bubbles: false }));
 
             if (settings.focusInput) {
                 prevEl.focus({ preventScroll: true });
@@ -620,14 +620,16 @@
 
         if (currentEl) {
             currentEl.value = color;
-            currentEl.dispatchEvent(new Event('input', { bubbles: true }));
+            currentEl.dispatchEvent(new window.Event('input', { bubbles: true }));
         }
 
         if (settings.onChange) {
             settings.onChange.call(window, color, currentEl);
         }
 
-        document.dispatchEvent(new CustomEvent('coloris:pick', { detail: { color, currentEl } }));
+        document.dispatchEvent(
+            new window.CustomEvent('coloris:pick', { detail: { color, currentEl } }),
+        );
     }
 
     /**
@@ -1181,7 +1183,9 @@
             }
 
             // Открыть пикер цвета
-            event.target.nextElementSibling.dispatchEvent(new Event('click', { bubbles: true }));
+            event.target.nextElementSibling.dispatchEvent(
+                new window.Event('click', { bubbles: true }),
+            );
         });
 
         addListener(colorMarker, 'keydown', (event) => {
@@ -1308,193 +1312,187 @@
     DOMReady(init);
 })(window, document, Math);
 
-// Помечаем инициализированные coloris поля, чтобы избежать повторной инициализации
-let colorisConfigured = false;
-
-function configureColoris() {
-    if (colorisConfigured) return;
-    if (typeof window.Coloris === 'undefined') return;
-
-    colorisConfigured = true;
-
-    window.Coloris({
-        el: '[data-coloris]',
-        format: 'hex',
-        formatToggle: false,
-        theme: 'default',
-        themeMode: 'light',
-        margin: 10,
-        alpha: false,
-        swatches: [
-            '#000000',
-            '#FFFFFF',
-            '#C6FF1A',
-            '#00F6FF',
-            '#A600FF',
-            '#FF7A00',
-            '#6D00FF',
-            '#7AD3FF',
-            '#FF00A8',
-            '#B45CFF',
-            '#FF4F70',
-            '#4CFFE3',
-            '#FF4FE3',
-            '#00FF7B',
-            '#2A4CFF',
-            '#C8FF4F',
-            '#FF6B2F',
-            '#00D4FF',
-            '#FFF500',
-            '#0066FF',
-            '#B900FF',
-            '#FF8A00',
-            '#00FFE1',
-        ],
-        clearButton: false,
-        clearLabel: 'Очистить',
-        closeLabel: 'Закрыть',
-    });
-}
-
 /**
- * Найти ближайший Livewire компонент для элемента
- * @param {HTMLElement} element
- * @returns {Object|null}
+ * Модуль управления Coloris (выбор цвета)
  */
-function findLivewireComponent(element) {
-    // Livewire 4: ищем ближайший элемент с wire:id
-    let current = element;
-    while (current && current !== document.body) {
-        const wireId = current.getAttribute('wire:id');
-        if (wireId && typeof Livewire !== 'undefined' && Livewire.find) {
-            return Livewire.find(wireId);
-        }
-        current = current.parentElement;
-    }
-    return null;
-}
-
-/**
- * Синхронизировать значение цвета с Livewire
- * @param {HTMLElement} input
- * @param {string} colorValue
- */
-function syncColorWithLivewire(input, colorValue) {
-    const component = findLivewireComponent(input);
-    if (component) {
-        component.set('color', colorValue);
-    }
-}
-
-function initColorisFields() {
-    const colorisInputs = document.querySelectorAll(
-        '[data-coloris]:not([data-coloris-initialized])',
-    );
-
-    if (colorisInputs.length === 0) return;
-
-    // Сначала настроить Coloris (если ещё не настроен)
-    configureColoris();
-
-    // Затем обернуть поля (нужно делать каждый раз для новых элементов)
-    if (typeof window.Coloris !== 'undefined') {
-        window.Coloris.wrap('[data-coloris]:not([data-coloris-initialized])');
+export default class ColorisModule {
+    constructor() {
+        this.initialized = false;
+        this.configured = false;
+        this.observer = null;
     }
 
-    // Отметить поля как инициализированные для предотвращения дублирования обертки
-    colorisInputs.forEach((input) => {
-        input.setAttribute('data-coloris-initialized', 'true');
+    /**
+     * Инициализация модуля
+     */
+    init() {
+        if (this.initialized) return;
 
-        // Добавить обработчик input для синхронизации с Livewire
-        input.addEventListener('input', (e) => {
-            syncColorWithLivewire(input, e.target.value);
+        this.initColorisFields();
+        this.setupColorisObserver();
+        this.initialized = true;
+    }
+
+    /**
+     * Настройка Coloris
+     */
+    configureColoris() {
+        if (this.configured) return;
+        if (typeof window.Coloris === 'undefined') return;
+
+        this.configured = true;
+
+        window.Coloris({
+            el: '[data-coloris]',
+            format: 'hex',
+            formatToggle: false,
+            theme: 'default',
+            themeMode: 'light',
+            margin: 10,
+            alpha: false,
+            swatches: [
+                '#000000',
+                '#FFFFFF',
+                '#C6FF1A',
+                '#00F6FF',
+                '#A600FF',
+                '#FF7A00',
+                '#6D00FF',
+                '#7AD3FF',
+                '#FF00A8',
+                '#B45CFF',
+                '#FF4F70',
+                '#4CFFE3',
+                '#FF4FE3',
+                '#00FF7B',
+                '#2A4CFF',
+                '#C8FF4F',
+                '#FF6B2F',
+                '#00D4FF',
+                '#FFF500',
+                '#0066FF',
+                '#B900FF',
+                '#FF8A00',
+                '#00FFE1',
+            ],
+            clearButton: false,
+            clearLabel: 'Очистить',
+            closeLabel: 'Закрыть',
         });
+    }
 
-        // Добавить обработчик change для синхронизации с Livewire
-        input.addEventListener('change', (e) => {
-            syncColorWithLivewire(input, e.target.value);
-        });
-
-        // Синхронизировать начальное значение из Livewire
-        // Небольшая задержка для того, чтобы Livewire успел инициализироваться
-        setTimeout(() => {
-            const component = findLivewireComponent(input);
-            if (component) {
-                const colorValue = component.get('color');
-                if (colorValue && !input.value) {
-                    input.value = colorValue;
-                    // Обновить превью цвета
-                    const parent = input.parentNode;
-                    if (parent && parent.classList.contains('clr-field')) {
-                        parent.style.color = colorValue;
-                    }
-                }
+    /**
+     * Найти ближайший Livewire компонент для элемента
+     * @param {HTMLElement} element
+     * @returns {Object|null}
+     */
+    findLivewireComponent(element) {
+        // Livewire 4: ищем ближайший элемент с wire:id
+        let current = element;
+        while (current && current !== document.body) {
+            const wireId = current.getAttribute('wire:id');
+            if (wireId && typeof window.Livewire !== 'undefined' && window.Livewire.find) {
+                return window.Livewire.find(wireId);
             }
-        }, 50);
-    });
-}
-
-// MutationObserver для динамически добавленных полей coloris
-let colorisObserver = null;
-
-function setupColorisObserver() {
-    if (colorisObserver) return;
-
-    colorisObserver = new MutationObserver((mutationsList) => {
-        let hasNewColorisInputs = false;
-
-        for (const mutation of mutationsList) {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1) {
-                    if (node.matches('[data-coloris]') || node.querySelector('[data-coloris]')) {
-                        hasNewColorisInputs = true;
-                    }
-                }
-            });
+            current = current.parentElement;
         }
+        return null;
+    }
 
-        if (hasNewColorisInputs) {
-            // Повторно инициализировать coloris
-            setTimeout(initColorisFields, 10);
+    /**
+     * Синхронизировать значение цвета с Livewire
+     * @param {HTMLElement} input
+     * @param {string} colorValue
+     */
+    syncColorWithLivewire(input, colorValue) {
+        const component = this.findLivewireComponent(input);
+        if (component) {
+            component.set('color', colorValue);
         }
-    });
+    }
 
-    colorisObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-}
-
-// Основная инициализация
-function initialize() {
-    initColorisFields();
-    setupColorisObserver();
-}
-
-// Инициализация при готовности DOM
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
-} else {
-    initialize();
-}
-
-// Повторная инициализация после обновлений Livewire
-if (typeof Livewire !== 'undefined') {
-    Livewire.hook('element.updated', (el) => {
-        // Проверить, что el - это DOM-элемент
-        if (!el || typeof el.querySelectorAll !== 'function') return;
-
-        // Проверить, содержит ли обновлённый элемент поля coloris
-        const colorisInputsInside = el.querySelectorAll(
+    /**
+     * Инициализация полей Coloris
+     */
+    initColorisFields() {
+        const colorisInputs = document.querySelectorAll(
             '[data-coloris]:not([data-coloris-initialized])',
         );
-        if (colorisInputsInside.length) {
-            setTimeout(initColorisFields, 10);
-        }
-    });
 
-    Livewire.hook('message.processed', () => {
-        // Небольшая задержка для гарантии полного обновления DOM
-        setTimeout(initColorisFields, 10);
-    });
+        if (colorisInputs.length === 0) return;
+
+        // Сначала настроить Coloris (если ещё не настроен)
+        this.configureColoris();
+
+        // Затем обернуть поля (нужно делать каждый раз для новых элементов)
+        if (typeof window.Coloris !== 'undefined') {
+            window.Coloris.wrap('[data-coloris]:not([data-coloris-initialized])');
+        }
+
+        // Отметить поля как инициализированные для предотвращения дублирования обертки
+        colorisInputs.forEach((input) => {
+            input.setAttribute('data-coloris-initialized', 'true');
+
+            // Добавить обработчик input для синхронизации с Livewire
+            input.addEventListener('input', (e) => {
+                this.syncColorWithLivewire(input, e.target.value);
+            });
+
+            // Добавить обработчик change для синхронизации с Livewire
+            input.addEventListener('change', (e) => {
+                this.syncColorWithLivewire(input, e.target.value);
+            });
+
+            // Синхронизировать начальное значение из Livewire
+            // Небольшая задержка для того, чтобы Livewire успел инициализироваться
+            setTimeout(() => {
+                const component = this.findLivewireComponent(input);
+                if (component) {
+                    const colorValue = component.get('color');
+                    if (colorValue && !input.value) {
+                        input.value = colorValue;
+                        // Обновить превью цвета
+                        const parent = input.parentNode;
+                        if (parent && parent.classList.contains('clr-field')) {
+                            parent.style.color = colorValue;
+                        }
+                    }
+                }
+            }, 50);
+        });
+    }
+
+    /**
+     * Настройка MutationObserver для динамически добавленных полей coloris
+     */
+    setupColorisObserver() {
+        if (this.observer) return;
+
+        this.observer = new MutationObserver((mutationsList) => {
+            let hasNewColorisInputs = false;
+
+            for (const mutation of mutationsList) {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) {
+                        if (
+                            node.matches('[data-coloris]') ||
+                            node.querySelector('[data-coloris]')
+                        ) {
+                            hasNewColorisInputs = true;
+                        }
+                    }
+                });
+            }
+
+            if (hasNewColorisInputs) {
+                // Повторно инициализировать coloris
+                setTimeout(() => this.initColorisFields(), 10);
+            }
+        });
+
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    }
 }

@@ -29,7 +29,6 @@ class ConnectionStatus extends Component
     #[Renderless]
     public function goOffline(): void
     {
-        logger('ConnectionStatus: goOffline called');
         $this->online = false;
     }
 
@@ -40,7 +39,6 @@ class ConnectionStatus extends Component
     #[Renderless]
     public function goOnline(): void
     {
-        logger('ConnectionStatus: goOnline called');
         $this->online = true;
     }
 

@@ -1,124 +1,167 @@
-/**
- * Обработка потери интернет-соединения
- */
+export default class ConnectionStatus {
+    constructor() {
+        this.initialized = false;
 
-// Флаг для отслеживания состояния соединения
-let isAppOffline = false;
-let offlineTimeout = null;
-let consecutiveErrors = 0;
+        this.isAppOffline = false;
+        this.consecutiveErrors = 0;
 
-// Получаем элемент оверлея
-const getOverlay = () => document.getElementById('connection-status-overlay');
-
-/**
- * Показать оверлей потери соединения
- */
-function showOfflineOverlay() {
-    const overlay = getOverlay();
-    if (overlay) {
-        overlay.classList.remove('hidden');
-        overlay.classList.add('flex');
+        this.overlaySelector = '#connection-status-overlay';
     }
-}
-
-/**
- * Скрыть оверлей потери соединения
- */
-function hideOfflineOverlay() {
-    const overlay = getOverlay();
-    if (overlay) {
-        overlay.classList.add('hidden');
-        overlay.classList.remove('flex');
-    }
-}
-
-/**
- * Инициализация обработчиков событий
- */
-function initialize() {
-    // Отслеживание событий браузера offline/online
-    window.addEventListener('offline', () => {
-        if (!isAppOffline) {
-            isAppOffline = true;
-            showOfflineOverlay();
-        }
-    });
-
-    window.addEventListener('online', () => {
-        if (isAppOffline) {
-            isAppOffline = false;
-            hideOfflineOverlay();
-        }
-    });
 
     /**
-     * Патчим глобальный fetch для перехвата сетевых ошибок Livewire 4
-     * В Livewire 4 нет Livewire.onError(), поэтому используем fetch interceptor
+     * Инициализация
      */
-    const originalFetch = window.fetch;
+    init() {
+        if (this.initialized) return;
+        this.initialized = true;
 
-    window.fetch = async (...args) => {
-        const url = args[0] || '';
+        this.setupOfflineOnlineListeners();
+        this.patchFetchOnce();
+    }
 
-        // Если мы в оффлайн-режиме и это Livewire запрос, блокируем его
-        if (isAppOffline && typeof url === 'string' && url.includes('/livewire-')) {
-            return Promise.reject(new Error('NetworkError: Connection refused'));
+    /**
+     * Переинициализация
+     */
+    reinit() {}
+
+    getOverlay() {
+        return document.querySelector(this.overlaySelector);
+    }
+
+    showOfflineOverlay() {
+        const overlay = this.getOverlay();
+        if (overlay) {
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+    }
+
+    hideOfflineOverlay() {
+        const overlay = this.getOverlay();
+        if (overlay) {
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+        }
+    }
+
+    /**
+     * Реакция на системные offline/online события браузера
+     */
+    setupOfflineOnlineListeners() {
+        window.addEventListener('offline', () => {
+            if (!this.isAppOffline) {
+                this.goOffline();
+            }
+        });
+
+        window.addEventListener('online', () => {
+            // Появилось физическое подключение — делаем одну проверку сервера
+            if (this.isAppOffline) {
+                this.checkServer();
+            }
+        });
+    }
+
+    goOffline() {
+        if (this.isAppOffline) return;
+
+        this.isAppOffline = true;
+        this.showOfflineOverlay();
+    }
+
+    goOnline() {
+        if (!this.isAppOffline) return;
+
+        this.isAppOffline = false;
+        this.hideOfflineOverlay();
+    }
+
+    /**
+     * Однократная проверка доступности сервера.
+     */
+    async checkServer() {
+        // Пока браузер офлайн — не шлём запрос
+        if (!navigator.onLine) {
+            return;
         }
 
         try {
-            const response = await originalFetch(...args);
+            const response = await fetch(window.location.href, {
+                method: 'HEAD',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                keepalive: false,
+            });
 
-            // Сбрасываем счётчик ошибок при успешном запросе
-            consecutiveErrors = 0;
-
-            // Если запрос успешен и мы были в оффлайн-режиме, восстанавливаемся
-            if (response.ok && isAppOffline) {
-                // Очищаем таймаут, если есть
-                if (offlineTimeout) {
-                    clearTimeout(offlineTimeout);
-                    offlineTimeout = null;
-                }
-
-                // Задержка перед восстановлением, чтобы избежать ложных срабатываний
-                offlineTimeout = setTimeout(() => {
-                    isAppOffline = false;
-                    hideOfflineOverlay();
-                }, 500);
-            }
-
-            return response;
-        } catch (error) {
-            // Проверяем, что это именно сетевая ошибка
-            const errorMessage = error.message || '';
-            const isNetworkError =
-                errorMessage.includes('NetworkError') ||
-                errorMessage.includes('Failed to fetch') ||
-                errorMessage.includes('fetch failed') ||
-                errorMessage.includes('ERR_INTERNET_DISCONNECTED') ||
-                errorMessage.includes('ERR_NETWORK') ||
-                errorMessage.includes('ERR_CONNECTION_REFUSED') ||
-                errorMessage.includes('ERR_NAME_NOT_RESOLVED') ||
-                errorMessage.includes('ECONNREFUSED');
-
-            if (isNetworkError) {
-                consecutiveErrors++;
-
-                // Показываем оверлей после 2-х последовательных ошибок
-                if (consecutiveErrors >= 2 && !isAppOffline) {
-                    isAppOffline = true;
-                    showOfflineOverlay();
-                }
-            }
-
-            // Перебрасываем ошибку дальше
-            throw error;
+            // Сервер ответил — восстанавливаемся
+            this.goOnline();
+        } catch {
+            // Сервер пока недоступен
         }
-    };
-}
+    }
 
-// Инициализация при готовности DOM
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
-} else {
-    initialize();
+    /**
+     * Патчим fetch строго один раз
+     */
+    patchFetchOnce() {
+        if (window.__connectionStatusFetchPatched) return;
+        window.__connectionStatusFetchPatched = true;
+
+        const originalFetch = window.fetch;
+        const self = this;
+
+        window.fetch = async (...args) => {
+            const url = args[0] || '';
+
+            // Livewire‑запросы
+            const isLivewireRequest =
+                typeof url === 'string' &&
+                (url.includes('/livewire-') ||
+                    url.includes('/livewire/') ||
+                    url.includes('/livewire/update') ||
+                    url.includes('/livewire/message'));
+
+            // Блокируем Livewire‑запросы, пока оффлайн
+            if (self.isAppOffline && isLivewireRequest) {
+                return Promise.reject(new Error('NetworkError: Connection refused'));
+            }
+
+            try {
+                const response = await originalFetch(...args);
+
+                // Успешный запрос → сброс ошибок
+                self.consecutiveErrors = 0;
+
+                // Если были оффлайн — восстанавливаемся
+                if (response.ok && self.isAppOffline) {
+                    self.goOnline();
+                }
+
+                return response;
+            } catch (error) {
+                const msg = error.message || '';
+
+                const isNetworkError =
+                    msg.includes('NetworkError') ||
+                    msg.includes('Failed to fetch') ||
+                    msg.includes('fetch failed') ||
+                    msg.includes('ERR_INTERNET_DISCONNECTED') ||
+                    msg.includes('ERR_NETWORK') ||
+                    msg.includes('ERR_CONNECTION_REFUSED') ||
+                    msg.includes('ERR_NAME_NOT_RESOLVED') ||
+                    msg.includes('ECONNREFUSED');
+
+                if (isNetworkError) {
+                    self.consecutiveErrors++;
+
+                    // После 2 ошибок → оффлайн
+                    if (self.consecutiveErrors >= 2 && !self.isAppOffline) {
+                        self.goOffline();
+                    }
+                }
+
+                throw error;
+            }
+        };
+    }
 }

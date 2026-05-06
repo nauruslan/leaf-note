@@ -32,7 +32,8 @@ class ChecklistEditor {
 
         const addRootBtn = document.createElement('button');
         addRootBtn.id = 'addRootBtn';
-        addRootBtn.className = 'btn-add';
+        addRootBtn.className =
+            'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold h-11 w-[200px] px-5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 mx-auto mt-3';
         addRootBtn.type = 'button';
         addRootBtn.setAttribute('aria-expanded', 'false');
         addRootBtn.innerHTML = `

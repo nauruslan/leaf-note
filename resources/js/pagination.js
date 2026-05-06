@@ -1,22 +1,66 @@
 /**
  * Автоматическая прокрутка вниз при смене страницы пагинации
  */
-document.addEventListener('livewire:init', () => {
-    // Слушаем событие смены страницы от Livewire
-    Livewire.on('page-changed', () => {
-        scrollToBottom();
-    });
-});
+export default class Pagination {
+    constructor() {
+        this.initialized = false;
+        this.observer = null;
+        this.lastActivePage = null;
+    }
 
-/**
- * Прокрутка страницы вниз
- */
-function scrollToBottom() {
-    // Используем setTimeout для гарантии, что DOM обновлён
-    setTimeout(() => {
-        window.scrollTo({
-            top: document.body.scrollHeight,
-            // behavior: 'smooth',
+    /**
+     * Инициализация модуля
+     */
+    init() {
+        if (this.initialized) return;
+
+        this.setupPageChangeObserver();
+        this.initialized = true;
+    }
+
+    /**
+     * Настройка наблюдателя за изменениями пагинации
+     */
+    setupPageChangeObserver() {
+        if (this.observer) return;
+
+        this.observer = new MutationObserver(() => {
+            this.checkPageChange();
         });
-    }, 0);
+
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    }
+
+    /**
+     * Проверка смены страницы
+     */
+    checkPageChange() {
+        const activePage = this.getActivePageElement();
+
+        if (activePage && this.lastActivePage !== activePage.textContent) {
+            this.lastActivePage = activePage.textContent;
+            this.scrollToBottom();
+        }
+    }
+
+    /**
+     * Получение элемента активной страницы
+     */
+    getActivePageElement() {
+        return document.querySelector('[data-pagination] button.bg-gradient-to-r');
+    }
+
+    /**
+     * Прокрутка страницы вниз
+     */
+    scrollToBottom() {
+        setTimeout(() => {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+            });
+        }, 0);
+    }
 }

@@ -1,22 +1,74 @@
 import './bootstrap';
-import './connection-status';
 import './editor/create-note-editor';
 import './editor/note-view-editor';
 import './editor/checklist-create';
 import './editor/checklist-edit';
-import './star';
 import './dropdown';
 import './toggle';
-import './search';
 import './notifications';
 import './coloris';
-import './pagination';
+import './app-init';
 
 // import './sidebar';
 import { createIcons, icons } from 'lucide';
 
 // document.addEventListener('DOMContentLoaded', () => {
 //     createIcons({ icons });
+// });
+
+// window.addEventListener('unhandledrejection', (event) => {
+//     const error = event.reason;
+
+//     // Это как раз тот самый объект Livewire: {status: null, body: null, json: null, errors: null}
+//     const isLivewireNullError =
+//         error &&
+//         typeof error === 'object' &&
+//         error.status === null &&
+//         error.body === null &&
+//         error.json === null &&
+//         error.errors === null;
+
+//     if (isLivewireNullError) {
+//         // Глушим его, чтобы не засорял консоль
+//         event.preventDefault();
+//     }
+// });
+
+/**
+ * Перехват Livewire ошибок, когда сервер недоступен
+ * (но НЕ ломаем Livewire и НЕ трогаем fetch)
+ */
+// window.addEventListener('unhandledrejection', (event) => {
+//     const error = event.reason;
+
+//     // Livewire internal error — игнорируем
+//     const isLivewireNullError =
+//         error &&
+//         typeof error === 'object' &&
+//         error.status === null &&
+//         error.body === null &&
+//         error.json === null &&
+//         error.errors === null;
+
+//     if (isLivewireNullError) {
+//         event.preventDefault();
+//         return;
+//     }
+
+//     // Ошибка "сервер недоступен"
+//     const message = String(error?.message || '');
+
+//     const isServerDown =
+//         message.includes('ERR_CONNECTION_REFUSED') ||
+//         message.includes('Failed to fetch') ||
+//         message.includes('NetworkError') ||
+//         message.includes('net::ERR_CONNECTION_REFUSED');
+
+//     if (isServerDown) {
+//         // Включаем оффлайн
+//         this.goOffline?.();
+//         event.preventDefault();
+//     }
 // });
 
 function initLucide(root = document) {
