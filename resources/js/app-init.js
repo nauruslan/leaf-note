@@ -4,6 +4,7 @@
 import ColorisModule from './coloris';
 import ConnectionStatus from './connection-status';
 import Dropdown from './dropdown';
+import Lucide from './lucide';
 import Notifications from './notifications';
 import Pagination from './pagination';
 import Search from './search';
@@ -15,6 +16,7 @@ const dropdown = new Dropdown();
 const notifications = new Notifications();
 const coloris = new ColorisModule();
 const connectionStatus = new ConnectionStatus();
+const lucide = new Lucide();
 
 // Флаг для отслеживания инициализации
 let initialized = false;
@@ -31,6 +33,7 @@ function initAll() {
     notifications.init();
     coloris.init();
     connectionStatus.init();
+    lucide.init();
 
     initialized = true;
 }
