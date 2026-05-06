@@ -35,6 +35,8 @@
             {{ $slot }}
         </div>
     </div>
+
+    <livewire:connection-status />
 </body>
 
 </html>

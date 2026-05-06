@@ -14,6 +14,9 @@
 
 <body class="bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
     <livewire:layouts.app-layout />
+
+    <livewire:connection-status />
+
     @livewireScripts
 </body>
 

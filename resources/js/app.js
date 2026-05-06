@@ -1,4 +1,5 @@
 import './bootstrap';
+import './connection-status';
 import './editor/create-note-editor';
 import './editor/note-view-editor';
 import './editor/checklist-create';
