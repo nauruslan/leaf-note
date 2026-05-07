@@ -8,7 +8,6 @@ use App\Models\Safe;
 use App\Services\StateManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -16,7 +15,6 @@ class NavigationSidebar extends Component
 {
     public string $section = 'dashboard-section';
     public ?int $folderId = null;
-    public bool $isExpanded = false;
     public bool $confirmingLogout = false;
     public bool $isLoading = false;
     public ?string $loadingSection = null;
@@ -41,7 +39,6 @@ class NavigationSidebar extends Component
         $this->folderId = StateManager::get('folderId', null);
         $this->previousSection = StateManager::get('previous_section', null);
         $this->previousFolderId = StateManager::get('previous_folderId', null);
-        $this->isExpanded = Session::get('sidebar_expanded', false);
     }
 
     /**
@@ -131,7 +128,7 @@ class NavigationSidebar extends Component
     }
 
 
-    public function goTo(string $section, ?int $folderId = null, $isExpanded = true): void
+    public function goTo(string $section, ?int $folderId = null): void
     {
         if ($this->section === $section && $this->folderId === $folderId) {
             return;
@@ -158,9 +155,6 @@ class NavigationSidebar extends Component
         // Сохраняем состояние в сессию
         StateManager::set('section', $section);
         StateManager::set('folderId', $folderId);
-
-        Session::put('sidebar_expanded', $isExpanded);
-        $this->isExpanded = $isExpanded;
 
         // Для сейфа - проверить нужно ли показывать модальное окно пароля
         if ($section === 'safe-section') {
@@ -213,14 +207,6 @@ class NavigationSidebar extends Component
     public function refreshSidebar(): void
     {
         $this->dispatch('$refresh');
-    }
-
-
-
-    public function clearSidebarFlag(): void
-    {
-        Session::forget('sidebar_expanded');
-        $this->isExpanded = false;
     }
 
     public function confirmLogout(): void

@@ -10,7 +10,6 @@ export default class Lucide {
 
     /**
      * Инициализация иконок Lucide в указанном корневом элементе
-     * @param {Document|Element} root - Корневой элемент для поиска иконок (по умолчанию document)
      */
     initLucide(root = document) {
         const iconsToReplace = root.querySelectorAll('i[data-lucide]');

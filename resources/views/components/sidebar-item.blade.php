@@ -4,7 +4,6 @@
     'active' => false,
     'wireClick',
     'count' => null,
-    'isExpanded' => false,
     'isLoading' => false,
 ])
 
@@ -22,12 +21,12 @@
         <i data-lucide="{{ $icon }}" class="w-6 h-6 flex-shrink-0"></i>
     @endif
     <span
-        class="ml-3 font-medium whitespace-nowrap opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity duration-200">
+        class="ml-3 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         {{ $label }}
     </span>
     @if (!is_null($count))
         <span
-            class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium w-8 h-5 flex items-center justify-center rounded-full opacity-0 {{ $isExpanded ? 'opacity-100' : 'group-hover:opacity-100' }} transition-opacity">
+            class="ml-auto bg-indigo-100 text-indigo-700 text-xs font-medium w-8 h-5 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
             {{ $count > 99 ? '+99' : $count }}
         </span>
     @endif

@@ -8,6 +8,7 @@ import Lucide from './lucide';
 import Notifications from './notifications';
 import Pagination from './pagination';
 import Search from './search';
+import Sidebar from './sidebar';
 
 // Создаём экземпляры модулей
 const pagination = new Pagination();
@@ -17,6 +18,7 @@ const notifications = new Notifications();
 const coloris = new ColorisModule();
 const connectionStatus = new ConnectionStatus();
 const lucide = new Lucide();
+const sidebar = new Sidebar();
 
 // Флаг для отслеживания инициализации
 let initialized = false;
@@ -34,6 +36,7 @@ function initAll() {
     coloris.init();
     connectionStatus.init();
     lucide.init();
+    sidebar.init();
 
     initialized = true;
 }
@@ -49,6 +52,8 @@ function reinitIfNeeded() {
     if (dropdown.reinit) dropdown.reinit();
     if (notifications.reinit) notifications.reinit();
     if (coloris.reinit) coloris.reinit();
+    if (lucide.reinit) lucide.reinit();
+    if (sidebar.reinit) sidebar.reinit();
     // ConnectionStatus не переинициализируем, так как он должен работать постоянно
 }
 

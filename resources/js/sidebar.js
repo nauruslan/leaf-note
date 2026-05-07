@@ -1,20 +1,21 @@
 /**
- * Класс для управления боковой панелью навигации
+ * Управление боковой панелью навигации
  * Обрабатывает наведение, сворачивание/разворачивание, сохранение позиции прокрутки
  * и интеграцию с Livewire
  */
-class Sidebar {
-    constructor(container) {
-        this.container = container;
-        this.sidebar = document.getElementById('navigation-sidebar');
-        this.nav = document.getElementById('sidebar-nav');
+export default class Sidebar {
+    constructor() {
+        this.initialized = false;
+        this.sidebar = null;
+        this.nav = null;
+        this.observer = null;
 
         // Состояние компонента
-        this.isHovered = false; // Наведена ли мышь на панель
-        this.isNavigating = false; // Выполняется ли навигация
-        this.collapseTimer = null; // Таймер для сворачивания
-        this.scrollTimeout = null; // Таймер для сохранения позиции скролла
-        this.STORAGE_KEY = 'sidebar_scroll'; // Ключ для localStorage
+        this.isHovered = false;
+        this.isNavigating = false;
+        this.collapseTimer = null;
+        this.scrollTimeout = null;
+        this.STORAGE_KEY = 'sidebar_scroll';
 
         // Привязанные методы для корректного удаления обработчиков
         this.boundHandleMouseEnter = this.handleMouseEnter.bind(this);
@@ -22,17 +23,31 @@ class Sidebar {
         this.boundHandleScroll = this.handleScroll.bind(this);
         this.boundHandleBeforeUnload = this.clearAllTimers.bind(this);
         this.boundHandleNavigateTo = this.handleNavigateTo.bind(this);
-        this.boundHandleScrollToActiveItem = this.handleScrollToActiveItem.bind(this);
-        this.boundHandleMessageSent = this.handleMessageSent.bind(this);
-        this.boundHandleMessageProcessed = this.handleMessageProcessed.bind(this);
+        this.boundHandleStateUpdated = this.handleStateUpdated.bind(this);
+        this.boundHandleClick = this.handleClick.bind(this);
+        this.boundHandleLivewireInit = this.handleLivewireInit.bind(this);
+        this.boundHandleLivewireUpdated = this.handleLivewireUpdated.bind(this);
+    }
 
-        this.init();
+    /**
+     * Инициализация модуля
+     */
+    init() {
+        if (this.initialized) return;
+
+        this.initSidebar();
+        this.setupSidebarObserver();
+        this.setupLivewireEvents();
+        this.initialized = true;
     }
 
     /**
      * Инициализация боковой панели
      */
-    init() {
+    initSidebar() {
+        this.sidebar = document.getElementById('navigation-sidebar');
+        this.nav = document.getElementById('sidebar-nav');
+
         if (!this.sidebar || !this.nav) {
             return;
         }
@@ -40,6 +55,13 @@ class Sidebar {
         this.updateExpandedAttribute();
         this.restoreScrollPosition();
         this.setupEventListeners();
+
+        // Если мышь уже находится над сайдбаром (например, после Livewire-обновления),
+        // сразу разворачиваем панель, чтобы не было моргания
+        if (this.isHovered) {
+            this.expand();
+        }
+
         // Небольшая задержка для корректного позиционирования активного элемента
         setTimeout(() => this.scrollToActiveItem(), 200);
     }
@@ -60,34 +82,69 @@ class Sidebar {
 
         // Кастомные события Livewire
         window.addEventListener('navigateTo', this.boundHandleNavigateTo);
-        window.addEventListener('scrollToActiveItem', this.boundHandleScrollToActiveItem);
+        window.addEventListener('stateUpdated', this.boundHandleStateUpdated);
 
-        // Хуки Livewire
-        window.Livewire.hook('messageSent', this.boundHandleMessageSent);
-        window.Livewire.hook('messageProcessed', this.boundHandleMessageProcessed);
+        // Обработчик кликов по ссылкам навигации
+        this.sidebar.addEventListener('click', this.boundHandleClick);
     }
 
     /**
-     * Удаление всех обработчиков событий
+     * Настройка наблюдателя за изменениями DOM
      */
-    removeEventListeners() {
-        if (this.sidebar) {
-            this.sidebar.removeEventListener('mouseenter', this.boundHandleMouseEnter);
-            this.sidebar.removeEventListener('mouseleave', this.boundHandleMouseLeave);
-        }
+    setupSidebarObserver() {
+        if (this.observer) return;
 
-        if (this.nav) {
-            this.nav.removeEventListener('scroll', this.boundHandleScroll);
-        }
+        this.observer = new MutationObserver((mutationsList) => {
+            let hasNewSidebar = false;
 
-        document.removeEventListener('beforeunload', this.boundHandleBeforeUnload);
-        window.removeEventListener('navigateTo', this.boundHandleNavigateTo);
-        window.removeEventListener('scrollToActiveItem', this.boundHandleScrollToActiveItem);
+            for (const mutation of mutationsList) {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) {
+                        if (
+                            node.id === 'navigation-sidebar' ||
+                            node.querySelector('#navigation-sidebar')
+                        ) {
+                            hasNewSidebar = true;
+                        }
+                    }
+                });
+            }
 
-        window.Livewire.hook('messageSent', this.boundHandleMessageSent);
-        window.Livewire.hook('messageProcessed', this.boundHandleMessageProcessed);
+            if (hasNewSidebar) {
+                // Небольшая задержка для завершения рендеринга DOM
+                setTimeout(() => this.initSidebar(), 10);
+            }
+        });
 
-        this.clearAllTimers();
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    }
+
+    /**
+     * Настройка событий Livewire 4
+     */
+    setupLivewireEvents() {
+        // Инициализация при загрузке Livewire
+        document.addEventListener('livewire:init', this.boundHandleLivewireInit);
+
+        // Переинициализация при обновлении DOM
+        document.addEventListener('livewire:updated', this.boundHandleLivewireUpdated);
+    }
+
+    /**
+     * Обработчик события livewire:init
+     */
+    handleLivewireInit() {
+        this.initSidebar();
+    }
+
+    /**
+     * Обработчик события livewire:updated
+     */
+    handleLivewireUpdated() {
+        this.initSidebar();
     }
 
     /**
@@ -124,84 +181,61 @@ class Sidebar {
                 return;
             }
 
-            try {
-                // Пытаемся сбросить флаг через Livewire
-                window.Livewire.dispatch('clearSidebarFlag');
-            } catch (e) {
-                // Если Livewire недоступен, сворачиваем через DOM
-                this.collapse();
-            }
+            // Сворачиваем через DOM
+            this.collapse();
+
+            // Больше не отправляем событие серверу, состояние управляется на клиенте
         }, 150);
     }
 
     /**
-     * Обработчик события навигации
-     * @param {Event} event - Событие навигации
+     * Обработчик кликов по ссылкам навигации
      */
-    handleNavigateTo(event) {
-        this.isNavigating = true;
+    handleClick(e) {
+        const link = e.target.closest('a[wire\\:click]');
+        if (link) {
+            this.isNavigating = true;
+            this.clearAllTimers();
+        }
+    }
+
+    /**
+     * Обработчик события навигации
+     */
+    handleNavigateTo() {
+        // Флаг уже установлен в обработчике клика
         this.clearAllTimers();
 
+        // После навигации сворачиваем через DOM
         setTimeout(() => {
             this.isNavigating = false;
-            // Если мышь не наведена, сворачиваем панель
             if (!this.isHovered) {
                 this.collapse();
             }
-            // Переинициализация после навигации
-            setTimeout(() => {
-                this.sidebar = document.getElementById('navigation-sidebar');
-                this.nav = document.getElementById('sidebar-nav');
-                if (this.sidebar && this.nav) {
-                    this.updateExpandedAttribute();
-                    this.restoreScrollPosition();
-                }
-            }, 300);
         }, 250);
+
+        // Центрируем активный элемент в скролле
+        setTimeout(() => this.scrollToActiveItem(), 300);
     }
 
     /**
-     * Обработчик отправки сообщения Livewire
-     * @param {Object} message - Сообщение Livewire
-     * @param {Object} component - Компонент Livewire
+     * Обработчик обновления состояния
      */
-    handleMessageSent(message, component) {
-        // Очищаем таймеры при взаимодействии с компонентом навигации
-        if (component.name === 'navigation-sidebar') {
-            this.clearAllTimers();
-        }
-    }
-
-    /**
-     * Обработчик завершения обработки сообщения Livewire
-     * @param {Object} message - Сообщение Livewire
-     * @param {Object} component - Компонент Livewire
-     */
-    handleMessageProcessed(message, component) {
-        // Очищаем таймеры при взаимодействии с компонентом навигации
-        if (component.name === 'navigation-sidebar') {
-            this.clearAllTimers();
-        }
+    handleStateUpdated() {
+        // Центрируем активный элемент в скролле после обновления состояния
+        setTimeout(() => this.scrollToActiveItem(), 150);
     }
 
     /**
      * Обработчик прокрутки навигационного контейнера
-     * Сохраняет позицию прокрутки в localStorage
      */
     handleScroll() {
         this.clearScrollTimeout();
         this.scrollTimeout = setTimeout(() => {
             if (this.nav) {
-                localStorage.setItem(this.STORAGE_KEY, this.nav.scrollTop);
+                window.localStorage.setItem(this.STORAGE_KEY, this.nav.scrollTop);
             }
         }, 100);
-    }
-
-    /**
-     * Обработчик прокрутки к активному элементу
-     */
-    handleScrollToActiveItem() {
-        setTimeout(() => this.scrollToActiveItem(), 500);
     }
 
     /**
@@ -261,6 +295,12 @@ class Sidebar {
             el.classList.remove('opacity-100');
             el.classList.add('opacity-0');
         });
+
+        // Сворачиваем заголовки секций
+        this.sidebar.querySelectorAll('.sidebar-section-title').forEach((el) => {
+            el.classList.remove('py-2', 'max-h-10');
+            el.classList.add('py-0', 'max-h-0');
+        });
     }
 
     /**
@@ -288,6 +328,12 @@ class Sidebar {
             el.classList.remove('opacity-0');
             el.classList.add('opacity-100');
         });
+
+        // Разворачиваем заголовки секций
+        this.sidebar.querySelectorAll('.sidebar-section-title').forEach((el) => {
+            el.classList.remove('py-0', 'max-h-0');
+            el.classList.add('py-2', 'max-h-10');
+        });
     }
 
     /**
@@ -298,7 +344,7 @@ class Sidebar {
             return;
         }
 
-        const savedScroll = localStorage.getItem(this.STORAGE_KEY);
+        const savedScroll = window.localStorage.getItem(this.STORAGE_KEY);
         if (savedScroll !== null) {
             requestAnimationFrame(() => {
                 this.nav.scrollTop = parseInt(savedScroll, 10);
@@ -308,7 +354,6 @@ class Sidebar {
 
     /**
      * Прокрутка к активному пункту меню
-     * Активный пункт определяется по наличию градиентного фона
      */
     scrollToActiveItem() {
         if (!this.nav) {
@@ -317,10 +362,8 @@ class Sidebar {
             return;
         }
 
-        // Ищем активную ссылку (с градиентным фоном)
-        const activeLink = this.nav.querySelector(
-            '.bg-gradient-to-r.from-indigo-600.to-purple-600',
-        );
+        // Ищем активную ссылку
+        const activeLink = this.nav.querySelector('.sidebar-active-item');
         if (!activeLink) return;
 
         // Вычисляем позицию для прокрутки
@@ -342,134 +385,46 @@ class Sidebar {
     }
 
     /**
+     * Переинициализация модуля
+     */
+    reinit() {
+        this.destroy();
+        this.init();
+    }
+
+    /**
      * Уничтожение экземпляра и очистка ресурсов
      */
     destroy() {
-        this.removeEventListeners();
-        this.container = null;
+        // Удаляем обработчики событий
+        if (this.sidebar) {
+            this.sidebar.removeEventListener('mouseenter', this.boundHandleMouseEnter);
+            this.sidebar.removeEventListener('mouseleave', this.boundHandleMouseLeave);
+            this.sidebar.removeEventListener('click', this.boundHandleClick);
+        }
+
+        if (this.nav) {
+            this.nav.removeEventListener('scroll', this.boundHandleScroll);
+        }
+
+        document.removeEventListener('beforeunload', this.boundHandleBeforeUnload);
+        window.removeEventListener('navigateTo', this.boundHandleNavigateTo);
+        window.removeEventListener('stateUpdated', this.boundHandleStateUpdated);
+        document.removeEventListener('livewire:init', this.boundHandleLivewireInit);
+        document.removeEventListener('livewire:updated', this.boundHandleLivewireUpdated);
+
+        // Отключаем наблюдатель
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
+        }
+
+        // Очищаем таймеры
+        this.clearAllTimers();
+
+        // Сбрасываем ссылки
         this.sidebar = null;
         this.nav = null;
+        this.initialized = false;
     }
 }
-
-let sidebarInstance = null; // Текущий экземпляр Sidebar
-let sidebarObserver = null; // MutationObserver для отслеживания появления панели
-
-/**
- * Инициализация боковой панели
- * Создает новый экземпляр или пересоздает существующий
- */
-function initSidebar() {
-    const sidebar = document.getElementById('navigation-sidebar');
-
-    if (!sidebar) {
-        return;
-    }
-
-    // Удаляем существующий экземпляр
-    if (sidebarInstance) {
-        sidebarInstance.destroy();
-        sidebarInstance = null;
-    }
-
-    sidebarInstance = new Sidebar(sidebar);
-}
-
-/**
- * Настройка наблюдателя за изменениями DOM
- * Отслеживает появление боковой панели и инициализирует её
- */
-function setupSidebarObserver() {
-    if (sidebarObserver) return;
-
-    sidebarObserver = new MutationObserver((mutationsList) => {
-        let hasNewSidebar = false;
-
-        for (const mutation of mutationsList) {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1) {
-                    if (
-                        node.id === 'navigation-sidebar' ||
-                        node.querySelector('#navigation-sidebar')
-                    ) {
-                        hasNewSidebar = true;
-                    }
-                }
-            });
-        }
-
-        if (hasNewSidebar) {
-            // Небольшая задержка для завершения рендеринга DOM
-            setTimeout(initSidebar, 10);
-        }
-    });
-
-    sidebarObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-}
-
-/**
- * Основная инициализация
- */
-function initialize() {
-    initSidebar();
-    setupSidebarObserver();
-}
-
-// Инициализация при загрузке DOM
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
-} else {
-    initialize();
-}
-
-if (typeof Livewire !== 'undefined') {
-    // Переинициализация при обновлении элемента
-    Livewire.hook('element.updated', (el) => {
-        if (el.id === 'navigation-sidebar' || el.querySelector?.('#navigation-sidebar')) {
-            setTimeout(initSidebar, 10);
-        }
-    });
-
-    // Переинициализация после обработки сообщения
-    Livewire.hook('message.processed', () => {
-        setTimeout(initSidebar, 10);
-    });
-}
-
-/**
- * Интеграция с Turbo/Turbolinks
- * Обработчик загрузки страницы в Turbo
- */
-document.addEventListener('turbo:load', () => {
-    if (sidebarInstance) {
-        sidebarInstance.destroy();
-        sidebarInstance = null;
-    }
-    setTimeout(initSidebar, 10);
-});
-
-/**
- * Обработчик перед кэшированием страницы в Turbo
- */
-document.addEventListener('turbo:before-cache', () => {
-    if (sidebarInstance) {
-        sidebarInstance.destroy();
-        sidebarInstance = null;
-    }
-});
-
-/**
- * Глобальный объект для управления боковой панелью
- * Позволяет вручную вызывать методы Sidebar из консоли или другого кода
- */
-window.SidebarManager = {
-    init: initSidebar,
-    getInstance: () => sidebarInstance,
-    collapse: () => sidebarInstance?.collapse(),
-    expand: () => sidebarInstance?.expand(),
-    clearTimers: () => sidebarInstance?.clearAllTimers(),
-    scrollToActive: () => sidebarInstance?.scrollToActiveItem(),
-};
