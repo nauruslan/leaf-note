@@ -52,8 +52,7 @@ function initEditChecklistEditor(initialData = null) {
             if (contentInput) {
                 contentInput.value = JSON.stringify(json);
                 // Триггерим событие input для Livewire
-                // eslint-disable-next-line no-undef
-                contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                contentInput.dispatchEvent(new window.Event('input', { bubbles: true }));
             }
             // Автосохранение через AJAX больше не используется
             // Данные синхронизируются с Livewire через скрытый input
@@ -149,10 +148,6 @@ if (document.readyState === 'loading') {
 
 // Обработка событий Livewire
 if (typeof Livewire !== 'undefined') {
-    Livewire.hook('component.init', () => {
-        setTimeout(autoInitEditEditor, 50);
-    });
-
     // Загрузка данных при редактировании
     Livewire.on('checklistLoaded', (data) => {
         let parsedContent = data?.content || data;

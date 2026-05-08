@@ -25,8 +25,6 @@ export default class Sidebar {
         this.boundHandleNavigateTo = this.handleNavigateTo.bind(this);
         this.boundHandleStateUpdated = this.handleStateUpdated.bind(this);
         this.boundHandleClick = this.handleClick.bind(this);
-        this.boundHandleLivewireInit = this.handleLivewireInit.bind(this);
-        this.boundHandleLivewireUpdated = this.handleLivewireUpdated.bind(this);
     }
 
     /**
@@ -37,7 +35,6 @@ export default class Sidebar {
 
         this.initSidebar();
         this.setupSidebarObserver();
-        this.setupLivewireEvents();
         this.initialized = true;
     }
 
@@ -120,31 +117,6 @@ export default class Sidebar {
             childList: true,
             subtree: true,
         });
-    }
-
-    /**
-     * Настройка событий Livewire 4
-     */
-    setupLivewireEvents() {
-        // Инициализация при загрузке Livewire
-        document.addEventListener('livewire:init', this.boundHandleLivewireInit);
-
-        // Переинициализация при обновлении DOM
-        document.addEventListener('livewire:updated', this.boundHandleLivewireUpdated);
-    }
-
-    /**
-     * Обработчик события livewire:init
-     */
-    handleLivewireInit() {
-        this.initSidebar();
-    }
-
-    /**
-     * Обработчик события livewire:updated
-     */
-    handleLivewireUpdated() {
-        this.initSidebar();
     }
 
     /**
@@ -410,8 +382,6 @@ export default class Sidebar {
         document.removeEventListener('beforeunload', this.boundHandleBeforeUnload);
         window.removeEventListener('navigateTo', this.boundHandleNavigateTo);
         window.removeEventListener('stateUpdated', this.boundHandleStateUpdated);
-        document.removeEventListener('livewire:init', this.boundHandleLivewireInit);
-        document.removeEventListener('livewire:updated', this.boundHandleLivewireUpdated);
 
         // Отключаем наблюдатель
         if (this.observer) {

@@ -1,229 +1,335 @@
 import { restoreImage, softDeleteImage } from './editor-helpers';
 import { initNoteEditor, sendContentToLivewire } from './note-editor';
 
-let originalImagePaths = [];
-let newImagePaths = [];
-let originalContent = null;
-let previousImagePaths = new Set(); // Пути изображений из предыдущего состояния
-
 /**
- * Извлечь пути изображений из контента редактора
+ * Класс для инициализации и управления редактором заметок в режиме просмотра
  */
-function extractImagePathsFromContent(content) {
-    const paths = new Set();
-    if (!content || !content.content) return paths;
-
-    function traverse(node) {
-        if (!node) return;
-        if (node.type === 'image' && node.attrs?.path) {
-            paths.add(node.attrs.path);
-        }
-        if (node.content) {
-            node.content.forEach(traverse);
-        }
+export default class NoteViewEditor {
+    constructor() {
+        this.initialized = false;
+        this.observer = null;
+        this.editorInstance = null;
+        this.originalImagePaths = [];
+        this.newImagePaths = [];
+        this.originalContent = null;
+        this.previousImagePaths = new Set();
     }
 
-    traverse(content);
-    return paths;
-}
+    /**
+     * Извлечь пути изображений из контента редактора
+     */
+    extractImagePathsFromContent(content) {
+        const paths = new Set();
+        if (!content || !content.content) return paths;
 
-/**
- * Сравнить текущие и предыдущие пути изображений,
- * выполнить мягкое удаление/восстановление при undo/redo
- */
-function syncImageState(currentContent) {
-    const currentPaths = extractImagePathsFromContent(currentContent);
-    const previousPaths = previousImagePaths;
-
-    // Изображения, которые были удалены из контента
-    for (const path of previousPaths) {
-        if (!currentPaths.has(path)) {
-            // Изображение удалено из контента — помечаем на удаление
-            softDeleteImage(path);
-        }
-    }
-
-    // Изображения, которые появились в контенте
-    for (const path of currentPaths) {
-        if (!previousPaths.has(path)) {
-            // Изображение появилось в контенте — восстанавливаем из списка на удаление
-            restoreImage(path);
-        }
-    }
-
-    // Обновляем предыдущее состояние
-    previousImagePaths = currentPaths;
-}
-
-export function initNoteViewEditor(content = '') {
-    originalImagePaths = [];
-    newImagePaths = [];
-    previousImagePaths = new Set();
-    originalContent = content;
-
-    const editor = initNoteEditor({
-        elementId: 'note-view-editor',
-        content: content,
-        placeholder: 'Начните вводить текст заметки...',
-        type: 'note-view',
-        onImageUploaded: (imagePath) => {
-            if (imagePath && !newImagePaths.includes(imagePath)) {
-                newImagePaths.push(imagePath);
+        function traverse(node) {
+            if (!node) return;
+            if (node.type === 'image' && node.attrs?.path) {
+                paths.add(node.attrs.path);
             }
-        },
-        onUpdate: (editor) => {
-            // Сохраняем последние данные в замыкании
-            const json = editor.getJSON();
-
-            // Синхронизируем состояние изображений (мягкое удаление/восстановление)
-            syncImageState(json);
-
-            // Обновляем скрытый input для синхронизации с Livewire
-            const contentInput = document.getElementById('note-view-content-input');
-            if (contentInput) {
-                contentInput.value = JSON.stringify(json);
-
-                // Триггерим событие input для Livewire с debounce
-                clearTimeout(window.noteViewUpdateTimeout);
-                // Сохраняем значение для отправки в замыкании, чтобы избежать гонки с обновлением DOM
-                const valueToSend = JSON.stringify(json);
-                window.noteViewUpdateTimeout = setTimeout(() => {
-                    // Проверяем, что редактор все еще существует и инициализирован
-                    const editorElement = document.getElementById('note-view-editor');
-                    if (editorElement && editorElement._editor) {
-                        // Устанавливаем значение прямо перед отправкой события, чтобы избежать гонки
-                        contentInput.value = valueToSend;
-
-                        contentInput.dispatchEvent(new window.Event('input', { bubbles: true }));
-                        // Показываем индикатор автосохранения
-                        showAutosaveIndicator();
-                    }
-                }, 300);
+            if (node.content) {
+                node.content.forEach(traverse);
             }
-        },
-    });
+        }
 
-    // Инициализируем предыдущее состояние изображений
-    previousImagePaths = extractImagePathsFromContent(content);
-
-    return editor;
-}
-
-export function setOriginalContent(content, imagePaths) {
-    originalContent = content;
-    originalImagePaths = imagePaths || [];
-    newImagePaths = [];
-    previousImagePaths = extractImagePathsFromContent(content);
-
-    const editorElement = document.querySelector('#note-view-editor');
-    if (editorElement && editorElement._editor) {
-        editorElement._editor.commands.setContent(content);
-    }
-}
-
-export function getOriginalImagePaths() {
-    return originalImagePaths;
-}
-
-export function getNewImagePaths() {
-    return newImagePaths;
-}
-
-export function restoreOriginalState() {
-    const editorElement = document.querySelector('#note-view-editor');
-    if (!editorElement || !editorElement._editor || !originalContent) {
-        return Promise.resolve();
+        traverse(content);
+        return paths;
     }
 
-    // Восстанавливаем оригинальный контент
-    editorElement._editor.commands.setContent(originalContent);
-    previousImagePaths = extractImagePathsFromContent(originalContent);
-    newImagePaths = [];
+    /**
+     * Сравнить текущие и предыдущие пути изображений,
+     * выполнить мягкое удаление/восстановление при undo/redo
+     */
+    syncImageState(currentContent) {
+        const currentPaths = this.extractImagePathsFromContent(currentContent);
+        const previousPaths = this.previousImagePaths;
 
-    return Promise.resolve();
-}
+        // Изображения, которые были удалены из контента
+        for (const path of previousPaths) {
+            if (!currentPaths.has(path)) {
+                softDeleteImage(path);
+            }
+        }
 
-function autoInitNoteViewEditor() {
-    const editorElement = document.querySelector('#note-view-editor');
-    if (editorElement && !editorElement._editor) {
+        // Изображения, которые появились в контенте
+        for (const path of currentPaths) {
+            if (!previousPaths.has(path)) {
+                restoreImage(path);
+            }
+        }
+
+        // Обновляем предыдущее состояние
+        this.previousImagePaths = currentPaths;
+    }
+
+    /**
+     * Инициализация модуля
+     */
+    init() {
+        if (this.initialized) return;
+
+        this.initEditor();
+        this.setupEditorObserver();
+        this.setupLivewireListeners();
+        this.initialized = true;
+    }
+
+    /**
+     * Переинициализация модуля
+     */
+    reinit() {
+        this.destroy();
+        this.init();
+    }
+
+    /**
+     * Инициализация редактора
+     */
+    initEditor() {
+        const editorElement = document.querySelector('#note-view-editor');
+        if (!editorElement) return;
+
+        // Уничтожаем существующий редактор
+        if (editorElement._editor) {
+            editorElement._editor.destroy();
+            editorElement._editor = null;
+        }
+
         let content = editorElement.dataset.content;
         if (content) {
             try {
                 content = JSON.parse(content);
-                originalContent = content;
-                originalImagePaths = Array.from(extractImagePathsFromContent(content));
-                previousImagePaths = extractImagePathsFromContent(content);
+                this.originalContent = content;
+                this.originalImagePaths = Array.from(this.extractImagePathsFromContent(content));
+                this.previousImagePaths = this.extractImagePathsFromContent(content);
             } catch {
                 content = '';
             }
         } else {
             content = '';
         }
-        initNoteViewEditor(content);
-    }
-}
 
-const noteViewObserver = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-            if (node.nodeType === 1) {
-                if (node.id === 'note-view-editor' || node.querySelector?.('#note-view-editor')) {
-                    setTimeout(autoInitNoteViewEditor, 50);
-                    return;
+        this.createEditor(content);
+    }
+
+    /**
+     * Создание экземпляра редактора
+     */
+    createEditor(content) {
+        this.originalImagePaths = [];
+        this.newImagePaths = [];
+        this.previousImagePaths = new Set();
+        this.originalContent = content;
+
+        // Уничтожаем существующий редактор
+        if (this.editorInstance) {
+            this.editorInstance.destroy();
+            this.editorInstance = null;
+        }
+
+        const editor = initNoteEditor({
+            elementId: 'note-view-editor',
+            content: content,
+            placeholder: 'Начните вводить текст заметки...',
+            type: 'note-view',
+            onImageUploaded: (imagePath) => {
+                if (imagePath && !this.newImagePaths.includes(imagePath)) {
+                    this.newImagePaths.push(imagePath);
+                }
+            },
+            onUpdate: (editor) => {
+                // Сохраняем последние данные
+                const json = editor.getJSON();
+
+                // Синхронизируем состояние изображений (мягкое удаление/восстановление)
+                this.syncImageState(json);
+
+                // Обновляем скрытый input для синхронизации с Livewire
+                const contentInput = document.getElementById('note-view-content-input');
+                if (contentInput) {
+                    contentInput.value = JSON.stringify(json);
+
+                    // Триггерим событие input для Livewire с debounce
+                    clearTimeout(window.noteViewUpdateTimeout);
+                    const valueToSend = JSON.stringify(json);
+                    window.noteViewUpdateTimeout = setTimeout(() => {
+                        const editorElement = document.getElementById('note-view-editor');
+                        if (editorElement && editorElement._editor) {
+                            contentInput.value = valueToSend;
+                            contentInput.dispatchEvent(
+                                new window.Event('input', { bubbles: true }),
+                            );
+                            this.showAutosaveIndicator();
+                        }
+                    }, 300);
+                }
+            },
+        });
+
+        this.editorInstance = editor;
+
+        // Инициализируем предыдущее состояние изображений
+        this.previousImagePaths = this.extractImagePathsFromContent(content);
+
+        return editor;
+    }
+
+    /**
+     * Настройка MutationObserver для динамически добавленных редакторов
+     */
+    setupEditorObserver() {
+        if (this.observer) return;
+
+        this.observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.removedNodes) {
+                    if (node.nodeType === 1) {
+                        if (
+                            node.id === 'note-view-editor' ||
+                            node.querySelector?.('#note-view-editor')
+                        ) {
+                            if (this.editorInstance) {
+                                this.editorInstance.destroy();
+                                this.editorInstance = null;
+                            }
+                            this.originalContent = null;
+                        }
+                    }
+                }
+
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === 1) {
+                        if (node.id === 'note-view-editor') {
+                            setTimeout(() => this.initEditor(), 50);
+                            return;
+                        }
+                        if (node.querySelector?.('#note-view-editor')) {
+                            setTimeout(() => this.initEditor(), 50);
+                            return;
+                        }
+                    }
                 }
             }
+        });
+
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    }
+
+    /**
+     * Настройка слушателей событий Livewire
+     */
+    setupLivewireListeners() {
+        Livewire.on('getEditorContent', () => {
+            sendContentToLivewire('note-view-editor');
+        });
+
+        Livewire.on('noteLoaded', (data) => {
+            let parsedContent = data?.content || data;
+            if (typeof parsedContent === 'string') {
+                try {
+                    parsedContent = JSON.parse(parsedContent);
+                } catch {
+                    parsedContent = '';
+                }
+            }
+
+            this.originalContent = parsedContent;
+            this.originalImagePaths = Array.from(this.extractImagePathsFromContent(parsedContent));
+            this.previousImagePaths = this.extractImagePathsFromContent(parsedContent);
+            this.newImagePaths = [];
+
+            const editorElement = document.querySelector('#note-view-editor');
+            if (editorElement && editorElement._editor) {
+                editorElement._editor.commands.setContent(parsedContent);
+            }
+        });
+
+        document.addEventListener('restore-note-original-state', () => {
+            this.restoreOriginalState();
+        });
+    }
+
+    /**
+     * Уничтожение редактора
+     */
+    destroy() {
+        const editorElement = document.querySelector('#note-view-editor');
+        if (editorElement && editorElement._editor) {
+            editorElement._editor.destroy();
+            editorElement._editor = null;
+        }
+        if (this.editorInstance) {
+            this.editorInstance.destroy();
+            this.editorInstance = null;
+        }
+        this.originalImagePaths = [];
+        this.newImagePaths = [];
+        this.originalContent = null;
+        this.previousImagePaths = new Set();
+        this.initialized = false;
+    }
+
+    /**
+     * Установка оригинального контента
+     */
+    setOriginalContent(content, imagePaths) {
+        this.originalContent = content;
+        this.originalImagePaths = imagePaths || [];
+        this.newImagePaths = [];
+        this.previousImagePaths = this.extractImagePathsFromContent(content);
+
+        const editorElement = document.querySelector('#note-view-editor');
+        if (editorElement && editorElement._editor) {
+            editorElement._editor.commands.setContent(content);
         }
     }
-});
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        noteViewObserver.observe(document.body, { childList: true, subtree: true });
-        autoInitNoteViewEditor();
-    });
-} else {
-    noteViewObserver.observe(document.body, { childList: true, subtree: true });
-    autoInitNoteViewEditor();
-}
+    /**
+     * Получение оригинальных путей изображений
+     */
+    getOriginalImagePaths() {
+        return this.originalImagePaths;
+    }
 
-Livewire.on('getEditorContent', () => {
-    sendContentToLivewire('note-view-editor');
-});
+    /**
+     * Получение новых путей изображений
+     */
+    getNewImagePaths() {
+        return this.newImagePaths;
+    }
 
-Livewire.on('noteLoaded', (data) => {
-    let parsedContent = data?.content || data;
-    if (typeof parsedContent === 'string') {
-        try {
-            parsedContent = JSON.parse(parsedContent);
-        } catch {
-            parsedContent = '';
+    /**
+     * Восстановление оригинального состояния
+     */
+    restoreOriginalState() {
+        const editorElement = document.querySelector('#note-view-editor');
+        if (!editorElement || !editorElement._editor || !this.originalContent) {
+            return Promise.resolve();
         }
+
+        editorElement._editor.commands.setContent(this.originalContent);
+        this.previousImagePaths = this.extractImagePathsFromContent(this.originalContent);
+        this.newImagePaths = [];
+
+        return Promise.resolve();
     }
 
-    originalContent = parsedContent;
-    originalImagePaths = Array.from(extractImagePathsFromContent(parsedContent));
-    previousImagePaths = extractImagePathsFromContent(parsedContent);
-    newImagePaths = [];
+    /**
+     * Показ индикатора автосохранения
+     */
+    showAutosaveIndicator() {
+        const indicator = document.getElementById('autosave-indicator');
+        if (!indicator) return;
 
-    const editorElement = document.querySelector('#note-view-editor');
-    if (editorElement && editorElement._editor) {
-        editorElement._editor.commands.setContent(parsedContent);
+        indicator.classList.remove('hidden');
+        indicator.textContent = 'Автосохранено';
+        indicator.classList.add('text-green-600');
+
+        setTimeout(() => {
+            indicator.classList.add('hidden');
+        }, 3000);
     }
-});
-
-document.addEventListener('restore-note-original-state', () => {
-    restoreOriginalState();
-});
-
-function showAutosaveIndicator() {
-    const indicator = document.getElementById('autosave-indicator');
-    if (!indicator) return;
-
-    indicator.classList.remove('hidden');
-    indicator.textContent = 'Автосохранено';
-    indicator.classList.add('text-green-600');
-
-    setTimeout(() => {
-        indicator.classList.add('hidden');
-    }, 3000);
 }

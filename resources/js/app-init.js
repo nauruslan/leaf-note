@@ -4,6 +4,8 @@
 import ColorisModule from './coloris';
 import ConnectionStatus from './connection-status';
 import Dropdown from './dropdown';
+import CreateNoteEditor from './editor/create-note-editor';
+import NoteViewEditor from './editor/note-view-editor';
 import Lucide from './lucide';
 import Notifications from './notifications';
 import Pagination from './pagination';
@@ -19,6 +21,8 @@ const coloris = new ColorisModule();
 const connectionStatus = new ConnectionStatus();
 const lucide = new Lucide();
 const sidebar = new Sidebar();
+const noteViewEditor = new NoteViewEditor();
+const createNoteEditor = new CreateNoteEditor();
 
 // Флаг для отслеживания инициализации
 let initialized = false;
@@ -37,15 +41,14 @@ function initAll() {
     connectionStatus.init();
     lucide.init();
     sidebar.init();
+    noteViewEditor.init();
+    createNoteEditor.init();
 
     initialized = true;
 }
 
-// Инициализация при инициализации Livewire
-document.addEventListener('livewire:init', initAll);
-
-// Для остальных модулей, которые могут нуждаться в переинициализации
-function reinitIfNeeded() {
+// Инициализация при обновлении состояния (только для нуждающихся модулей)
+window.addEventListener('stateUpdated', () => {
     // Переинициализируем только те модули, которые это поддерживают
     if (pagination.reinit) pagination.reinit();
     if (search.reinit) search.reinit();
@@ -54,16 +57,12 @@ function reinitIfNeeded() {
     if (coloris.reinit) coloris.reinit();
     if (lucide.reinit) lucide.reinit();
     if (sidebar.reinit) sidebar.reinit();
+    if (noteViewEditor.reinit) noteViewEditor.reinit();
+    if (createNoteEditor.reinit) createNoteEditor.reinit();
     // ConnectionStatus не переинициализируем, так как он должен работать постоянно
-}
+});
 
-// Инициализация при обновлении Livewire (только для нуждающихся модулей)
-document.addEventListener('livewire:updated', reinitIfNeeded);
-
-// Инициализация при обновлении состояния (только для нуждающихся модулей)
-window.addEventListener('stateUpdated', reinitIfNeeded);
-
-// Инициализация при готовности DOM (для случаев без Livewire)
+// Инициализация при готовности DOM
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAll);
 } else {

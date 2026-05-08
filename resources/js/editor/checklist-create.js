@@ -50,7 +50,7 @@ function initCreateChecklistEditor(initialData = null) {
             if (contentInput) {
                 contentInput.value = JSON.stringify(json);
                 // Триггерим событие input для Livewire
-                contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                contentInput.dispatchEvent(new window.Event('input', { bubbles: true }));
             }
         },
     });
@@ -143,10 +143,6 @@ if (document.readyState === 'loading') {
 
 // Обработка событий Livewire
 if (typeof Livewire !== 'undefined') {
-    Livewire.hook('component.init', () => {
-        setTimeout(autoInitCreateEditor, 50);
-    });
-
     // Слушаем запрос на получение контента от PHP (только если редактор существует)
     Livewire.on('getChecklistContent', () => {
         const container = document.getElementById('create-checklist-editor');
