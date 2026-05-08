@@ -11,6 +11,7 @@ use App\Models\Note;
 use App\Models\Safe;
 use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -372,11 +373,17 @@ class EditNote extends Component
             $this->updateLocation($this->cachedNote);
             $this->updateFavorite($this->cachedNote);
 
-            $this->cachedNote->save();
+            // Сохраняем только если есть изменения (оптимизация для частых автосохранений)
+            if ($this->cachedNote->isDirty()) {
+                // Используем транзакцию для обеспечения целостности данных при частых операциях
+                DB::transaction(function () {
+                    $this->cachedNote->save();
+                });
 
-            // Обновляем оригинальные пути изображений
-            $currentImagePaths = $this->extractImagePathsFromContent($this->content);
-            $this->originalImagePaths = $currentImagePaths;
+                // Обновляем оригинальные пути изображений только после успешного сохранения
+                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
+                $this->originalImagePaths = $currentImagePaths;
+            }
 
             // Показываем уведомление если изменилось местоположение
             if ($locationChanged) {

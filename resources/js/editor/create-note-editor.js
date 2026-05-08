@@ -1,5 +1,5 @@
-import { destroyNoteEditor, initNoteEditor } from './note-editor';
 import { executePendingDeletion, restoreImage, softDeleteImage } from './editor-helpers';
+import { destroyNoteEditor, initNoteEditor } from './note-editor';
 
 // Приватное состояние модуля (замыкание)
 let editorInstance = null;
@@ -81,6 +81,7 @@ export function initCreateNoteEditor() {
         onUpdate: (editor) => {
             // Сохраняем последние данные в замыкании
             const json = editor.getJSON();
+
             lastContent = json;
 
             // Синхронизируем состояние изображений (мягкое удаление/восстановление)
@@ -89,11 +90,21 @@ export function initCreateNoteEditor() {
             // Обновляем скрытый input для синхронизации с Livewire
             const contentInput = document.getElementById('note-content-input');
             if (contentInput) {
-                contentInput.value = JSON.stringify(json);
                 // Триггерим событие input для Livewire с debounce
                 clearTimeout(window.createNoteUpdateTimeout);
+                // Сохраняем значение для отправки в замыкании, чтобы избежать гонки с обновлением DOM
+                const valueToSend = JSON.stringify(json);
                 window.createNoteUpdateTimeout = setTimeout(() => {
-                    contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    // Проверяем, что редактор все еще существует и инициализирован
+                    const editorElement = document.getElementById('create-note-editor');
+                    if (editorElement && editorInstance) {
+                        // Устанавливаем значение прямо перед отправкой события, чтобы избежать гонки
+                        contentInput.value = valueToSend;
+
+                        contentInput.dispatchEvent(new window.Event('input', { bubbles: true }));
+                        // Показываем индикатор автосохранения
+                        showAutosaveIndicator();
+                    }
                 }, 300);
             }
         },
@@ -198,3 +209,19 @@ document.addEventListener('delete-uploaded-images', () => {
 Livewire.on('getEditorContent', () => {
     sendCreateNoteContentToLivewire();
 });
+
+/**
+ * Показать индикатор автосохранения
+ */
+function showAutosaveIndicator() {
+    const indicator = document.getElementById('autosave-indicator');
+    if (!indicator) return;
+
+    indicator.classList.remove('hidden');
+    indicator.textContent = 'Автосохранено';
+    indicator.classList.add('text-green-600');
+
+    setTimeout(() => {
+        indicator.classList.add('hidden');
+    }, 3000);
+}

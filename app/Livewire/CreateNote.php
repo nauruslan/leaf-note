@@ -12,6 +12,7 @@ use App\Models\Safe;
 use App\Services\StateManager;
 use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -283,11 +284,18 @@ class CreateNote extends Component
                 $this->updateContent($this->cachedNote);
                 $this->updateLocation($this->cachedNote);
                 $this->updateFavorite($this->cachedNote);
-                $this->cachedNote->save();
 
-                // Обновляем оригинальные пути изображений для текущего запроса
-                $currentImagePaths = $this->extractImagePathsFromContent($this->content);
-                $this->originalImagePaths = $currentImagePaths;
+                // Сохраняем только если есть изменения (оптимизация для частых автосохранений)
+                if ($this->cachedNote->isDirty()) {
+                    // Используем транзакцию для обеспечения целостности данных при частых операциях
+                    DB::transaction(function () {
+                        $this->cachedNote->save();
+                    });
+
+                    // Обновляем оригинальные пути изображений только после успешного сохранения
+                    $currentImagePaths = $this->extractImagePathsFromContent($this->content);
+                    $this->originalImagePaths = $currentImagePaths;
+                }
 
                 // Показываем уведомление если изменилось местоположение
                 if ($locationChanged) {
@@ -326,7 +334,10 @@ class CreateNote extends Component
                     return;
                 }
 
-                $note->save();
+                // Используем транзакцию для создания новой заметки
+                DB::transaction(function () use ($note) {
+                    $note->save();
+                });
 
                 // Сохраняем ID созданной заметки для будущих обновлений
                 $this->noteId = $note->id;

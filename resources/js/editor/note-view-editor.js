@@ -82,12 +82,22 @@ export function initNoteViewEditor(content = '') {
             const contentInput = document.getElementById('note-view-content-input');
             if (contentInput) {
                 contentInput.value = JSON.stringify(json);
+
                 // Триггерим событие input для Livewire с debounce
                 clearTimeout(window.noteViewUpdateTimeout);
+                // Сохраняем значение для отправки в замыкании, чтобы избежать гонки с обновлением DOM
+                const valueToSend = JSON.stringify(json);
                 window.noteViewUpdateTimeout = setTimeout(() => {
-                    contentInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    // Показываем индикатор автосохранения
-                    showAutosaveIndicator();
+                    // Проверяем, что редактор все еще существует и инициализирован
+                    const editorElement = document.getElementById('note-view-editor');
+                    if (editorElement && editorElement._editor) {
+                        // Устанавливаем значение прямо перед отправкой события, чтобы избежать гонки
+                        contentInput.value = valueToSend;
+
+                        contentInput.dispatchEvent(new window.Event('input', { bubbles: true }));
+                        // Показываем индикатор автосохранения
+                        showAutosaveIndicator();
+                    }
                 }, 300);
             }
         },
@@ -143,7 +153,7 @@ function autoInitNoteViewEditor() {
                 originalContent = content;
                 originalImagePaths = Array.from(extractImagePathsFromContent(content));
                 previousImagePaths = extractImagePathsFromContent(content);
-            } catch (e) {
+            } catch {
                 content = '';
             }
         } else {
@@ -185,7 +195,7 @@ Livewire.on('noteLoaded', (data) => {
     if (typeof parsedContent === 'string') {
         try {
             parsedContent = JSON.parse(parsedContent);
-        } catch (e) {
+        } catch {
             parsedContent = '';
         }
     }

@@ -205,7 +205,7 @@
                 </div>
             </div>
             <!-- Hidden input for Livewire content synchronization -->
-            <input type="hidden" id="note-view-content-input" wire:model.live.debounce.300ms="content">
+            <input type="hidden" id="note-view-content-input" wire:model.live="content">
             <!-- Footer Info -->
             <div
                 class="px-6 py-3 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
