@@ -1,5 +1,5 @@
 import { ChecklistEditor } from './checklist-editor';
-import { initChecklistProgressBar } from './checklist-progress';
+import { ChecklistProgressBar } from './checklist-progress';
 
 /**
  * Модуль управления редактором редактирования чек-листа
@@ -122,7 +122,7 @@ export default class EditChecklistEditor {
         });
 
         // Инициализируем прогресс-бар
-        this.progressBarInstance = initChecklistProgressBar(
+        this.progressBarInstance = new ChecklistProgressBar(
             this.editorInstance,
             'checklist-progress-bar',
         );
