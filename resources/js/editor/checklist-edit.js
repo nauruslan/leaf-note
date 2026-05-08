@@ -1,4 +1,4 @@
-import { ChecklistEditor } from './checklist-editor';
+import { ChecklistEditor } from './checklist';
 import { ChecklistProgressBar } from './checklist-progress';
 
 /**

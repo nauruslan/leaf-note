@@ -2,7 +2,9 @@ class ChecklistEditor {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
         if (!this.container) {
-            console.error(`Контейнер #${containerId} не найден`);
+            if (typeof console !== 'undefined') {
+                console.error(`Контейнер #${containerId} не найден`);
+            }
             return;
         }
 
