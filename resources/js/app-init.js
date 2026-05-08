@@ -4,6 +4,8 @@
 import ColorisModule from './coloris';
 import ConnectionStatus from './connection-status';
 import Dropdown from './dropdown';
+import CreateChecklistEditor from './editor/checklist-create';
+import EditChecklistEditor from './editor/checklist-edit';
 import CreateNoteEditor from './editor/create-note-editor';
 import NoteViewEditor from './editor/note-view-editor';
 import Lucide from './lucide';
@@ -23,6 +25,8 @@ const lucide = new Lucide();
 const sidebar = new Sidebar();
 const noteViewEditor = new NoteViewEditor();
 const createNoteEditor = new CreateNoteEditor();
+const createChecklistEditor = new CreateChecklistEditor();
+const editChecklistEditor = new EditChecklistEditor();
 
 // Флаг для отслеживания инициализации
 let initialized = false;
@@ -43,6 +47,8 @@ function initAll() {
     sidebar.init();
     noteViewEditor.init();
     createNoteEditor.init();
+    createChecklistEditor.init();
+    editChecklistEditor.init();
 
     initialized = true;
 }
@@ -59,6 +65,8 @@ window.addEventListener('stateUpdated', () => {
     if (sidebar.reinit) sidebar.reinit();
     if (noteViewEditor.reinit) noteViewEditor.reinit();
     if (createNoteEditor.reinit) createNoteEditor.reinit();
+    if (createChecklistEditor.reinit) createChecklistEditor.reinit();
+    if (editChecklistEditor.reinit) editChecklistEditor.reinit();
     // ConnectionStatus не переинициализируем, так как он должен работать постоянно
 });
 

@@ -1,171 +1,215 @@
 import { ChecklistEditor } from './checklist-editor';
 import { initChecklistProgressBar } from './checklist-progress';
 
-// Приватное состояние модуля (замыкание)
-let editorInstance = null;
-let progressBarInstance = null;
-let lastContent = null;
-
-// Обновляет счётчик задач в футере редактора
-function updateTaskCount(count) {
-    const taskCountEl = document.querySelector('[data-task-count]');
-    if (taskCountEl) {
-        const forms = count === 1 ? 'а' : count >= 2 && count <= 4 ? 'и' : '';
-        taskCountEl.textContent = `${count} задач${forms}`;
-    }
-}
-
-// Инициализирует редактор для редактирования чеклиста
-function initEditChecklistEditor(initialData = null) {
-    const container = document.getElementById('edit-checklist-editor');
-    if (!container) {
-        return null;
+/**
+ * Модуль управления редактором редактирования чек-листа
+ */
+export default class EditChecklistEditor {
+    constructor() {
+        this.initialized = false;
+        this.observer = null;
+        this.editorInstance = null;
+        this.progressBarInstance = null;
+        this.lastContent = null;
     }
 
-    // Уничтожаем существующий редактор и прогресс-бар
-    if (editorInstance) {
-        editorInstance.destroy();
-        editorInstance = null;
+    /**
+     * Инициализация модуля
+     */
+    init() {
+        if (this.initialized) return;
+
+        this.setupObserver();
+        this.autoInit();
+        this.setupLivewireListeners();
+        this.initialized = true;
     }
-    if (progressBarInstance) {
-        progressBarInstance.destroy();
-        progressBarInstance = null;
-    }
 
-    // Очищаем последние данные перед инициализацией
-    lastContent = null;
+    /**
+     * Настройка MutationObserver для отслеживания появления/удаления редактора
+     */
+    setupObserver() {
+        if (this.observer) return;
 
-    editorInstance = new ChecklistEditor('edit-checklist-editor', {
-        placeholder: 'Введите задачу',
-        buttonLabel: 'Добавить задачу',
-        initialData: initialData,
-        onUpdate: (json) => {
-            updateTaskCount(editorInstance.getData().length);
-            // Сохраняем последние данные в замыкании
-            lastContent = json;
-            // Обновляем прогресс-бар
-            if (progressBarInstance) {
-                progressBarInstance.update();
-            }
-            // Обновляем скрытый input для синхронизации с Livewire
-            const contentInput = document.getElementById('checklist-content-input');
-            if (contentInput) {
-                contentInput.value = JSON.stringify(json);
-                // Триггерим событие input для Livewire
-                contentInput.dispatchEvent(new window.Event('input', { bubbles: true }));
-            }
-            // Автосохранение через AJAX больше не используется
-            // Данные синхронизируются с Livewire через скрытый input
-        },
-    });
-
-    // Инициализируем прогресс-бар
-    progressBarInstance = initChecklistProgressBar(editorInstance, 'checklist-progress-bar');
-
-    // Сохраняем начальные данные
-    lastContent = editorInstance.toJSON();
-
-    updateTaskCount(editorInstance.getData().length);
-
-    return editorInstance;
-}
-
-// Получает данные из редактора редактирования
-function getEditEditorContent() {
-    return lastContent || (editorInstance ? editorInstance.toJSON() : null);
-}
-
-// Уничтожает экземпляр редактора и прогресс-бар
-function destroyEditEditor() {
-    if (editorInstance) {
-        editorInstance.destroy();
-        editorInstance = null;
-    }
-    if (progressBarInstance) {
-        progressBarInstance.destroy();
-        progressBarInstance = null;
-    }
-    lastContent = null;
-}
-
-// Автоматическая инициализация редактора редактирования
-function autoInitEditEditor() {
-    const container = document.getElementById('edit-checklist-editor');
-    if (container) {
-        if (!editorInstance) {
-            initEditChecklistEditor(null);
-        }
-    }
-}
-
-// MutationObserver для отслеживания появления и удаления элементов редактора
-const checklistObserver = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-        for (const node of mutation.removedNodes) {
-            if (node.nodeType === 1) {
-                if (
-                    node.id === 'edit-checklist-editor' ||
-                    node.querySelector?.('#edit-checklist-editor')
-                ) {
-                    if (editorInstance) {
-                        editorInstance.destroy();
-                        editorInstance = null;
+        this.observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                // Обработка удаленных узлов
+                for (const node of mutation.removedNodes) {
+                    if (node.nodeType === 1) {
+                        if (
+                            node.id === 'edit-checklist-editor' ||
+                            node.querySelector?.('#edit-checklist-editor')
+                        ) {
+                            this.destroy();
+                        }
                     }
-                    if (progressBarInstance) {
-                        progressBarInstance.destroy();
-                        progressBarInstance = null;
-                    }
-                    lastContent = null;
                 }
-            }
-        }
 
-        for (const node of mutation.addedNodes) {
-            if (node.nodeType === 1) {
-                if (node.id === 'edit-checklist-editor') {
-                    setTimeout(autoInitEditEditor, 50);
-                    return;
-                }
-                if (node.querySelector?.('#edit-checklist-editor')) {
-                    setTimeout(autoInitEditEditor, 50);
-                    return;
+                // Обработка добавленных узлов
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === 1) {
+                        if (node.id === 'edit-checklist-editor') {
+                            setTimeout(() => this.autoInit(), 50);
+                            return;
+                        }
+                        if (node.querySelector?.('#edit-checklist-editor')) {
+                            setTimeout(() => this.autoInit(), 50);
+                            return;
+                        }
+                    }
                 }
             }
+        });
+
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    }
+
+    /**
+     * Автоматическая инициализация редактора
+     */
+    autoInit() {
+        const container = document.getElementById('edit-checklist-editor');
+        if (container && !this.editorInstance) {
+            this.initEditor();
         }
     }
-});
 
-// Инициализация при загрузке страницы
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        checklistObserver.observe(document.body, { childList: true, subtree: true });
-        autoInitEditEditor();
-    });
-} else {
-    checklistObserver.observe(document.body, { childList: true, subtree: true });
-    autoInitEditEditor();
-}
-
-// Обработка событий Livewire
-if (typeof Livewire !== 'undefined') {
-    // Загрузка данных при редактировании
-    Livewire.on('checklistLoaded', (data) => {
-        let parsedContent = data?.content || data;
-        if (typeof parsedContent === 'string') {
-            try {
-                parsedContent = JSON.parse(parsedContent);
-            } catch {
-                parsedContent = '';
-            }
+    /**
+     * Инициализация редактора
+     */
+    initEditor(initialData = null) {
+        const container = document.getElementById('edit-checklist-editor');
+        if (!container) {
+            return null;
         }
 
-        if (editorInstance) {
-            editorInstance.loadFromJSON(parsedContent);
-        } else {
-            initEditChecklistEditor(parsedContent);
+        // Уничтожаем существующий редактор и прогресс-бар
+        if (this.editorInstance) {
+            this.editorInstance.destroy();
+            this.editorInstance = null;
         }
-    });
-}
+        if (this.progressBarInstance) {
+            this.progressBarInstance.destroy();
+            this.progressBarInstance = null;
+        }
 
-// Экспортируем только то, что нужно для тестов (опционально)
-export { destroyEditEditor, getEditEditorContent, initEditChecklistEditor };
+        // Очищаем последние данные перед инициализацией
+        this.lastContent = null;
+
+        this.editorInstance = new ChecklistEditor('edit-checklist-editor', {
+            placeholder: 'Введите задачу',
+            buttonLabel: 'Добавить задачу',
+            initialData: initialData,
+            onUpdate: (json) => {
+                this.updateTaskCount(this.editorInstance.getData().length);
+                // Сохраняем последние данные
+                this.lastContent = json;
+                // Обновляем прогресс-бар
+                if (this.progressBarInstance) {
+                    this.progressBarInstance.update();
+                }
+                // Обновляем скрытый input для синхронизации с Livewire
+                const contentInput = document.getElementById('checklist-content-input');
+                if (contentInput) {
+                    contentInput.value = JSON.stringify(json);
+                    // Триггерим событие input для Livewire
+                    contentInput.dispatchEvent(new window.Event('input', { bubbles: true }));
+                }
+            },
+        });
+
+        // Инициализируем прогресс-бар
+        this.progressBarInstance = initChecklistProgressBar(
+            this.editorInstance,
+            'checklist-progress-bar',
+        );
+
+        // Сохраняем начальные данные
+        this.lastContent = this.editorInstance.toJSON();
+
+        this.updateTaskCount(this.editorInstance.getData().length);
+
+        return this.editorInstance;
+    }
+
+    /**
+     * Обновление счетчика задач
+     */
+    updateTaskCount(count) {
+        const taskCountEl = document.querySelector('[data-task-count]');
+        if (taskCountEl) {
+            const forms = count === 1 ? 'а' : count >= 2 && count <= 4 ? 'и' : '';
+            taskCountEl.textContent = `${count} задач${forms}`;
+        }
+    }
+
+    /**
+     * Получение контента редактора
+     */
+    getContent() {
+        return this.lastContent || (this.editorInstance ? this.editorInstance.toJSON() : null);
+    }
+
+    /**
+     * Переинициализация модуля (вызывается при обновлении состояния)
+     */
+    reinit() {
+        // Если редактор существует, сохраняем его данные
+        const currentData = this.editorInstance ? this.editorInstance.toJSON() : null;
+
+        // Уничтожаем текущий редактор
+        this.destroy();
+
+        // Переинициализируем с сохраненными данными
+        this.autoInit();
+
+        // Если были данные, восстанавливаем их
+        if (currentData && this.editorInstance) {
+            this.editorInstance.loadFromJSON(currentData);
+            this.lastContent = currentData;
+        }
+    }
+
+    /**
+     * Уничтожение редактора
+     */
+    destroy() {
+        if (this.editorInstance) {
+            this.editorInstance.destroy();
+            this.editorInstance = null;
+        }
+        if (this.progressBarInstance) {
+            this.progressBarInstance.destroy();
+            this.progressBarInstance = null;
+        }
+        this.lastContent = null;
+    }
+
+    /**
+     * Настройка слушателей событий Livewire
+     */
+    setupLivewireListeners() {
+        if (typeof Livewire !== 'undefined') {
+            // Загрузка данных при редактировании
+            Livewire.on('checklistLoaded', (data) => {
+                let parsedContent = data?.content || data;
+                if (typeof parsedContent === 'string') {
+                    try {
+                        parsedContent = JSON.parse(parsedContent);
+                    } catch {
+                        parsedContent = '';
+                    }
+                }
+
+                if (this.editorInstance) {
+                    this.editorInstance.loadFromJSON(parsedContent);
+                } else {
+                    this.initEditor(parsedContent);
+                }
+            });
+        }
+    }
+}
