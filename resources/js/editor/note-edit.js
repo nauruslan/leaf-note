@@ -345,7 +345,7 @@ export default class NoteEdit {
         if (!indicator) return;
 
         indicator.classList.remove('hidden');
-        indicator.textContent = 'Автосохранено';
+        indicator.textContent = 'Сохранено';
         indicator.classList.add('text-green-600');
 
         setTimeout(() => {

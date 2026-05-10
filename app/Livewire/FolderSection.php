@@ -56,7 +56,7 @@ class FolderSection extends Base
     /**
      * Общее количество заметок в текущей папке.
      */
-    #[Computed(cache: true, seconds: 10*60)]
+    #[Computed]
     public function totalFolderNotesCount(): int
     {
         return $this->getTotalCount();

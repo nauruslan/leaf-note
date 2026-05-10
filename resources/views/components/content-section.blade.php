@@ -2,6 +2,7 @@
     'notes',
     'totalCount',
     'search',
+    'section' => null,
     'emptyIcon' => 'layout-grid',
     'emptyTitle' => 'Заметок нет',
     'emptyDescription' => 'Создайте заметку, чтобы увидеть её здесь',
@@ -13,15 +14,14 @@
     'noFilterResultsDescription' => 'Попробуйте изменить фильтры',
 ])
 
-<div
-    class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
+<div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
     @forelse($notes as $note)
-        <x-card :item="$note" :color="$note->color" />
+        <x-card :item="$note" :color="$note->color" :section="$section" />
     @empty
         <div class="col-span-full">
             @if ($totalCount === 0)
                 <x-no-data :icon="$emptyIcon" :title="$emptyTitle" :description="$emptyDescription" />
-            @elseif ($search)
+            @elseif (!empty($search))
                 <x-no-data :icon="$noResultsIcon" :title="$noResultsTitle" :description="$noResultsDescription" />
             @else
                 <x-no-data :icon="$noFilterResultsIcon" :title="$noFilterResultsTitle" :description="$noFilterResultsDescription" />

@@ -209,7 +209,8 @@
         // Инициализация иконок Lucide
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
-           </script>
+        }
+    </script>
 </body>
 
 </html>
