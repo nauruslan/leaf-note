@@ -122,6 +122,8 @@ class AppLayout extends Component
         $this->noteId = $noteId;
         $this->componentKey++;
 
+        $this->js('() => window.scrollTo({ top: 0, behavior: "smooth" })');
+
         $this->dispatch('stateUpdated', section:$section, folderId:$folderId);
         $this->dispatch('finishLoading');
     }

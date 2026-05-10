@@ -192,24 +192,39 @@ export default class EditChecklistEditor {
      * Настройка слушателей событий Livewire
      */
     setupLivewireListeners() {
-        if (typeof Livewire !== 'undefined') {
-            // Загрузка данных при редактировании
-            Livewire.on('checklistLoaded', (data) => {
-                let parsedContent = data?.content || data;
-                if (typeof parsedContent === 'string') {
-                    try {
-                        parsedContent = JSON.parse(parsedContent);
-                    } catch {
-                        parsedContent = '';
-                    }
+        // Загрузка данных при редактировании
+        document.addEventListener('checklistLoaded', (e) => {
+            let parsedContent = e.detail?.content || e.detail;
+            if (typeof parsedContent === 'string') {
+                try {
+                    parsedContent = JSON.parse(parsedContent);
+                } catch {
+                    parsedContent = '';
                 }
+            }
 
-                if (this.editorInstance) {
-                    this.editorInstance.loadFromJSON(parsedContent);
-                } else {
-                    this.initEditor(parsedContent);
-                }
-            });
-        }
+            if (this.editorInstance) {
+                this.editorInstance.loadFromJSON(parsedContent);
+            } else {
+                this.initEditor(parsedContent);
+            }
+        });
+
+        // Обработка событий update-safe-id и update-archive-id
+        document.addEventListener('update-safe-id', (e) => {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id,
+                });
+            }
+        });
+
+        document.addEventListener('update-archive-id', (e) => {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.dispatch('updateArchiveId', {
+                    id: e.detail.id,
+                });
+            }
+        });
     }
 }

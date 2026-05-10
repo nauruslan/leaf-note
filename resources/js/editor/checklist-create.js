@@ -192,22 +192,39 @@ export default class CreateChecklistEditor {
      * Настройка слушателей событий Livewire
      */
     setupLivewireListeners() {
-        if (typeof Livewire !== 'undefined') {
-            // Слушаем запрос на получение контента от PHP
-            Livewire.on('getChecklistContent', () => {
-                const container = document.getElementById('create-checklist-editor');
-                if (container && this.editorInstance) {
-                    const content = this.getContent();
+        // Слушаем запрос на получение контента от PHP
+        document.addEventListener('getChecklistContent', () => {
+            const container = document.getElementById('create-checklist-editor');
+            if (container && this.editorInstance) {
+                const content = this.getContent();
+                if (typeof Livewire !== 'undefined') {
                     Livewire.dispatch('checklistContentReady', {
                         content: JSON.stringify(content),
                     });
                 }
-            });
+            }
+        });
 
-            // Очистка после сохранения
-            Livewire.on('checklistSaved', () => {
-                this.lastContent = null;
-            });
-        }
+        // Очистка после сохранения
+        document.addEventListener('checklistSaved', () => {
+            this.lastContent = null;
+        });
+
+        // Обработка событий update-safe-id и update-archive-id
+        document.addEventListener('update-safe-id', (e) => {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id,
+                });
+            }
+        });
+
+        document.addEventListener('update-archive-id', (e) => {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.dispatch('updateArchiveId', {
+                    id: e.detail.id,
+                });
+            }
+        });
     }
 }

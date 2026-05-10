@@ -209,12 +209,31 @@ export default class CreateNoteEditor {
      * Настройка слушателей событий Livewire
      */
     setupLivewireListeners() {
-        Livewire.on('getEditorContent', () => {
+        // Слушаем запрос на получение контента от PHP
+        document.addEventListener('getEditorContent', () => {
             this.sendContentToLivewire();
         });
 
+        // Удаление загруженных изображений
         document.addEventListener('delete-uploaded-images', () => {
             this.deleteAllUploadedImages();
+        });
+
+        // Обработка событий update-safe-id и update-archive-id
+        document.addEventListener('update-safe-id', (e) => {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id,
+                });
+            }
+        });
+
+        document.addEventListener('update-archive-id', (e) => {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.dispatch('updateArchiveId', {
+                    id: e.detail.id,
+                });
+            }
         });
     }
 

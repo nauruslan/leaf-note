@@ -256,21 +256,4 @@
             cancelMethod="closeModal" />
     </div>
 
-    @script
-        <script>
-            Livewire.on('restoreNoteOriginalState', () => {
-                document.dispatchEvent(new CustomEvent('restore-note-original-state'));
-            });
-            document.addEventListener('update-safe-id', (e) => {
-                Livewire.dispatch('updateSafeId', {
-                    id: e.detail.id
-                });
-            });
-            document.addEventListener('update-archive-id', (e) => {
-                Livewire.dispatch('updateArchiveId', {
-                    id: e.detail.id
-                });
-            });
-        </script>
-    @endscript
 </div>

@@ -11,7 +11,8 @@
                     <!-- Folder Selection -->
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-700 whitespace-nowrap">Папка:</span>
-                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" :archives="$this->archives->toArray()" selected="{{ $dropdownValue ?? ($folderId ?? (($safeId ? 'safe_' . $safeId : null) ?? ($archiveId ? 'archive_' . $archiveId : null))) }}"
+                        <x-dropdown :options="$this->folders->map(fn($f) => ['value' => $f->id, 'text' => $f->title])->toArray()" :safes="$this->safes->toArray()" :archives="$this->archives->toArray()"
+                            selected="{{ $dropdownValue ?? ($folderId ?? (($safeId ? 'safe_' . $safeId : null) ?? ($archiveId ? 'archive_' . $archiveId : null))) }}"
                             wireModel="dropdownValue" live width="150px" />
                     </div>
 
@@ -83,18 +84,4 @@
         </div>
     </div>
 
-    @script
-        <script>
-            document.addEventListener('update-safe-id', (e) => {
-                Livewire.dispatch('updateSafeId', {
-                    id: e.detail.id
-                });
-            });
-            document.addEventListener('update-archive-id', (e) => {
-                Livewire.dispatch('updateArchiveId', {
-                    id: e.detail.id
-                });
-            });
-        </script>
-    @endscript
 </div>

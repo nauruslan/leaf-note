@@ -241,22 +241,4 @@
         </div>
     </div>
 
-    @script
-        <script>
-            Livewire.on('deleteUploadedImages', () => {
-                document.dispatchEvent(new CustomEvent('delete-uploaded-images'));
-            });
-
-            document.addEventListener('update-safe-id', (e) => {
-                Livewire.dispatch('updateSafeId', {
-                    id: e.detail.id
-                });
-            });
-            document.addEventListener('update-archive-id', (e) => {
-                Livewire.dispatch('updateArchiveId', {
-                    id: e.detail.id
-                });
-            });
-        </script>
-    @endscript
 </div>

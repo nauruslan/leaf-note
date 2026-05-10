@@ -222,12 +222,14 @@ export default class NoteEdit {
      * Настройка слушателей событий Livewire
      */
     setupLivewireListeners() {
-        Livewire.on('getEditorContent', () => {
+        // Слушаем запрос на получение контента от PHP
+        document.addEventListener('getEditorContent', () => {
             sendContentToLivewire('note-view-editor');
         });
 
-        Livewire.on('noteLoaded', (data) => {
-            let parsedContent = data?.content || data;
+        // Загрузка данных при редактировании
+        document.addEventListener('noteLoaded', (e) => {
+            let parsedContent = e.detail?.content || e.detail;
             if (typeof parsedContent === 'string') {
                 try {
                     parsedContent = JSON.parse(parsedContent);
@@ -247,8 +249,26 @@ export default class NoteEdit {
             }
         });
 
+        // Восстановление оригинального состояния
         document.addEventListener('restore-note-original-state', () => {
             this.restoreOriginalState();
+        });
+
+        // Обработка событий update-safe-id и update-archive-id
+        document.addEventListener('update-safe-id', (e) => {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.dispatch('updateSafeId', {
+                    id: e.detail.id,
+                });
+            }
+        });
+
+        document.addEventListener('update-archive-id', (e) => {
+            if (typeof Livewire !== 'undefined') {
+                Livewire.dispatch('updateArchiveId', {
+                    id: e.detail.id,
+                });
+            }
         });
     }
 
