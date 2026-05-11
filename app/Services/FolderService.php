@@ -147,4 +147,20 @@ class FolderService
     {
         return Folder::ICONS;
     }
+
+    /**
+     * Получить папки с количеством активных заметок для сайдбара
+     */
+    public function getFoldersWithNotesCount(int $userId): \Illuminate\Database\Eloquent\Collection
+    {
+        return Folder::where('user_id', $userId)
+            ->active()
+            ->orderBy('title')
+            ->withCount(['activeNotes as notes_count' => function ($query) {
+                $query->whereNull('trash_id')
+                      ->whereNull('archive_id')
+                      ->whereNull('safe_id');
+            }])
+            ->get();
+    }
 }

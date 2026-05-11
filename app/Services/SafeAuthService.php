@@ -189,4 +189,13 @@ class SafeAuthService
 
         return null;
     }
+
+    /**
+     * Проверить, нужно ли открывать модальное окно пароля при навигации
+     */
+    public function shouldOpenPasswordModal(int $userId): bool
+    {
+        $safe = Safe::where('user_id', $userId)->first();
+        return $safe && $safe->hasPassword();
+    }
 }

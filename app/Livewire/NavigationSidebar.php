@@ -2,39 +2,70 @@
 namespace App\Livewire;
 
 use App\Livewire\Actions\Logout;
-use App\Models\Folder;
-use App\Models\Note;
-use App\Models\Safe;
+use App\Services\FolderService;
+use App\Services\SafeAuthService;
+use App\Services\SidebarNavigationService;
+use App\Services\SidebarStatisticsService;
 use App\Services\StateManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
+use Livewire\Attributes\Session;
 use Livewire\Component;
 
 class NavigationSidebar extends Component
 {
-    public string $section = 'dashboard-section';
-    public ?int $folderId = null;
+    // UI State - публичные свойства для привязки
     public bool $confirmingLogout = false;
     public bool $isLoading = false;
     public ?string $loadingSection = null;
+
+    // Состояние навигации - хранится в сессии
+    #[Session]
+    public string $section = 'dashboard-section';
+
+    #[Session]
+    public ?int $folderId = null;
+
+    #[Session]
     public ?string $previousSection = null;
+
+    #[Session]
     public ?int $previousFolderId = null;
 
+    // Внедряемые сервисы
+    protected SidebarStatisticsService $statisticsService;
+    protected SidebarNavigationService $navigationService;
+    protected FolderService $folderService;
+    protected SafeAuthService $safeAuthService;
 
-    protected $listeners = [
-        'refreshSidebar' => 'refreshSidebar',
-        'stateUpdated' => 'updateState',
-        'startLoading' => 'startLoading',
-        'finishLoading' => 'finishLoading',
-    ];
+    /**
+     * Инициализация сервисов
+     */
+    public function boot(
+        SidebarStatisticsService $statisticsService,
+        SidebarNavigationService $navigationService,
+        FolderService $folderService,
+        SafeAuthService $safeAuthService,
+    ): void {
+        $this->statisticsService = $statisticsService;
+        $this->navigationService = $navigationService;
+        $this->folderService = $folderService;
+        $this->safeAuthService = $safeAuthService;
+    }
 
+    /**
+     * Инициализация компонента
+     */
     public function mount(): void
     {
         if (!Auth::check()) {
             return;
         }
 
+        // Загружаем состояние из StateManager
         $this->section = StateManager::get('section', 'dashboard-section');
         $this->folderId = StateManager::get('folderId', null);
         $this->previousSection = StateManager::get('previous_section', null);
@@ -42,54 +73,54 @@ class NavigationSidebar extends Component
     }
 
     /**
-     * Возвращает секцию для подсветки активного элемента в сайдбаре.
-     * Если текущая секция является "дочерней" (edit-note, edit-checklist),
-     * возвращается предыдущая секция для сохранения подсветки.
+     * Возвращает секцию для подсветки активного элемента в сайдбаре
      */
     #[Computed]
     public function activeSection(): string
     {
-        $editingSections = ['edit-note', 'edit-checklist', 'edit-folder'];
-
-        if (in_array($this->section, $editingSections) && $this->previousSection) {
-            return $this->previousSection;
-        }
-
-        return $this->section;
+        return $this->navigationService->getActiveSection(
+            $this->section,
+            $this->previousSection
+        );
     }
 
+    /**
+     * ID текущего пользователя
+     */
     #[Computed]
     public function userId(): ?int
     {
         return Auth::id();
     }
 
+    /**
+     * Статистика заметок для сайдбара
+     */
     #[Computed]
     public function noteCounts(): object
     {
-
         if (!$this->userId) {
             return (object) [
                 'dashboard' => 0,
                 'safe' => 0,
                 'archive' => 0,
-                'checklist' => 0,
                 'favorite' => 0,
             ];
         }
 
-        $counts = Note::where('user_id', $this->userId)
-            ->selectRaw("
-                COUNT(CASE WHEN trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as dashboard,
-                COUNT(CASE WHEN safe_id IS NOT NULL THEN 1 END) as safe,
-                COUNT(CASE WHEN archive_id IS NOT NULL THEN 1 END) as archive,
-                COUNT(CASE WHEN is_favorite = 1 AND trash_id IS NULL AND archive_id IS NULL AND safe_id IS NULL THEN 1 END) as favorite
-            ")
-            ->first();
+        $dto = $this->statisticsService->getNoteCounts($this->userId);
 
-        return $counts;
+        return (object) [
+            'dashboard' => $dto->dashboard,
+            'safe' => $dto->safe,
+            'archive' => $dto->archive,
+            'favorite' => $dto->favorite,
+        ];
     }
 
+    /**
+     * Количество элементов в корзине
+     */
     #[Computed]
     public function trashCount(): int
     {
@@ -97,37 +128,26 @@ class NavigationSidebar extends Component
             return 0;
         }
 
-        $notesCount = Note::where('user_id', $this->userId)
-            ->whereNotNull('trash_id')
-            ->count();
-
-        $foldersCount = Folder::where('user_id', $this->userId)
-            ->whereNotNull('trash_id')
-            ->count();
-
-        return $notesCount + $foldersCount;
+        return $this->statisticsService->getTrashCount($this->userId);
     }
 
+    /**
+     * Список папок с количеством заметок
+     */
     #[Computed]
     public function folders(): Collection
     {
-
         if (!$this->userId) {
-            return collect();
+            return new Collection();
         }
 
-        return Folder::where('user_id', $this->userId)
-            ->active()
-            ->orderBy('title')
-            ->withCount(['activeNotes as notes_count' => function ($query) {
-                $query->whereNull('trash_id')
-                      ->whereNull('archive_id')
-                      ->whereNull('safe_id');
-            }])
-            ->get();
+        return $this->folderService->getFoldersWithNotesCount($this->userId);
     }
 
-
+    /**
+     * Переход к секции
+     */
+    #[Locked]
     public function goTo(string $section, ?int $folderId = null): void
     {
         if ($this->section === $section && $this->folderId === $folderId) {
@@ -137,89 +157,113 @@ class NavigationSidebar extends Component
         $this->isLoading = true;
         $this->loadingSection = $section;
 
-        // Сохраняем текущую секцию как предыдущую перед переходом
-        // Но только если мы не уходим со страницы создания (create-note, create-checklist, create-folder)
-        $createSections = ['create-note', 'create-checklist', 'create-folder'];
-        if (!in_array($this->section, $createSections)) {
-            $this->previousSection = $this->section;
-            $this->previousFolderId = $this->folderId;
+        // Подготавливаем состояние навигации
+        $state = $this->navigationService->prepareNavigationState(
+            $section,
+            $folderId,
+            $this->section,
+            $this->folderId,
+        );
 
-            // Сохраняем предыдущую секцию в StateManager, чтобы она была доступна в WithBackSection
-            StateManager::set('previous_section', $this->previousSection);
-            StateManager::set('previous_folderId', $this->previousFolderId);
+        // Обновляем свойства
+        $this->section = $state->section;
+        $this->folderId = $state->folderId;
+        $this->previousSection = $state->previousSection;
+        $this->previousFolderId = $state->previousFolderId;
+
+        // Сохраняем состояние в StateManager
+        StateManager::set('section', $this->section);
+        StateManager::set('folderId', $this->folderId);
+        StateManager::set('previous_section', $this->previousSection);
+        StateManager::set('previous_folderId', $this->previousFolderId);
+
+        // Проверяем пароль сейфа
+        if ($section === 'safe-section' && $this->safeAuthService->shouldOpenPasswordModal(Auth::id())) {
+            $this->dispatch('openSafePasswordModal');
         }
 
-        $this->section = $section;
-        $this->folderId = $folderId;
-
-        // Сохраняем состояние в сессию
-        StateManager::set('section', $section);
-        StateManager::set('folderId', $folderId);
-
-        // Для сейфа - проверить нужно ли показывать модальное окно пароля
-        if ($section === 'safe-section') {
-            $safe = Safe::where('user_id', Auth::id())->first();
-            if ($safe && $safe->hasPassword()) {
-                // Сейф защищён паролем - отправить событие для открытия модального окна
-                $this->dispatch('openSafePasswordModal');
-            }
-        }
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
         $this->dispatch('startLoading', section: $section, folderId: $folderId);
-
         $this->js('window.scrollTo(0, 0)');
     }
 
+    /**
+     * Начало загрузки
+     */
+    #[On('startLoading')]
     public function startLoading(string $section, ?int $folderId = null): void
     {
         $this->isLoading = true;
         $this->loadingSection = $section;
     }
 
+    /**
+     * Завершение загрузки
+     */
+    #[On('finishLoading')]
     public function finishLoading(): void
     {
         $this->isLoading = false;
         $this->loadingSection = null;
     }
 
+    /**
+     * Обновление состояния из внешнего источника
+     */
+    #[On('stateUpdated')]
     public function updateState(string $section, ?int $folderId = null): void
     {
-        // Сохраняем текущую секцию как предыдущую перед обновлением
-        // Но только если мы не уходим со страницы создания (create-note, create-checklist, create-folder)
-        $createSections = ['create-note', 'create-checklist', 'create-folder'];
-        if (!in_array($this->section, $createSections)) {
-            $this->previousSection = $this->section;
-            $this->previousFolderId = $this->folderId;
+        // Подготавливаем состояние навигации
+        $state = $this->navigationService->prepareNavigationState(
+            $section,
+            $folderId,
+            $this->section,
+            $this->folderId,
+        );
 
-            // Сохраняем предыдущую секцию в StateManager, чтобы она была доступна в WithBackSection
-            StateManager::set('previous_section', $this->previousSection);
-            StateManager::set('previous_folderId', $this->previousFolderId);
-        }
+        // Обновляем свойства
+        $this->section = $state->section;
+        $this->folderId = $state->folderId;
+        $this->previousSection = $state->previousSection;
+        $this->previousFolderId = $state->previousFolderId;
 
-        $this->section = $section;
-        $this->folderId = $folderId;
-
-        // Сохраняем состояние в сессию
-        StateManager::set('section', $section);
-        StateManager::set('folderId', $folderId);
+        // Сохраняем состояние в StateManager
+        StateManager::set('section', $this->section);
+        StateManager::set('folderId', $this->folderId);
+        StateManager::set('previous_section', $this->previousSection);
+        StateManager::set('previous_folderId', $this->previousFolderId);
     }
 
+    /**
+     * Обновление сайдбара
+     */
+    #[On('refreshSidebar')]
     public function refreshSidebar(): void
     {
         $this->dispatch('$refresh');
     }
 
+    /**
+     * Подтверждение выхода
+     */
     public function confirmLogout(): void
     {
         $this->confirmingLogout = true;
     }
 
+    /**
+     * Закрытие модального окна выхода
+     */
     public function closeLogoutModal(): void
     {
         $this->confirmingLogout = false;
         $this->dispatch('modalClosed');
     }
 
+    /**
+     * Выход из системы
+     */
+    #[Locked]
     public function logout()
     {
         $this->closeLogoutModal();
@@ -229,7 +273,10 @@ class NavigationSidebar extends Component
         return redirect()->route('login');
     }
 
-    public function render()
+    /**
+     * Рендер компонента
+     */
+    public function render(): \Illuminate\View\View
     {
         return view('livewire.navigation-sidebar');
     }
