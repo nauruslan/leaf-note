@@ -12,6 +12,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 abstract class Base extends Component
@@ -31,7 +32,6 @@ abstract class Base extends Component
     /**
      * Скоупы модели для применения к запросу.
      * Переопределить в дочернем классе.
-     *
      * @var array<string>
      */
     protected array $scopes = [];
@@ -50,11 +50,7 @@ abstract class Base extends Component
     public ?string $loadingSection = null;
     public ?int $loadingNoteId = null;
 
-    protected $listeners = [
-        'startLoading' => 'startLoading',
-        'finishLoading' => 'finishLoading',
-    ];
-
+    #[On('startLoading')]
     public function startLoading(string $section, ?int $folderId = null, ?int $noteId = null): void
     {
         $this->isLoading = true;
@@ -62,6 +58,7 @@ abstract class Base extends Component
         $this->loadingNoteId = $noteId;
     }
 
+    #[On('finishLoading')]
     public function finishLoading(): void
     {
         $this->isLoading = false;
@@ -107,9 +104,9 @@ abstract class Base extends Component
     }
 
     /**
-     * Общее количество заметок (с кэшированием).
+     * Общее количество заметок.
      */
-    #[Computed(cache: true, seconds: 10*60)]
+    #[Computed]
     public function totalNotesCount(): int
     {
         return $this->getTotalCount();

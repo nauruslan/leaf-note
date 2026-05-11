@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\Note;
+use App\Services\NoteQueryService;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardSection extends Base
@@ -28,9 +28,7 @@ class DashboardSection extends Base
      */
     protected function getTotalCount(): int
     {
-        return Note::forUser(Auth::id())
-            ->active()
-            ->count();
+        return app(NoteQueryService::class)->getActiveNotesCount(Auth::id());
     }
 
     public function render()

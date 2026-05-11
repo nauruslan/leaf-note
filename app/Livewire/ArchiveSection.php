@@ -2,8 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\Archive;
-use App\Models\Note;
+use App\Services\ArchiveService;
 use Illuminate\Support\Facades\Auth;
 
 class ArchiveSection extends Base
@@ -19,10 +18,7 @@ class ArchiveSection extends Base
 
     public function mount(): void
     {
-        $archive = Archive::where('user_id', Auth::id())->first();
-        if ($archive) {
-            $this->archiveId = $archive->id;
-        }
+        $this->archiveId = app(ArchiveService::class)->getUserArchiveId(Auth::id());
     }
 
     /**
@@ -38,9 +34,7 @@ class ArchiveSection extends Base
      */
     protected function getTotalCount(): int
     {
-        return Note::forUser(Auth::id())
-            ->archived()
-            ->count();
+        return app(ArchiveService::class)->getArchivedNotesCount(Auth::id());
     }
 
     public function render()

@@ -22,9 +22,7 @@
         '48px' => 'h-12',
         default => 'h-10',
     };
-
     $hasError = $error !== null ? (bool) $error : ($field ? $errors->has($field) : false);
-
     $hasIcon = $slot->isNotEmpty();
     $paddingLeft = $hasIcon ? 'pl-10' : 'px-4';
 @endphp
@@ -36,14 +34,12 @@
             {{ $label }}
         </label>
     @endif
-
     <div class="relative">
         @if ($hasIcon)
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 {{ $slot }}
             </div>
         @endif
-
         <input type="{{ $type }}" @if ($id) id="{{ $id }}" @endif
             @if ($wireModel) wire:model="{{ $wireModel }}" @endif
             @if ($autofocus) autofocus @endif @if ($disabled) disabled @endif

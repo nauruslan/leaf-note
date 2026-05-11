@@ -3,20 +3,22 @@
 namespace App\Livewire;
 
 use App\Models\Folder;
-use App\Models\Note;
+use App\Services\FolderService;
+use App\Services\NoteQueryService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 
 class FolderSection extends Base
 {
     public string $section = 'folder-section';
     public bool $confirmingDeletion = false;
 
-    protected function getListeners()
+    #[On('closeModal')]
+    public function closeModal(): void
     {
-        return array_merge(parent::getListeners(), [
-            'closeModal' => 'closeModal',
-        ]);
+        $this->confirmingDeletion = false;
+        $this->dispatch('modalClosed');
     }
 
     public function mount(?int $folderId = null): void
@@ -35,9 +37,7 @@ class FolderSection extends Base
             return 0;
         }
 
-        return Note::forUser(Auth::id())
-            ->where('folder_id', $this->folderId)
-            ->count();
+        return app(NoteQueryService::class)->getFolderNotesCount(Auth::id(), $this->folderId);
     }
 
     #[Computed]
@@ -47,10 +47,7 @@ class FolderSection extends Base
             return null;
         }
 
-        return Folder::where('user_id', Auth::id())
-            ->where('id', $this->folderId)
-            ->active()
-            ->first();
+        return app(FolderService::class)->getFolder(Auth::id(), $this->folderId);
     }
 
     /**
@@ -80,29 +77,19 @@ class FolderSection extends Base
         $this->confirmingDeletion = true;
     }
 
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-        $this->dispatch('modalClosed');
-    }
-
     public function deleteFolder(?int $folderId = null): void
     {
-        $folder = $this->folder;
+        $targetFolderId = $folderId ?? $this->folderId;
 
-        if ($folderId !== null) {
-            $folder = Folder::where('user_id', Auth::id())->find($folderId);
-        }
-
-        if (!$folder) {
+        if (!$targetFolderId) {
             $this->confirmingDeletion = false;
             return;
         }
 
-        $success = $folder->moveToTrash();
+        $result = app(FolderService::class)->deleteFolder(Auth::id(), $targetFolderId);
 
-        if ($success) {
-            $this->dispatch('notification', ['title' => 'Удалено', 'content' => "Папка «{$folder->title}» отправлена в корзину", 'type' => 'danger']);
+        if ($result['success']) {
+            $this->dispatch('notification', ['title' => 'Удалено', 'content' => $result['message'], 'type' => 'danger']);
             // После удаления перенаправить на дашборд
             $this->dispatch('navigateTo', section: 'dashboard-section');
             // Обновляем sidebar (получит новое значение section через проп от AppLayout)
@@ -110,8 +97,8 @@ class FolderSection extends Base
             // Закрыть модальное окно
             $this->confirmingDeletion = false;
         } else {
-            // Корзина переполнена
-            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Корзина переполнена. Очистите корзину перед удалением.', 'type' => 'danger']);
+            // Корзина переполнена или папка не найдена
+            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => $result['message'], 'type' => 'danger']);
             $this->confirmingDeletion = false;
         }
     }

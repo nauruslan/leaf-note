@@ -27,19 +27,17 @@
                         Для доступа к защищённым заметкам введите пароль
                     </p>
                     @if ($errorMessage)
-                        <div class="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg text-red-700 text-sm h-12">
+                        <div class="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg text-red-700 text-sm min-h-12">
                             {{ $errorMessage }}
                         </div>
                     @endif
                     <form wire:submit="verifyPassword" class="space-y-4">
                         <x-input-group type="password" wireModel="password" placeholder="Пароль" height="48px"
                             autofocus :error="$errorMessage ? true : false" />
-
                         <x-primary-button type="submit" class="w-full" height="h-12">
                             <i data-lucide="lock" class="w-4 h-4"></i>
                             Открыть сейф
                         </x-primary-button>
-
                     </form>
                 </div>
             </div>

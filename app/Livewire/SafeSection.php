@@ -4,10 +4,13 @@ namespace App\Livewire;
 
 use App\Models\Note;
 use App\Models\Safe;
+use App\Services\NoteQueryService;
+use App\Services\SafeAuthService;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Rule;
+use Livewire\Attributes\Session;
 
 class SafeSection extends Base
 {
@@ -17,27 +20,32 @@ class SafeSection extends Base
     public string $subheading = 'Защищённые заметки';
     public string $section = 'safe-section';
     public bool $confirmingPassword = false;
+
+    #[Rule('required|min:1')]
     public string $password = '';
+
     public bool $isUnlocked = false;
     public ?string $errorMessage = null;
     public bool $showUnprotectedModal = false;
     public int $attemptResetPollInterval;
 
+    #[Session]
+    public ?bool $safePasswordReset = null;
+
     public function mount(): void
     {
-
         $this->attemptResetPollInterval = Safe::getAttemptResetPollInterval();
 
         // Проверяем, был ли сброшен пароль сейфа через email
-        if (session()->has('safe_password_reset')) {
-            session()->forget('safe_password_reset');
+        if ($this->safePasswordReset) {
+            $this->safePasswordReset = null;
             $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Пароль сейфа сброшен. Сейф теперь открыт без защиты.', 'type' => 'success']);
         }
 
         $this->loadSafe();
 
         // Устанавливаем safeId для предустановки при создании заметок
-        $safe = $this->safe();
+        $safe = Safe::where('user_id', Auth::id())->first();
         if ($safe) {
             $this->safeId = $safe->id;
         }
@@ -52,17 +60,16 @@ class SafeSection extends Base
      * Количество заметок в сейфе (для отображения в UI).
      */
     #[Computed(cache: true, seconds: 60)]
-    protected function getTotalCount(): int
+    public function getTotalCount(): int
     {
-        return Note::forUser(Auth::id())
-            ->whereNotNull('safe_id')
-            ->count();
+        return app(NoteQueryService::class)->getSafeNotesCount(Auth::id());
     }
 
     /**
      * Получить актуальную модель Safe из БД.
-     * Не используем caching - каждая проверка должна быть актуальной.
+     * persist: false - не кешируется между запросами, данные всегда актуальны.
      */
+    #[Computed(persist: false)]
     public function safe(): ?Safe
     {
         return Safe::where('user_id', Auth::id())->first();
@@ -71,6 +78,7 @@ class SafeSection extends Base
     /**
      * Достигнут ли лимит попыток ввода пароля?
      */
+    #[Computed(persist: false)]
     public function hasReachedAttemptLimit(): bool
     {
         $safe = $this->safe();
@@ -85,7 +93,7 @@ class SafeSection extends Base
         $query = Note::forUser(Auth::id())->with('folder');
 
         // Фильтруем только заметки конкретного сейфа
-        $safe = $this->safe();
+        $safe = Safe::where('user_id', Auth::id())->first();
         if ($safe) {
             $query->where('safe_id', $safe->id);
         } else {
@@ -97,70 +105,25 @@ class SafeSection extends Base
 
     protected function loadSafe(): void
     {
-        $safe = $this->safe();
+        $state = app(SafeAuthService::class)->checkSafeState(Auth::id());
 
-        // Если пароль не установлен - показываем предупреждение
-        if (!$safe || !$safe->hasPassword()) {
-            $this->showUnprotectedModal = true;
-            $this->isUnlocked = true;
-            $this->confirmingPassword = false;
-            return;
-        }
+        $this->isUnlocked = $state['isUnlocked'];
+        $this->confirmingPassword = $state['confirmingPassword'];
+        $this->showUnprotectedModal = $state['showUnprotectedModal'] ?? false;
+        $this->errorMessage = $state['errorMessage'];
 
-        // Проверяем, разблокирован ли сейф через сессию
-        $safeUnlocked = StateManager::get('safe_unlocked', false);
-        if ($safeUnlocked) {
-            $this->isUnlocked = true;
-            $this->confirmingPassword = false;
-            $this->errorMessage = null;
-            return;
-        }
-
-        // Проверяем и сбрасываем попытки, если прошло более 10 минут
-        $safe->checkAndResetAttempts();
-
-        // Сейф заблокирован по попыткам - выходим из аккаунта
-        if ($safe->hasReachedAttemptLimit()) {
-            $this->performLogoutDueToLockout();
-            return;
-        }
-
-        // Требуется ввод пароля
-        $this->confirmingPassword = true;
-        $this->isUnlocked = false;
-
-        // Показываем сообщение о количестве оставшихся попыток
-        if ($safe->failed_attempts > 0) {
-            $remainingAttempts = $safe->max_attempts - $safe->failed_attempts;
-
-            if ($remainingAttempts === 1) {
-                $this->errorMessage = 'У вас осталась последняя попытка. В случае ввода неверного пароля будет выполнен выход из аккаунта.';
-            } else {
-                $this->errorMessage = "Неверный пароль. Осталось попыток: {$remainingAttempts}";
-            }
+        if ($state['shouldRedirect'] ?? false) {
+            redirect()->route('login');
         }
     }
 
     public function verifyPassword(): void
     {
-        $this->errorMessage = null;
+        $this->validate();
 
-        if (empty($this->password)) {
-            $this->errorMessage = 'Введите пароль';
-            return;
-        }
+        $result = app(SafeAuthService::class)->verifyPassword(Auth::id(), $this->password);
 
-        // Получаем актуальную модель из БД
-        $safe = $this->safe();
-
-        if (!$safe) {
-            $this->errorMessage = 'Сейф не найден';
-            return;
-        }
-
-        if ($safe->verifyPassword($this->password)) {
-            $safe->recordSuccessfulAccess();
-            StateManager::set('safe_unlocked', true);
+        if ($result->success) {
             $this->isUnlocked = true;
             $this->confirmingPassword = false;
             $this->password = '';
@@ -168,53 +131,15 @@ class SafeSection extends Base
             return;
         }
 
-        // Неверный пароль - увеличиваем счётчик попыток
-        $safe->recordFailedAttempt();
         $this->password = '';
+        $this->errorMessage = $result->errorMessage;
 
-        // Перезагружаем сейф для актуальных данных
-        $safe = $this->safe();
-
-        // Проверяем, достигнут ли лимит попыток
-        if ($safe->hasReachedAttemptLimit()) {
-            // Выполняем выход из аккаунта
-            $this->performLogoutDueToLockout();
-        } else {
-            $remainingAttempts = $safe->max_attempts - $safe->failed_attempts;
-
-            // Особый текст для последней попытки
-            if ($remainingAttempts === 1) {
-                $this->errorMessage = 'У вас осталась последняя попытка. В случае ввода неверного пароля будет выполнен выход из аккаунта.';
-            } else {
-                $this->errorMessage = "Неверный пароль. Осталось попыток: {$remainingAttempts}";
-            }
+        if ($result->shouldLogout) {
+            app(SafeAuthService::class)->performLogoutDueToLockout(Auth::id());
+            redirect()->route('login');
         }
     }
 
-    /**
-     * Выполнить выход из аккаунта из-за блокировки сейфа.
-     */
-    protected function performLogoutDueToLockout(): void
-    {
-        $userId = Auth::id();
-
-        // Сначала сбрасываем состояние сейфа и счётчик попыток
-        $safe = Safe::where('user_id', $userId)->first();
-        if ($safe) {
-            $safe->unlock(); // сбрасывает failed_attempts и locked_until
-        }
-        StateManager::remove('safe_unlocked');
-
-        // Выполняем выход пользователя
-        Auth::logout();
-
-        // Инвалидируем сессию
-        Session::invalidate();
-        Session::regenerateToken();
-
-        // Перенаправляем на страницу входа
-        redirect()->route('login');
-    }
 
     public function lock(): void
     {
@@ -234,15 +159,7 @@ class SafeSection extends Base
      */
     public function checkAttempts(): void
     {
-        $safe = $this->safe();
-        if ($safe && $safe->failed_attempts > 0) {
-            $safe->checkAndResetAttempts();
-
-            // Если попытки были сброшены, обновляем сообщение
-            if ($safe->failed_attempts === 0) {
-                $this->errorMessage = null;
-            }
-        }
+        $this->errorMessage = app(SafeAuthService::class)->checkAndResetAttempts(Auth::id());
     }
 
     public function render()
