@@ -2,7 +2,7 @@
     <!-- Header Section -->
     <x-header :heading='$heading' :subheading='$subheading' />
     <!-- Content Section -->
-    <x-profile-content-section :name="$name" :email="$email" :notesCount="$notesCount" :checklistsCount="$checklistsCount" :foldersCount="$foldersCount"
+    <x-profile-content-section :name="$name" :email="$email" :notesCount="$this->statistics->notesCount" :checklistsCount="$this->statistics->checklistsCount" :foldersCount="$this->statistics->foldersCount"
         :notificationsEnabled="$notificationsEnabled" :autoDeleteDays="$autoDeleteDays" :canChangePassword="$canChangePassword" :hasSafePassword="$hasSafePassword" />
 
     <!-- Модальное окно подтверждения сброса пароля аккаунта -->

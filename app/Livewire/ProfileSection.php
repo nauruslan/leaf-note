@@ -2,23 +2,34 @@
 
 namespace App\Livewire;
 
-use App\Models\Note;
-use App\Models\Folder;
-use App\Models\Trash;
-use App\Models\Safe;
+use App\Dto\ProfileDto;
+use App\Dto\SafePasswordDto;
+use App\Dto\TrashSettingsDto;
+use App\Dto\UserStatisticsDto;
+use App\Services\UserService;
+use App\Services\SafePasswordService;
+use App\Services\TrashService;
+use App\Services\StatisticsService;
+use App\Services\ProfileValidationService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Rule;
+use Livewire\Attributes\Computed;
 
 class ProfileSection extends Component
 {
+    // Заголовки
+    public string $heading = 'Настройки профиля';
+    public string $subheading = 'Управление вашими личными данными и настройками';
 
-    public $heading='Настройки профиля';
-    public $subheading='Управление вашими личными данными и настройками';
-    // Личные данные
+    // Личные данные с декларативной валидацией
+    #[Rule('required|string|max:255')]
     public string $name = '';
+
+    #[Rule('required|email|max:255')]
     public string $email = '';
 
     // Настройки
@@ -35,31 +46,50 @@ class ProfileSection extends Component
     public string $safePassword = '';
     public string $safeConfirmPassword = '';
 
-    // Статистика
-    public int $notesCount = 0;
-    public int $checklistsCount = 0;
-    public int $foldersCount = 0;
-
     // Состояние
-    public bool $hasSafePassword = false;
-    public bool $canChangePassword = true;
+    public bool $hasUnsavedChanges = false;
 
-    // Состояние отправки сброса пароля сейфа
-    public bool $sendingSafePasswordReset = false;
-    public bool $safePasswordResetSent = false;
-
-    // Модальные окна для сброса паролей
+    // Модальные окна
     public bool $showPasswordResetModal = false;
     public bool $showSafePasswordResetModal = false;
 
-    // Публичное свойство для отслеживания изменений
-    public bool $hasUnsavedChanges = false;
+    // Состояние отправки
+    public bool $sendingSafePasswordReset = false;
+    public bool $safePasswordResetSent = false;
 
-    // Исходные значения для сравнения (публичные для сериализации Livewire)
-    public string $originalName = '';
-    public string $originalEmail = '';
-    public string $originalNotificationsEnabled = '0';
-    public string $originalAutoDeleteDays = 'disabled';
+    // Защищённые от параллельных запросов
+    #[Locked]
+    public bool $hasSafePassword = false;
+
+    #[Locked]
+    public bool $canChangePassword = true;
+
+    // Исходные значения для сравнения
+    protected string $originalName = '';
+    protected string $originalEmail = '';
+    protected string $originalNotificationsEnabled = '0';
+    protected string $originalAutoDeleteDays = 'disabled';
+
+    // Внедряемые сервисы
+    protected UserService $userService;
+    protected SafePasswordService $safePasswordService;
+    protected TrashService $trashService;
+    protected StatisticsService $statisticsService;
+    protected ProfileValidationService $validationService;
+
+    public function boot(
+        UserService $userService,
+        SafePasswordService $safePasswordService,
+        TrashService $trashService,
+        StatisticsService $statisticsService,
+        ProfileValidationService $validationService,
+    ): void {
+        $this->userService = $userService;
+        $this->safePasswordService = $safePasswordService;
+        $this->trashService = $trashService;
+        $this->statisticsService = $statisticsService;
+        $this->validationService = $validationService;
+    }
 
     public function mount(): void
     {
@@ -71,84 +101,40 @@ class ProfileSection extends Component
 
         // Настройки
         $this->notificationsEnabled = ($user->notifications_enabled ?? false) ? '1' : '0';
-        $this->autoDeleteDays = $this->getAutoDeleteDays($user);
+        $this->autoDeleteDays = $this->trashService->getAutoDeleteDays($user->id);
 
-        // Статистика
-        $this->loadStatistics($user);
+        // Статистика загружается через #[Computed]
+        $this->hasSafePassword = $this->safePasswordService->hasPassword($user->id);
+        $this->canChangePassword = $this->userService->canChangePassword($user->id);
 
-        // Safe пароль
-        $safe = Safe::where('user_id', $user->id)->first();
-        $this->hasSafePassword = $safe && $safe->hasPassword();
-
-        // Проверка возможности смены пароля (только не демо)
-        $this->canChangePassword = !$user->isDemoUser();
-
-        // Сохраняем исходные значения для отслеживания изменений
+        // Сохраняем исходные значения
         $this->initOriginalValues();
     }
 
-    // Инициализация оригинальных значений
-    private function initOriginalValues(): void
+    // Вычисляемое свойство для статистики
+    #[Computed]
+    public function statistics(): UserStatisticsDto
     {
-        $this->originalName = $this->name;
-        $this->originalEmail = $this->email;
-        $this->originalNotificationsEnabled = $this->notificationsEnabled;
-        $this->originalAutoDeleteDays = $this->autoDeleteDays;
+        return $this->statisticsService->getUserStatistics(Auth::id());
     }
 
-    // Отслеживаем изменения полей
-    public function updatedName(): void
+    // Универсальный обработчик изменений
+    public function updated($property): void
     {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
+        // Отслеживаем изменения только для нужных свойств
+        $trackedProperties = [
+            'name', 'email', 'notificationsEnabled', 'autoDeleteDays',
+            'currentPassword', 'newPassword', 'confirmPassword',
+            'safeCurrentPassword', 'safePassword', 'safeConfirmPassword',
+        ];
 
-    public function updatedEmail(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
-
-    public function updatedNotificationsEnabled(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
-
-    public function updatedAutoDeleteDays(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
-
-    public function updatedCurrentPassword(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
-
-    public function updatedNewPassword(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
-
-    public function updatedConfirmPassword(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
-
-    public function updatedSafeCurrentPassword(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
-
-    public function updatedSafePassword(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
-    }
-
-    public function updatedSafeConfirmPassword(): void
-    {
-        $this->hasUnsavedChanges = $this->hasChanges();
+        if (in_array($property, $trackedProperties)) {
+            $this->hasUnsavedChanges = $this->hasChanges();
+        }
     }
 
     // Проверка наличия изменений
-    public function hasChanges(): bool
+    protected function hasChanges(): bool
     {
         // Проверяем личные данные и настройки
         if ($this->originalName !== $this->name) {
@@ -180,245 +166,189 @@ class ProfileSection extends Component
         return false;
     }
 
-    // Получить настройку автоудаления из корзины.
-    private function getAutoDeleteDays($user): string
+    // Инициализация оригинальных значений
+    protected function initOriginalValues(): void
     {
-        $trash = Trash::where('user_id', $user->id)->first();
-        if (!$trash) {
-            return 'disabled';
-        }
-
-        $days = $trash->auto_delete_days ?? null;
-        return $days ? (string) $days : 'disabled';
+        $this->originalName = $this->name;
+        $this->originalEmail = $this->email;
+        $this->originalNotificationsEnabled = $this->notificationsEnabled;
+        $this->originalAutoDeleteDays = $this->autoDeleteDays;
     }
-
-    // Загрузить статистику пользователя.
-    private function loadStatistics($user): void
-    {
-        $this->notesCount = Note::where('user_id', $user->id)
-            ->where('type', Note::TYPE_NOTE)
-            ->whereNull('trash_id')
-            ->whereNull('archive_id')
-            ->whereNull('safe_id')
-            ->count();
-
-        $this->checklistsCount = Note::where('user_id', $user->id)
-            ->where('type', Note::TYPE_CHECKLIST)
-            ->whereNull('trash_id')
-            ->whereNull('archive_id')
-            ->whereNull('safe_id')
-            ->count();
-
-        $this->foldersCount = Folder::where('user_id', $user->id)
-            ->whereNull('trash_id')
-            ->count();
-    }
-
 
     // Сохранить профиль
     public function saveProfile(): void
     {
-        // Если нет изменений - не сохраняем
         if (!$this->hasChanges()) {
-            $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Нет изменений для сохранения', 'type' => 'info']);
+            $this->dispatch('notification', [
+                'title' => 'Информация',
+                'content' => 'Нет изменений для сохранения',
+                'type' => 'info'
+            ]);
             return;
         }
 
-        // Сохраняем личные данные с обработкой ошибок валидации
         try {
-            $this->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255',
+            // Валидация личных данных
+            $this->validationService->validateProfile([
+                'name' => $this->name,
+                'email' => $this->email,
             ]);
+
+            // Обновляем профиль
+            $user = $this->userService->updateProfile(
+                Auth::id(),
+                new ProfileDto(
+                    name: $this->name,
+                    email: $this->email,
+                    notificationsEnabled: $this->notificationsEnabled === '1',
+                )
+            );
+
+            // Отправляем событие для обновления JS переменной
+            $this->dispatch('notifications-settings-updated', enabled: $user->notifications_enabled);
+
+            // Сохраняем настройки корзины
+            $this->trashService->updateAutoDeleteDays(
+                Auth::id(),
+                new TrashSettingsDto(autoDeleteDays: $this->autoDeleteDays)
+            );
+
+            // Смена пароля аккаунта
+            if (!empty($this->currentPassword) || !empty($this->newPassword) || !empty($this->confirmPassword)) {
+                $this->changePassword();
+            }
+
+            // Сохранение пароля сейфа
+            if (!empty($this->safePassword) || !empty($this->safeConfirmPassword)) {
+                $this->saveSafePassword();
+            }
+
+            // Очистка полей
+            $this->clearPasswordFields();
+
+            // Обновляем исходные значения
+            $this->initOriginalValues();
+            $this->hasUnsavedChanges = false;
+
+            $this->dispatch('notification', [
+                'title' => 'Успешно',
+                'content' => 'Настройки сохранены',
+                'type' => 'success'
+            ]);
+
         } catch (ValidationException $e) {
-            // Отправляем уведомление об ошибке валидации
             $this->dispatch('notification', [
                 'title' => 'Внимание',
                 'content' => 'Пожалуйста, исправьте ошибки в форме',
                 'type' => 'warning'
             ]);
             throw $e;
-        }
-
-        $user = Auth::user();
-        $user->name = $this->name;
-        $user->email = $this->email;
-        $user->notifications_enabled = $this->notificationsEnabled === '1';
-        $user->save();
-
-        // Отправляем событие для обновления JavaScript переменной
-        $this->dispatch('notifications-settings-updated', enabled: $user->notifications_enabled);
-
-        // Сохраняем настройки корзины
-        $this->saveNotificationSettings($user);
-
-        // Если заполнены поля для смены пароля - меняем пароль
-        if (!empty($this->currentPassword) || !empty($this->newPassword) || !empty($this->confirmPassword)) {
-            $this->changePassword();
-        }
-
-        // Если заполнены поля для пароля сейфа - сохраняем пароль сейфа
-        if (!empty($this->safePassword) || !empty($this->safeConfirmPassword)) {
-            $this->saveSafePassword();
-        }
-
-        $this->currentPassword = '';
-        $this->newPassword = '';
-        $this->confirmPassword = '';
-        $this->safeCurrentPassword = '';
-        $this->safePassword = '';
-        $this->safeConfirmPassword = '';
-
-        // Обновляем исходные значения после сохранения
-        $this->initOriginalValues();
-        $this->hasUnsavedChanges = false;
-        $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Настройки сохранены', 'type' => 'success']);
-    }
-
-    // Сохранить настройки автоудаления.
-    private function saveNotificationSettings($user): void
-    {
-        $trash = Trash::where('user_id', $user->id)->first();
-        if ($trash) {
-            if ($this->autoDeleteDays === 'disabled') {
-                $autoDeleteDays = null;
-            } elseif ($this->autoDeleteDays === '1min') {
-                $autoDeleteDays = '1min';
-            } else {
-                $autoDeleteDays = (int) $this->autoDeleteDays;
-            }
-            $trash->auto_delete_days = $autoDeleteDays;
-            $trash->save();
+        } catch (\InvalidArgumentException $e) {
+            $this->dispatch('notification', [
+                'title' => 'Внимание',
+                'content' => $e->getMessage(),
+                'type' => 'warning'
+            ]);
         }
     }
 
-    // Сменить пароль аккаунта.
-    private function changePassword(): void
+    // Сменить пароль аккаунта
+    protected function changePassword(): void
     {
-        // Если смена пароля недоступна - выходим
         if (!$this->canChangePassword) {
             return;
         }
 
-        // Если все поля пусты - не меняем пароль
         if (empty($this->currentPassword) && empty($this->newPassword) && empty($this->confirmPassword)) {
             return;
         }
 
-        $user = Auth::user();
+        $this->validationService->validatePasswordChange([
+            'currentPassword' => $this->currentPassword,
+            'newPassword' => $this->newPassword,
+            'confirmPassword' => $this->confirmPassword,
+        ]);
 
-        try {
-            $this->validate([
-                'currentPassword' => 'required|string',
-                'newPassword' => 'required|string|min:8',
-                'confirmPassword' => 'required|string|same:newPassword',
-            ]);
-        } catch (ValidationException $e) {
-            // Отправляем уведомление об ошибке валидации
-            $this->dispatch('notification', [
-                'title' => 'Внимание',
-                'content' => 'Пожалуйста, исправьте ошибки в форме',
-                'type' => 'warning'
-            ]);
-            throw $e;
-        }
-
-        if (!Hash::check($this->currentPassword, $user->password)) {
-            $this->dispatch('notification', [
-                'title' => 'Внимание',
-                'content' => 'Текущий пароль указан неверно',
-                'type' => 'warning'
-            ]);
-            throw ValidationException::withMessages([
-                'currentPassword' => ['Текущий пароль указан неверно'],
-            ]);
-        }
-
-        $user->password = Hash::make($this->newPassword);
-        $user->save();
-
-        $this->currentPassword = '';
-        $this->newPassword = '';
-        $this->confirmPassword = '';
+        $this->userService->changePassword(
+            Auth::id(),
+            $this->currentPassword,
+            $this->newPassword
+        );
     }
 
-    // Установить или изменить пароль сейфа.
-    private function saveSafePassword(): void
+    // Установить или изменить пароль сейфа
+    protected function saveSafePassword(): void
     {
         // Если пароль уже установлен - нужен текущий пароль для изменения
         if ($this->hasSafePassword) {
-            // Если поля пусты - ничего не делаем
             if (empty($this->safeCurrentPassword) && empty($this->safePassword) && empty($this->safeConfirmPassword)) {
                 return;
             }
-
-            try {
-                $this->validate([
-                    'safeCurrentPassword' => 'required|string',
-                    'safePassword' => 'required|string|min:4',
-                    'safeConfirmPassword' => 'required|string|same:safePassword',
-                ]);
-            } catch (ValidationException $e) {
-                // Отправляем уведомление об ошибке валидации
-                $this->dispatch('notification', [
-                    'title' => 'Внимание',
-                    'content' => 'Пожалуйста, исправьте ошибки в форме',
-                    'type' => 'warning'
-                ]);
-                throw $e;
-            }
-
-            $user = Auth::user();
-            $safe = Safe::where('user_id', $user->id)->first();
-
-            if (!$safe->verifyPassword($this->safeCurrentPassword)) {
-                $this->dispatch('notification', [
-                    'title' => 'Внимание',
-                    'content' => 'Текущий пароль сейфа указан неверно',
-                    'type' => 'warning'
-                ]);
-                throw ValidationException::withMessages([
-                    'safeCurrentPassword' => ['Текущий пароль сейфа указан неверно'],
-                ]);
-            }
         } else {
-            // Новый пароль - если поля пусты, ничего не делаем
             if (empty($this->safePassword) && empty($this->safeConfirmPassword)) {
                 return;
             }
-
-            try {
-                $this->validate([
-                    'safePassword' => 'required|string|min:4',
-                    'safeConfirmPassword' => 'required|string|same:safePassword',
-                ]);
-            } catch (ValidationException $e) {
-                // Отправляем уведомление об ошибке валидации
-                $this->dispatch('notification', [
-                    'title' => 'Внимание',
-                    'content' => 'Пожалуйста, исправьте ошибки в форме',
-                    'type' => 'warning'
-                ]);
-                throw $e;
-            }
         }
 
-        $user = Auth::user();
-        $safe = Safe::where('user_id', $user->id)->first();
+        $this->validationService->validateSafePassword([
+            'currentPassword' => $this->safeCurrentPassword,
+            'password' => $this->safePassword,
+            'confirmPassword' => $this->safeConfirmPassword,
+        ], $this->hasSafePassword);
 
-        if (!$safe) {
-            Safe::create([
-                'user_id' => $user->id,
-                'password_hash' => Hash::make($this->safePassword),
-            ]);
-        } else {
-            $safe->setPassword($this->safePassword);
-        }
+        $this->safePasswordService->setPassword(
+            Auth::id(),
+            new SafePasswordDto(
+                currentPassword: $this->safeCurrentPassword ?: null,
+                password: $this->safePassword,
+                confirmPassword: $this->safeConfirmPassword,
+            )
+        );
 
+        $this->hasSafePassword = true;
+    }
+
+    // Очистка полей паролей
+    protected function clearPasswordFields(): void
+    {
+        $this->currentPassword = '';
+        $this->newPassword = '';
+        $this->confirmPassword = '';
         $this->safeCurrentPassword = '';
         $this->safePassword = '';
         $this->safeConfirmPassword = '';
-        $this->hasSafePassword = true;
+    }
+
+    // Отменить изменения
+    public function cancel(): void
+    {
+        $this->mount();
+        $this->dispatch('notification', [
+            'title' => 'Информация',
+            'content' => 'Изменения отменены',
+            'type' => 'info'
+        ]);
+    }
+
+    // Модальные окна
+    public function openAccountPasswordResetModal(): void
+    {
+        $this->showPasswordResetModal = true;
+    }
+
+    public function closeAccountPasswordResetModal(): void
+    {
+        $this->showPasswordResetModal = false;
+    }
+
+    public function openSafePasswordResetModal(): void
+    {
+        $this->showSafePasswordResetModal = true;
+    }
+
+    public function closeSafePasswordResetModal(): void
+    {
+        $this->showSafePasswordResetModal = false;
     }
 
     // Сбросить состояние отправки ссылки
@@ -427,103 +357,75 @@ class ProfileSection extends Component
         $this->safePasswordResetSent = false;
     }
 
-    //  Отменить изменения.
-    public function cancel(): void
-    {
-        $this->mount();
-        $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Изменения отменены', 'type' => 'info']);
-    }
-
-    // Показать модальное окно подтверждения сброса пароля аккаунта
-    public function openAccountPasswordResetModal(): void
-    {
-        $this->showPasswordResetModal = true;
-    }
-
-    // Скрыть модальное окно сброса пароля аккаунта
-    public function closeAccountPasswordResetModal(): void
-    {
-        $this->showPasswordResetModal = false;
-    }
-
-    // Показать модальное окно подтверждения сброса пароля сейфа
-    public function openSafePasswordResetModal(): void
-    {
-        $this->showSafePasswordResetModal = true;
-    }
-
-    // Скрыть модальное окно сброса пароля сейфа
-    public function closeSafePasswordResetModal(): void
-    {
-        $this->showSafePasswordResetModal = false;
-    }
-
     // Отправить ссылку для сброса пароля аккаунта
     public function sendAccountPasswordResetLink(): void
     {
-        $user = Auth::user();
-
         try {
-            $status = Password::sendResetLink($this->only('email'));
+            $success = $this->userService->sendPasswordResetLink($this->email);
 
-            if ($status != Password::RESET_LINK_SENT) {
+            if (!$success) {
                 $this->closeAccountPasswordResetModal();
-                $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось отправить ссылку для сброса пароля', 'type' => 'danger']);
+                $this->dispatch('notification', [
+                    'title' => 'Ошибка',
+                    'content' => 'Не удалось отправить ссылку для сброса пароля',
+                    'type' => 'danger'
+                ]);
                 return;
             }
 
             $this->closeAccountPasswordResetModal();
-            $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Ссылка для сброса пароля отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для установки нового пароля.', 'type' => 'success']);
+            $this->dispatch('notification', [
+                'title' => 'Успешно',
+                'content' => 'Ссылка для сброса пароля отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для установки нового пароля.',
+                'type' => 'success'
+            ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Account password reset error: ' . $e->getMessage());
+            Log::error('Account password reset error: ' . $e->getMessage());
             $this->closeAccountPasswordResetModal();
-             $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось отправить ссылку для сброса пароля', 'type' => 'danger']);
+            $this->dispatch('notification', [
+                'title' => 'Ошибка',
+                'content' => 'Не удалось отправить ссылку для сброса пароля',
+                'type' => 'danger'
+            ]);
         }
     }
 
-    // Отправить ссылку для сброса пароля сейфа (с модальным окном)
+    // Отправить ссылку для сброса пароля сейфа
     public function sendSafePasswordResetLink(): void
     {
-        $user = Auth::user();
-        $safe = Safe::where('user_id', $user->id)->first();
-
-        if (!$safe || !$safe->hasPassword()) {
-            $this->closeSafePasswordResetModal();
-            $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Пароль сейфа не установлен', 'type' => 'danger']);
-            return;
-        }
-
         $this->sendingSafePasswordReset = true;
 
         try {
-            // Шифруем ID сейфа
-            $safeId = \Illuminate\Support\Facades\Crypt::encryptString($safe->id);
-
-            // Генерируем подписанный URL на 60 минут
-            $resetUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-                'safe-password.reset',
-                now()->addMinutes(60),
-                ['safe_id' => $safeId]
-            );
-
-            // Отправляем email
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(
-                new \App\Mail\SafePasswordResetMail($resetUrl, $user->name)
-            );
+            $this->safePasswordService->sendResetLink(Auth::id());
 
             $this->closeSafePasswordResetModal();
-            $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Ссылка для сброса пароля сейфа отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для подтверждения сброса.', 'type' => 'success']);
+            $this->dispatch('notification', [
+                'title' => 'Успешно',
+                'content' => 'Ссылка для сброса пароля сейфа отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для подтверждения сброса.',
+                'type' => 'success'
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            $this->closeSafePasswordResetModal();
+            $this->dispatch('notification', [
+                'title' => 'Ошибка',
+                'content' => $e->getMessage(),
+                'type' => 'danger'
+            ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Safe password reset error: ' . $e->getMessage());
+            Log::error('Safe password reset error: ' . $e->getMessage());
             $this->closeSafePasswordResetModal();
-             $this->dispatch('notification', ['title' => 'Ошибка', 'content' => 'Не удалось отправить ссылку для сброса пароля', 'type' => 'danger']);
+            $this->dispatch('notification', [
+                'title' => 'Ошибка',
+                'content' => 'Не удалось отправить ссылку для сброса пароля',
+                'type' => 'danger'
+            ]);
         } finally {
             $this->sendingSafePasswordReset = false;
         }
     }
 
-public function render()
-{
-    return view('livewire.profile');
-}
+    public function render(): \Illuminate\View\View
+    {
+        return view('livewire.profile');
+    }
 }
