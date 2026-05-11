@@ -2,61 +2,34 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithBackSection;
-use App\Livewire\Traits\WithFavorite;
-use App\Livewire\Traits\WithNoteStore;
-use App\Models\Archive;
-use App\Models\Folder;
-use App\Models\Note;
-use App\Models\Safe;
+use App\Dto\CreateChecklistDto;
+use App\Dto\LocationDto;
+use App\Dto\UpdateChecklistDto;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
-use Livewire\Component;
 
-class CreateChecklist extends Component
+class CreateChecklist extends BaseChecklistEditor
 {
-    use WithBackSection;
-    use WithNoteStore;
-    use WithFavorite;
 
-    private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
-
-    public $heading = 'Создать список';
-    public $section = 'create-checklist';
-
-    public string $title = '';
-    public ?int $folderId = null;
-    public ?int $safeId = null;
-    public ?int $archiveId = null;
-    public ?string $dropdownValue = null;
-    public bool $is_favorite = false;
-    public string $content = '';
-    public bool $confirmingDeletion = false;
-    public bool $isSaving = false;
-    public ?int $noteId = null;
+    public string $heading = 'Создать список';
+    public string $section = 'create-checklist';
     public bool $isFirstSave = true;
-
-    private ?Note $cachedNote = null;
-
-    // Для отслеживания изменений местоположения
-    public ?int $originalFolderId = null;
-    public ?int $originalSafeId = null;
-    public ?int $originalArchiveId = null;
-
-    protected function rules(): array
-    {
-        return [
-            'title' => 'required|string|max:255',
-        ];
-    }
 
     public function mount(): void
     {
-        $this->content = self::EMPTY_CHECKLIST_STRUCTURE;
+        $this->content = $this->contentService->normalizeChecklistContent('');
 
-        // Обработка предустановки флага "Избранное"
+        // Обработка предустановок из StateManager
+        $this->handlePresetFromStateManager();
+    }
+
+    /**
+     * Обработка предустановок из StateManager
+     */
+    protected function handlePresetFromStateManager(): void
+    {
         $presetIsFavorite = StateManager::get('preset_is_favorite', false);
         if ($presetIsFavorite) {
             $this->is_favorite = true;
@@ -67,9 +40,7 @@ class CreateChecklist extends Component
         if ($presetSafeId) {
             $this->safeId = $presetSafeId;
             $this->dropdownValue = 'safe_' . $presetSafeId;
-            $this->originalFolderId = null;
             $this->originalSafeId = $presetSafeId;
-            $this->originalArchiveId = null;
             StateManager::remove('preset_safe_id');
             return;
         }
@@ -78,8 +49,6 @@ class CreateChecklist extends Component
         if ($presetArchiveId) {
             $this->archiveId = $presetArchiveId;
             $this->dropdownValue = 'archive_' . $presetArchiveId;
-            $this->originalFolderId = null;
-            $this->originalSafeId = null;
             $this->originalArchiveId = $presetArchiveId;
             StateManager::remove('preset_archive_id');
             return;
@@ -90,88 +59,13 @@ class CreateChecklist extends Component
             $this->folderId = $presetFolderId;
             $this->dropdownValue = (string) $presetFolderId;
             $this->originalFolderId = $presetFolderId;
-            $this->originalSafeId = null;
-            $this->originalArchiveId = null;
             StateManager::remove('preset_folder_id');
         }
     }
 
-    public function cancel(): void
-    {
-        $this->dispatch('navigateTo', section: 'dashboard-section');
-    }
-
-    public function updatedDropdownValue(): void
-    {
-        // Сохраняем старое местоположение перед изменением
-        $oldFolderId = $this->folderId;
-        $oldSafeId = $this->safeId;
-        $oldArchiveId = $this->archiveId;
-
-        // Обработка префиксов safe_ и archive_
-        if (is_string($this->dropdownValue)) {
-            if (str_starts_with($this->dropdownValue, 'safe_')) {
-                $this->safeId = (int) substr($this->dropdownValue, 5);
-                $this->folderId = null;
-                $this->archiveId = null;
-            } elseif (str_starts_with($this->dropdownValue, 'archive_')) {
-                $this->archiveId = (int) substr($this->dropdownValue, 8);
-                $this->folderId = null;
-                $this->safeId = null;
-            } elseif (is_numeric($this->dropdownValue)) {
-                $this->folderId = (int) $this->dropdownValue;
-                $this->safeId = null;
-                $this->archiveId = null;
-            }
-        }
-
-        // Проверяем, изменилось ли местоположение по сравнению с оригиналом
-        $locationChanged = ($this->folderId !== $this->originalFolderId) ||
-                           ($this->safeId !== $this->originalSafeId) ||
-                           ($this->archiveId !== $this->originalArchiveId);
-
-        $this->autoSave($locationChanged);
-    }
-
-    public function updatedFolderId(): void
-    {
-        // Этот метод может вызываться если folderId изменяется напрямую
-        $this->autoSave();
-    }
-
-    #[On('updateSafeId')]
-    public function setSafeId(int $id): void
-    {
-        $this->safeId = $id;
-        $this->folderId = null;
-        $this->archiveId = null;
-        $this->autoSave();
-    }
-
-    #[On('updateArchiveId')]
-    public function setArchiveId(int $id): void
-    {
-        $this->archiveId = $id;
-        $this->folderId = null;
-        $this->safeId = null;
-        $this->autoSave();
-    }
-
-    public function updatedSafeId(): void
-    {
-        $this->autoSave();
-    }
-
-    public function updatedTitle(): void
-    {
-        $this->autoSave();
-    }
-
-    public function updatedContent(): void
-    {
-        $this->autoSave();
-    }
-
+    /**
+     * Обработка готового контента
+     */
     #[On('checklistContentReady')]
     public function handleContentReady(string $content): void
     {
@@ -179,241 +73,124 @@ class CreateChecklist extends Component
         $this->autoSave();
     }
 
+    /**
+     * Обновление folderId
+     */
+    public function updatedFolderId(): void
+    {
+        $this->autoSave();
+    }
+
+    /**
+     * Автосохранение
+     */
+    #[Locked]
     public function autoSave(bool $locationChanged = false): void
     {
-        // Если выбранный folderId является сейфом, перемещаем его в safeId
-        if ($this->folderId && $this->isSafeSelected($this->folderId)) {
-            $this->safeId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        // Если выбранный folderId является архивом, перемещаем его в archiveId
-        if ($this->folderId && $this->isArchiveSelected($this->folderId)) {
-            $this->archiveId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        // Условия автосохранения:
-        // 1. Должна быть выбрана папка (folderId) ИЛИ сейф (safeId) ИЛИ архив (archiveId)
-        // 2. Title должен иметь длину хотя бы 1 символ
-        if (($this->folderId === null && $this->safeId === null && $this->archiveId === null) || trim($this->title) === '') {
+        // Проверка условий для сохранения
+        if (!$this->canSave()) {
             return;
         }
 
-        // Проверка уникальности title (исключая текущий список если он уже создан)
-        if ($this->isTitleExists(trim($this->title), $this->noteId)) {
-            $this->dispatch('notification', ['title' => 'Внимание', 'content' => 'Список с таким названием уже есть. Чтобы избежать путаницы измените название.', 'type' => 'warning']);
+        // Проверка уникальности названия
+        if ($this->noteService->isTitleExists(Auth::id(), trim($this->title), $this->noteId)) {
+            $this->dispatch('notification', [
+                'title' => 'Внимание',
+                'content' => 'Список с таким названием уже есть. Чтобы избежать путаницы измените название.',
+                'type' => 'warning',
+            ]);
         }
 
-        try {
-            $this->validateOnly('title');
-        } catch (\Illuminate\Validation\ValidationException) {
-            // При автосохранении не показываем ошибку, просто пропускаем
+        if (!$this->validateAndSave()) {
             return;
         }
 
         $this->isSaving = true;
 
         try {
-            // Если заметка уже создана, обновляем ее
             if ($this->noteId) {
-                if (!$this->cachedNote) {
-                    $this->cachedNote = Note::where('user_id', Auth::id())
-                        ->where('type', Note::TYPE_CHECKLIST)
-                        ->find($this->noteId);
-                }
-
-                if (!$this->cachedNote) {
-                    $this->isSaving = false;
-                    return;
-                }
-
-                $this->updateTitle($this->cachedNote);
-                $this->updateContent($this->cachedNote);
-                $this->updateLocation($this->cachedNote);
-                $this->cachedNote->save();
-
-                // Показываем уведомление если изменилось местоположение
-                if ($locationChanged) {
-                    $locationName = $this->getLocationName($this->cachedNote);
-                    $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'info']);
-
-                    // Обновляем оригинальное местоположение
-                    $this->originalFolderId = $this->cachedNote->folder_id;
-                    $this->originalSafeId = $this->cachedNote->safe_id;
-                    $this->originalArchiveId = $this->cachedNote->archive_id;
-                }
+                $this->updateExistingChecklist($locationChanged);
             } else {
-                // Создаем новую заметку (первое сохранение)
-                $note = new Note();
-                $note->title = trim($this->title);
-                $note->type = Note::TYPE_CHECKLIST;
-                $note->content = $this->normalizeContent($this->content);
-                $note->is_favorite = $this->is_favorite;
-                $note->user_id = Auth::id();
-
-                if ($this->folderId !== null) {
-                    $note->folder_id = $this->folderId;
-                    $note->safe_id = null;
-                    $note->archive_id = null;
-                } elseif ($this->safeId !== null) {
-                    $note->safe_id = $this->safeId;
-                    $note->folder_id = null;
-                    $note->archive_id = null;
-                } elseif ($this->archiveId !== null) {
-                    $note->archive_id = $this->archiveId;
-                    $note->folder_id = null;
-                    $note->safe_id = null;
-                } else {
-                    // Не должно происходить, т.к. проверка выше
-                    $this->isSaving = false;
-                    return;
-                }
-
-                $note->save();
-
-                // Сохраняем ID созданной заметки для будущих обновлений
-                $this->noteId = $note->id;
-                $this->cachedNote = $note;
-
-                // Инициализируем оригинальное местоположение после первого сохранения
-                $this->originalFolderId = $note->folder_id;
-                $this->originalSafeId = $note->safe_id;
-                $this->originalArchiveId = $note->archive_id;
-
-                // Показываем уведомление о первом сохранении
-                if ($this->isFirstSave) {
-                    $locationName = $this->getLocationName($note);
-                    $this->dispatch('notification', ['title' => 'Сохранено', 'content' => "Список сохранён в «{$locationName}»", 'type' => 'success']);
-                    $this->isFirstSave = false;
-                }
+                $this->createNewChecklist();
             }
         } catch (\Throwable $e) {
             report($e);
-            // При автосохранении не показываем ошибку пользователю
         } finally {
             $this->isSaving = false;
-            // Обновляем sidebar
             $this->dispatch('refreshSidebar');
         }
     }
 
-    private function normalizeContent(mixed $content): string
+    /**
+     * Проверить, можно ли сохранить
+     */
+    protected function canSave(): bool
     {
-        if (is_string($content) && $content === '') {
-            return self::EMPTY_CHECKLIST_STRUCTURE;
-        }
-
-        if (! is_string($content)) {
-            if (is_array($content) || is_object($content)) {
-                $content = json_encode($content);
-            } else {
-                return self::EMPTY_CHECKLIST_STRUCTURE;
-            }
-        }
-
-        try {
-            $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-
-            if (! is_array($decoded) || empty($decoded)) {
-                return self::EMPTY_CHECKLIST_STRUCTURE;
-            }
-
-            return json_encode($decoded, JSON_UNESCAPED_UNICODE);
-        } catch (\JsonException) {
-            return self::EMPTY_CHECKLIST_STRUCTURE;
-        }
-    }
-
-    private function updateTitle(Note $note): void
-    {
-        $note->title = trim($this->title);
-    }
-
-    private function updateContent(Note $note): void
-    {
-        $note->content = $this->content;
-    }
-
-    private function updateLocation(Note $note): void
-    {
-        if ($this->folderId !== null) {
-            $note->folder_id = $this->folderId;
-            $note->safe_id = null;
-            $note->archive_id = null;
-        } elseif ($this->safeId !== null) {
-            $note->safe_id = $this->safeId;
-            $note->folder_id = null;
-            $note->archive_id = null;
-        } elseif ($this->archiveId !== null) {
-            $note->archive_id = $this->archiveId;
-            $note->folder_id = null;
-            $note->safe_id = null;
-        } else {
-            $note->folder_id = null;
-            $note->safe_id = null;
-            $note->archive_id = Auth::user()->archive->id;
-        }
-    }
-
-    private function isSafeSelected(?int $selectedId): bool
-    {
-        if ($selectedId === null) {
-            return false;
-        }
-
-        // Проверяем с префиксом safe_
-        return collect($this->safes)->contains('value', 'safe_' . $selectedId);
-    }
-
-    private function isArchiveSelected(?int $selectedId): bool
-    {
-        if ($selectedId === null) {
-            return false;
-        }
-
-        // Проверяем с префиксом archive_
-        return collect($this->archives)->contains('value', 'archive_' . $selectedId);
+        return ($this->folderId !== null || $this->safeId !== null || $this->archiveId !== null)
+            && trim($this->title) !== '';
     }
 
     /**
-     * Получить название места хранения заметки
+     * Создать новый чеклист
      */
-    private function getLocationName(Note $note): string
+    protected function createNewChecklist(): void
     {
-        if ($note->folder_id !== null) {
-            $folder = Folder::find($note->folder_id);
-            return $folder?->title ?? 'Папка';
-        }
+        $dto = new CreateChecklistDto(
+            userId: Auth::id(),
+            title: trim($this->title),
+            content: $this->contentService->normalizeChecklistContent($this->content),
+            isFavorite: $this->is_favorite,
+            location: new LocationDto(
+                folderId: $this->folderId,
+                safeId: $this->safeId,
+                archiveId: $this->archiveId,
+            ),
+        );
 
-        if ($note->safe_id !== null) {
-            $safe = Safe::find($note->safe_id);
-            return $safe?->name ?? 'Сейф';
-        }
+        $note = $this->noteService->createChecklist($dto);
 
-        if ($note->archive_id !== null) {
-            $archive = Archive::find($note->archive_id);
-            return $archive?->name ?? 'Архив';
-        }
+        $this->noteId = $note->id;
+        $this->originalFolderId = $note->folder_id;
+        $this->originalSafeId = $note->safe_id;
+        $this->originalArchiveId = $note->archive_id;
 
-        return 'Архив';
+        if ($this->isFirstSave) {
+            $locationName = $this->locationService->getLocationName($note);
+            $this->dispatch('notification', [
+                'title' => 'Сохранено',
+                'content' => "Список сохранён в «{$locationName}»",
+                'type' => 'success',
+            ]);
+            $this->isFirstSave = false;
+        }
     }
 
     /**
-     * Проверить существование списка с указанным названием у текущего пользователя
+     * Обновить существующий чеклист
      */
-    private function isTitleExists(string $title, ?int $excludeNoteId = null): bool
+    protected function updateExistingChecklist(bool $locationChanged): void
     {
-        $query = Note::where('user_id', Auth::id())
-            ->where('type', Note::TYPE_CHECKLIST)
-            ->where('title', $title)
-            ->whereNull('trash_id');
+        $dto = new UpdateChecklistDto(
+            userId: Auth::id(),
+            noteId: $this->noteId,
+            title: trim($this->title),
+            content: $this->content,
+            isFavorite: $this->is_favorite,
+            location: new LocationDto(
+                folderId: $this->folderId,
+                safeId: $this->safeId,
+                archiveId: $this->archiveId,
+            ),
+        );
 
-        if ($excludeNoteId) {
-            $query->where('id', '!=', $excludeNoteId);
+        $note = $this->noteService->updateChecklist($dto);
+
+        if ($locationChanged) {
+            $this->dispatchLocationChangedNotification($note);
+            $this->originalFolderId = $note->folder_id;
+            $this->originalSafeId = $note->safe_id;
+            $this->originalArchiveId = $note->archive_id;
         }
-
-        return $query->exists();
     }
 
     public function render(): \Illuminate\View\View

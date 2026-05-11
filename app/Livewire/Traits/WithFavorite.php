@@ -2,36 +2,41 @@
 
 namespace App\Livewire\Traits;
 
-use App\Models\Note;
+use App\Services\NoteService;
 use Illuminate\Support\Facades\Auth;
 
-
-// Трейт для работы с избранным
+/**
+ * Трейт для работы с избранным
+ */
 trait WithFavorite
 {
-     public function updatedIsFavorite($value): void
+    protected NoteService $noteService;
+
+    /**
+     * Инициализация сервиса
+     */
+    public function bootWithFavorite(NoteService $noteService): void
     {
-        // Если заметка уже создана, обновляем в БД
+        $this->noteService = $noteService;
+    }
+
+    /**
+     * Обновление статуса избранного
+     */
+    public function updatedIsFavorite($value): void
+    {
         if ($this->noteId) {
-            $note = Note::where('user_id', Auth::id())
-                ->find($this->noteId);
+            $this->noteService->toggleFavorite(Auth::id(), $this->noteId, (bool) $value);
 
-            if ($note) {
-                $note->is_favorite = (bool) $value;
-                $note->save();
-
-                // Показываем уведомление
-                if ($note->is_favorite) {
-                    $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Добавлено в избранное', 'type' => 'info']);
-                } else {
-                    $this->dispatch('notification', ['title' => 'Успешно', 'content' => 'Удалено из избранного', 'type' => 'info']);
-                }
-            }
+            $this->dispatch('notification', [
+                'title' => 'Успешно',
+                'content' => $value ? 'Добавлено в избранное' : 'Удалено из избранного',
+                'type' => 'info',
+            ]);
         } else {
-            // Заметка еще не создана, просто вызываем автосохранение
             $this->autoSave();
         }
-        // Обновляем sidebar
+
         $this->dispatch('refreshSidebar');
     }
 }
