@@ -98,7 +98,7 @@ class EditNote extends BaseNoteEditor
     /**
      * Подтвердить удаление
      */
-    public function confirmDelete(): void
+    public function confirmDeletion(): void
     {
         $result = $this->noteService->deleteNote(Auth::id(), $this->noteId);
 

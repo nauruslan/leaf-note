@@ -5,12 +5,13 @@ namespace App\Livewire;
 use App\Livewire\Traits\WithComponentPagination;
 use App\Livewire\Traits\WithFiltering;
 use App\Livewire\Traits\WithSearch;
-use App\Models\Folder;
-use App\Models\Note;
-use App\Models\Trash;
+use App\Livewire\Traits\WithTrashModals;
+use App\Services\TrashService;
+use App\Services\TrashQueryService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class TrashSection extends Component
@@ -18,10 +19,23 @@ class TrashSection extends Component
     use WithComponentPagination;
     use WithSearch;
     use WithFiltering;
+    use WithTrashModals;
 
-    public $section = 'trash-section';
-    public $heading = 'Корзина';
+    public string $section = 'trash-section';
+    public string $heading = 'Корзина';
     public string $subheading = '';
+
+    // Внедряемые сервисы
+    protected TrashService $trashService;
+    protected TrashQueryService $trashQueryService;
+
+    public function boot(
+        TrashService $trashService,
+        TrashQueryService $trashQueryService,
+    ): void {
+        $this->trashService = $trashService;
+        $this->trashQueryService = $trashQueryService;
+    }
 
     public function mount(): void
     {
@@ -29,94 +43,21 @@ class TrashSection extends Component
         $this->setSubheading();
     }
 
-    // Установить subheading в зависимости от настроек автоочистки
+    /**
+     * Установить subheading в зависимости от настроек автоочистки
+     */
     private function setSubheading(): void
     {
-        $trash = Auth::user()->trash;
-        if ($trash && $trash->auto_delete_days && $trash->auto_delete_days !== 'disabled') {
+        $autoDeleteDays = $this->trashService->getAutoDeleteDays(Auth::id());
+        if ($autoDeleteDays !== 'disabled') {
             $this->subheading = 'Включена автоочистка корзины';
         }
     }
 
-    // Свойства для модального окна подтверждения удаления
-    public bool $confirmingDeletion = false;
-    public ?int $pendingDeleteId = null;
-    public ?string $pendingDeleteType = null;
-
-    // Свойства для модального окна подтверждения восстановления
-    public bool $confirmingRestore = false;
-    public ?int $pendingRestoreId = null;
-    public ?string $pendingRestoreType = null;
-    public string $restoreDescription = '';
-
-    // Свойства для модальных окон восстановления всех и очистки
-    public bool $confirmingRestoreAll = false;
-    public bool $confirmingEmptyTrash = false;
-
-    public function restoreItem(int $id, string $type): void
-    {
-        $this->confirmingRestore = true;
-        $this->pendingRestoreId = $id;
-        $this->pendingRestoreType = $type;
-
-        if ($type === 'folder') {
-            $this->restoreDescription = 'Папка будет восстановлена';
-        } else {
-            $note = Note::find($id);
-            $isChecklist = $note && $note->type === 'checklist';
-            $this->restoreDescription = $isChecklist
-                ? 'Список будет перемещен в архив'
-                : 'Заметка будет перемещена в архив';
-        }
-    }
-
-    public function deleteItem(int $id, string $type): void
-    {
-        $this->confirmingDeletion = true;
-        $this->pendingDeleteId = $id;
-        $this->pendingDeleteType = $type;
-    }
-
-    public function confirmRestoreAll(): void
-    {
-        if ($this->totalCount === 0) {
-            return;
-        }
-        $this->confirmingRestoreAll = true;
-    }
-
-    public function closeRestoreAllModal(): void
-    {
-        $this->confirmingRestoreAll = false;
-        $this->dispatch('modalClosed');
-    }
-
-    public function confirmEmptyTrash(): void
-    {
-        if ($this->totalCount === 0) {
-            return;
-        }
-        $this->confirmingEmptyTrash = true;
-    }
-
-    public function closeEmptyTrashModal(): void
-    {
-        $this->confirmingEmptyTrash = false;
-        $this->dispatch('modalClosed');
-    }
-
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-        $this->pendingDeleteId = null;
-        $this->pendingDeleteType = null;
-        $this->confirmingRestore = false;
-        $this->pendingRestoreId = null;
-        $this->pendingRestoreType = null;
-        $this->restoreDescription = '';
-        $this->dispatch('modalClosed');
-    }
-
+    /**
+     * Подтвердить восстановление
+     */
+    #[Locked]
     public function confirmRestore(): void
     {
         if ($this->pendingRestoreId === null || $this->pendingRestoreType === null) {
@@ -124,16 +65,26 @@ class TrashSection extends Component
             return;
         }
 
-        if ($this->pendingRestoreType === 'folder') {
-            $this->restoreFolder($this->pendingRestoreId);
-        } else {
-            $this->restoreNote($this->pendingRestoreId);
+        $result = $this->pendingRestoreType === 'folder'
+            ? $this->trashService->restoreFolder(Auth::id(), $this->pendingRestoreId)
+            : $this->trashService->restoreNote(Auth::id(), $this->pendingRestoreId);
+
+        if ($result->success) {
+            $this->dispatch('notification', [
+                'title' => 'Информация',
+                'content' => $result->message,
+                'type' => 'info',
+            ]);
+            $this->dispatch('refreshSidebar');
         }
 
         $this->closeModal();
     }
 
-
+    /**
+     * Подтвердить удаление
+     */
+    #[Locked]
     public function confirmDelete(): void
     {
         if ($this->pendingDeleteId === null || $this->pendingDeleteType === null) {
@@ -141,254 +92,98 @@ class TrashSection extends Component
             return;
         }
 
-        if ($this->pendingDeleteType === 'folder') {
-            $this->deleteFolder($this->pendingDeleteId);
-        } else {
-            $this->deleteNote($this->pendingDeleteId);
+        $result = $this->pendingDeleteType === 'folder'
+            ? $this->trashService->deleteFolder(Auth::id(), $this->pendingDeleteId)
+            : $this->trashService->deleteNote(Auth::id(), $this->pendingDeleteId);
+
+        if ($result->success) {
+            $this->dispatch('notification', [
+                'title' => 'Информация',
+                'content' => $result->message,
+                'type' => 'info',
+            ]);
+            $this->dispatch('refreshSidebar');
         }
 
         $this->closeModal();
     }
 
-    // Заметки, принадлежащие папкам, отображаются внутри папок
-    #[Computed]
-    public function trashedNotes(): LengthAwarePaginator
-    {
-        $sortMap = [
-            'deleted' => 'moved_to_trash_at',
-            'title' => 'title',
-        ];
-        $sortDirections = [
-            'deleted' => 'desc',
-            'title' => 'asc',
-        ];
-
-        $query = Note::where('user_id', Auth::id())
-            ->whereNotNull('trash_id')
-            ->whereNull('folder_id')
-            ->with('folder');
-
-        // Применяем фильтр по типу (при поиске показываем все типы)
-        $isSearching = strlen(trim($this->search)) > 0;
-        if (!$isSearching) {
-            if ($this->filter === 'notes') {
-                $query->where('type', Note::TYPE_NOTE);
-            } elseif ($this->filter === 'checklists') {
-                $query->where('type', Note::TYPE_CHECKLIST);
-            }
-        }
-
-        // Применяем поиск
-        $query = $this->applySearch($query, ['title', 'search_content']);
-
-        // Применяем сортировку
-        $query = $this->applySort($query, $sortMap, $sortDirections);
-
-        return $query->paginate($this->perPage, ['*'], 'page', $this->page);
-    }
-
-    #[Computed]
-    public function trashedFolders()
-    {
-        $sortMap = [
-            'deleted' => 'moved_to_trash_at',
-            'title' => 'title',
-        ];
-        $sortDirections = [
-            'deleted' => 'desc',
-            'title' => 'asc',
-        ];
-
-        $query = Folder::where('user_id', Auth::id())
-            ->whereNotNull('trash_id');
-
-        // Применяем поиск
-        $query = $this->applySearch($query, ['title']);
-
-        // Применяем сортировку
-        $query = $this->applySort($query, $sortMap, $sortDirections);
-
-        return $query->get();
-    }
-
-    // Общее количество элементов в корзине.
-    #[Computed]
-    public function totalCount(): int
-    {
-        // Считаем только заметки без папки
-        $notesCount = Note::where('user_id', Auth::id())
-            ->whereNotNull('trash_id')
-            ->whereNull('folder_id')
-            ->count();
-
-        // Каждая папка - один элемент (даже если в ней много заметок)
-        $foldersCount = Folder::where('user_id', Auth::id())
-            ->whereNotNull('trash_id')
-            ->count();
-
-        return $notesCount + $foldersCount;
-    }
-
-    // Очистить корзину - удалить все заметки и папки безвозвратно.
+    /**
+     * Очистить корзину
+     */
+    #[Locked]
     public function emptyTrash(): void
     {
-        $userId = Auth::id();
+        $result = $this->trashService->emptyTrash(Auth::id());
 
-        // Сначала удаляем все папки в корзине (их заметки удалятся через Folder::deleting)
-        Folder::where('user_id', $userId)
-            ->whereNotNull('trash_id')
-            ->delete();
+        if ($result->success) {
+            $this->dispatch('notification', [
+                'title' => 'Информация',
+                'content' => $result->message,
+                'type' => 'info',
+            ]);
+            $this->dispatch('refreshSidebar');
+        }
 
-        // Затем удаляем заметки без папки
-        Note::where('user_id', $userId)
-            ->whereNotNull('trash_id')
-            ->whereNull('folder_id')
-            ->delete();
-
-        // Сбрасываем счётчик корзины
-        $trash = Auth::user()->trash;
-        $trash->resetQuantity();
-        $trash->save();
-
-        // Отправляем уведомление
-        $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Корзина очищена', 'type' => 'info']);
-        // Обновляем сайдбар
-        $this->dispatch('refreshSidebar');
         $this->closeEmptyTrashModal();
     }
 
-    // Восстановить всё - заметки в архив, папки восстанавливаются вместе с заметками.
+    /**
+     * Восстановить всё
+     */
+    #[Locked]
     public function restoreAll(): void
     {
-        $user = Auth::user();
-        $archive = $user->archive;
-        $trash = $user->trash;
+        $result = $this->trashService->restoreAll(Auth::id());
 
-        // Сначала восстанавливаем все папки (они восстановят свои заметки)
-        $folders = Folder::where('user_id', $user->id)
-            ->whereNotNull('trash_id')
-            ->get();
-
-        foreach ($folders as $folder) {
-            $folder->restoreFromTrash();
-        }
-
-        // Затем восстанавливаем заметки (без папки) в архив
-        $orphanNotes = Note::where('user_id', $user->id)
-            ->whereNotNull('trash_id')
-            ->whereNull('folder_id')
-            ->get();
-
-        foreach ($orphanNotes as $note) {
-            $note->update([
-                'trash_id' => null,
-                'archive_id' => $archive->id,
-                'moved_to_trash_at' => null,
+        if ($result->success) {
+            $this->dispatch('notification', [
+                'title' => 'Информация',
+                'content' => $result->message,
+                'type' => 'info',
             ]);
+            $this->dispatch('refreshSidebar');
         }
 
-        // Сбрасываем счётчик корзины
-        $trash->resetQuantity();
-        $trash->save();
-
-        // Отправляем уведомление
-        $this->dispatch('notification', ['title' => 'Информация', 'content' => 'Данные восстановлены', 'type' => 'info']);
-
-        // Обновляем сайдбар
-        $this->dispatch('refreshSidebar');
         $this->closeRestoreAllModal();
     }
 
-    // Восстановить одну заметку.
-    public function restoreNote(int $noteId): void
+    /**
+     * Удалённые заметки
+     */
+    #[Computed]
+    public function trashedNotes(): LengthAwarePaginator
     {
-        $note = Note::where('user_id', Auth::id())->find($noteId);
-
-        if (!$note || !$note->isInTrash()) {
-            return;
-        }
-
-        $note->restoreFromTrash();
-
-        // Отправляем уведомление
-        if($note->type==='note'){
-            $this->dispatch('notification', ['title' => 'Информация', 'content' => "Заметка «{$note->title}» помещена в Архив", 'type' => 'info']);
-        }else{
-            $this->dispatch('notification', ['title' => 'Информация', 'content' => "Список «{$note->title}» помещен в Архив", 'type' => 'info']);
-        }
-
-        $this->dispatch('refreshSidebar');
+        return $this->trashQueryService->getTrashedNotes(
+            userId: Auth::id(),
+            search: $this->search,
+            filter: $this->filter,
+            sort: $this->sort,
+            page: $this->page,
+            perPage: $this->perPage,
+        );
     }
 
-    // Восстановить одну папку.
-    public function restoreFolder(int $folderId): void
+    /**
+     * Удалённые папки
+     */
+    #[Computed]
+    public function trashedFolders(): \Illuminate\Database\Eloquent\Collection
     {
-        $folder = Folder::where('user_id', Auth::id())->find($folderId);
-
-        if (!$folder || !$folder->isInTrash()) {
-            return;
-        }
-
-        // Восстанавливаем папку и её заметки
-        $folder->restoreFromTrash();
-
-        // Отправляем уведомление
-        $this->dispatch('notification', ['title' => 'Информация', 'content' => "Папка «{$folder->title}» восстановлена", 'type' => 'info']);
-
-        $this->dispatch('refreshSidebar');
+        return $this->trashQueryService->getTrashedFolders(
+            userId: Auth::id(),
+            search: $this->search,
+            sort: $this->sort,
+        );
     }
 
-
-    public function deleteNote(int $noteId): void
+    /**
+     * Общее количество элементов в корзине
+     */
+    #[Computed]
+    public function totalCount(): int
     {
-        $note = Note::where('user_id', Auth::id())->find($noteId);
-
-        if (!$note || !$note->isInTrash()) {
-            return;
-        }
-
-        $note->delete();
-
-        $trash = Auth::user()->trash;
-        $trash->decrementQuantity();
-        $trash->save();
-
-        $this->dispatch('refreshSidebar');
-
-        // Отправляем уведомление
-        if($note->type==='note'){
-            $this->dispatch('notification', ['title' => 'Информация', 'content' => "Заметка «{$note->title}» удалена", 'type' => 'info']);
-        }else{
-            $this->dispatch('notification', ['title' => 'Информация', 'content' => "Список «{$note->title}» удален", 'type' => 'info']);
-        }
-    }
-
-    public function deleteFolder(int $folderId): void
-    {
-        $folder = Folder::where('user_id', Auth::id())->find($folderId);
-
-        if (!$folder || !$folder->isInTrash()) {
-            return;
-        }
-
-        $notesToDelete = Note::where('folder_id', $folder->id)
-            ->whereNotNull('trash_id')
-            ->count();
-
-        Note::where('folder_id', $folder->id)
-            ->whereNotNull('trash_id')
-            ->delete();
-
-        $folder->delete();
-
-        $trash = Auth::user()->trash;
-        $trash->decrementQuantity(1 + $notesToDelete);
-        $trash->save();
-
-        $this->dispatch('refreshSidebar');
-
-        // Отправляем уведомление
-        $this->dispatch('notification', ['title' => 'Информация', 'content' => "Папка «{$folder->title}» удалена", 'type' => 'info']);
+        return $this->trashService->getTotalCount(Auth::id());
     }
 
     public function render()

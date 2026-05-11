@@ -78,7 +78,7 @@ class EditChecklist extends BaseChecklistEditor
     /**
      * Подтвердить удаление
      */
-    public function confirmDelete(): void
+    public function confirmDeletion(): void
     {
         $result = $this->noteService->deleteChecklist(Auth::id(), $this->noteId);
 
