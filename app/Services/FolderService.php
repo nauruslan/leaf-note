@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Dto\CreateFolderDto;
+use App\Dto\UpdateFolderDto;
 use App\Models\Folder;
 use App\Models\Note;
 
@@ -55,5 +57,94 @@ class FolderService
             'success' => false,
             'message' => 'Корзина переполнена. Очистите корзину перед удалением.',
         ];
+    }
+
+    /**
+     * Создать папку.
+     */
+    public function createFolder(CreateFolderDto $dto): Folder
+    {
+        $folder = new Folder();
+        $folder->title = $dto->title;
+        $folder->color = $dto->color;
+        $folder->icon = $dto->icon;
+        $folder->user_id = $dto->userId;
+        $folder->save();
+
+        return $folder;
+    }
+
+    /**
+     * Обновить папку.
+     */
+    public function updateFolder(UpdateFolderDto $dto): Folder
+    {
+        $folder = $this->getFolder($dto->userId, $dto->folderId);
+
+        if (!$folder) {
+            throw new \InvalidArgumentException('Папка не найдена');
+        }
+
+        $folder->title = $dto->title;
+        $folder->color = $dto->color;
+        $folder->icon = $dto->icon;
+        $folder->save();
+
+        return $folder;
+    }
+
+    /**
+     * Проверить существование папки с указанным названием.
+     */
+    public function isTitleExists(int $userId, string $title, ?int $excludeFolderId = null): bool
+    {
+        $query = Folder::where('user_id', $userId)
+            ->where('title', $title)
+            ->whereNull('trash_id');
+
+        if ($excludeFolderId) {
+            $query->where('id', '!=', $excludeFolderId);
+        }
+
+        return $query->exists();
+    }
+
+    /**
+     * Проверить существование папки с указанной иконкой.
+     */
+    public function isIconExists(int $userId, string $icon, ?int $excludeFolderId = null): bool
+    {
+        $query = Folder::where('user_id', $userId)
+            ->where('icon', $icon)
+            ->whereNull('trash_id');
+
+        if ($excludeFolderId) {
+            $query->where('id', '!=', $excludeFolderId);
+        }
+
+        return $query->exists();
+    }
+
+    /**
+     * Получить занятые иконки пользователя.
+     */
+    public function getUsedIcons(int $userId, ?int $excludeFolderId = null): array
+    {
+        $query = Folder::where('user_id', $userId)
+            ->whereNull('trash_id');
+
+        if ($excludeFolderId) {
+            $query->where('id', '!=', $excludeFolderId);
+        }
+
+        return $query->pluck('icon')->toArray();
+    }
+
+    /**
+     * Получить список доступных иконок.
+     */
+    public function getIcons(): array
+    {
+        return Folder::ICONS;
     }
 }

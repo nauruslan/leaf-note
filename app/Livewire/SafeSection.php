@@ -59,7 +59,7 @@ class SafeSection extends Base
     /**
      * Количество заметок в сейфе (для отображения в UI).
      */
-    #[Computed(cache: true, seconds: 60)]
+    #[Computed]
     public function getTotalCount(): int
     {
         return app(NoteQueryService::class)->getSafeNotesCount(Auth::id());

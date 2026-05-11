@@ -4,5 +4,5 @@
 
     <!-- Content Section -->
     <x-folder-content-section :title="$heading" :selectedIcon="$this->icon" :color="$this->color" :icons="$this->icons" :usedIcons="$this->usedIcons"
-        submitAction="createFolder" autofocus />
+        submitAction="save" autofocus />
 </div>

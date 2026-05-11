@@ -1,80 +1,26 @@
 <?php
+
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithBackSection;
-use App\Models\Folder;
+use App\Dto\CreateFolderDto;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Livewire\Component;
+use Livewire\Attributes\Locked;
 
-class CreateFolder extends Component
+class CreateFolder extends BaseFolderEditor
 {
-    use WithBackSection;
-
-    public $heading='Создать папку';
-    public $section='create-folder';
-
-    public string $title = '';
-    public string $color = '';
-    public string $icon = '';
-
-    public function getIconsProperty(): array
-    {
-        return Folder::ICONS;
-    }
+    public string $heading = 'Создать папку';
+    public string $section = 'create-folder';
 
     /**
-     * Получить занятые иконки текущего пользователя
+     * Сохранить папку
      */
-    public function getUsedIconsProperty(): array
-    {
-        return Folder::where('user_id', Auth::id())
-            ->whereNull('trash_id')
-            ->pluck('icon')
-            ->toArray();
-    }
-
-    public function createFolder()
-    {
-        $this->save();
-    }
-
-    public function save()
+    #[Locked]
+    public function save(): void
     {
         try {
-            $this->validate([
-            'title' => [
-                'required',
-                'string',
-                'min:1',
-                'max:12',
-                Rule::unique('folders')->where('user_id', Auth::id())->whereNull('trash_id'),
-            ],
-            'color' => [
-                'required',
-                'string',
-                'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            ],
-            'icon' => [
-                'required',
-                'string',
-                'in:' . implode(',', array_keys(Folder::ICONS)),
-                Rule::unique('folders')->where('user_id', Auth::id())->whereNull('trash_id'),
-            ],
-        ], [
-            'title.required' => 'Название папки обязательно',
-            'title.min' => 'Название должно содержать минимум 1 символ',
-            'title.max' => 'Название не должно превышать 12 символов',
-            'title.unique' => 'Папка с таким названием уже существует',
-            'color.required' => 'Выберите цвет папки',
-            'color.regex' => 'Цвет должен быть в формате HEX (например, #FF0000)',
-            'icon.required' => 'Выберите иконку папки',
-            'icon.in' => 'Выберите корректную иконку из списка',
-            'icon.unique' => 'Эта иконка уже используется в другой папке',
-        ]);
+            $this->validate($this->getValidationRules(), $this->getValidationMessages());
         } catch (ValidationException $e) {
-            // Отправляем уведомление об ошибке валидации
             $this->dispatch('notification', [
                 'title' => 'Внимание',
                 'content' => 'Пожалуйста, исправьте ошибки в форме',
@@ -83,27 +29,28 @@ class CreateFolder extends Component
             throw $e;
         }
 
-        $folder = new Folder();
-        $folder->title = $this->title;
-        $folder->color = $this->color;
-        $folder->icon = $this->icon;
-        $folder->user_id = Auth::id();
-        $folder->save();
+        $dto = new CreateFolderDto(
+            userId: Auth::id(),
+            title: trim($this->title),
+            color: $this->color,
+            icon: $this->icon,
+        );
+
+        $folder = $this->folderService->createFolder($dto);
 
         $this->reset(['title', 'color', 'icon']);
-        $this->title = '';
-        $this->color = '';
-        $this->icon = '';
 
-        // Отправляем уведомление
-        $this->dispatch('notification', ['title' => 'Успешно', 'content' => "Папка «{$folder->title}» успешно создана", 'type' => 'success']);
-        // Обновляем sidebar
+        $this->dispatch('notification', [
+            'title' => 'Успешно',
+            'content' => "Папка «{$folder->title}» успешно создана",
+            'type' => 'success'
+        ]);
+
         $this->dispatch('refreshSidebar');
-        // Переходим к папке
         $this->dispatch('navigateTo', section: 'folder-section', folderId: $folder->id);
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         return view('livewire.create-folder');
     }

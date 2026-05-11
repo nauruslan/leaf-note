@@ -14,8 +14,8 @@
         <form wire:submit.prevent="{{ $submitAction }}" class="space-y-8">
             <!-- Название папки -->
             <x-input-group label="Название папки" for="folder-title" id="folder-title" wireModel="title" field="title"
-                @if ($autofocus) autofocus @endif placeholder="Введите название папки" height="48px"
-                labelSize="text-lg" />
+                :autofocus="$autofocus" placeholder="Введите название папки" height="48px"
+                labelSize="text-lg"></x-input-group>
 
             <!-- Иконка и Цвет папки на одной строке -->
             <div class="flex flex-col lg:flex-row gap-6">
