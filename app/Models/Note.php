@@ -7,10 +7,11 @@ use App\Models\Folder;
 use App\Models\Safe;
 use App\Models\Trash;
 use App\Models\User;
+use App\Services\ContentService;
+use App\Services\ImageService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class Note extends Model
 {
@@ -370,81 +371,18 @@ class Note extends Model
             return '';
         }
 
-        $text = $this->extractTextFromContent();
+        $text = app(ContentService::class)->extractTextFromContent($this->content);
 
         return \Illuminate\Support\Str::limit($text, 150);
     }
 
+    /**
+     * Получить текст из контента
+     * @deprecated Используйте ContentService::extractTextFromContent()
+     */
     public function extractTextFromContent(): string
     {
-        if (is_string($this->content)) {
-            $data = json_decode($this->content, true);
-        } else {
-            $data = $this->content;
-        }
-
-        if (!is_array($data) || !isset($data['content'])) {
-            return '';
-        }
-
-        return $this->collectTextFromContent($data['content']);
-    }
-
-    private function collectTextFromContent(array $content): string
-    {
-        $blocks = [];
-
-        foreach ($content as $node) {
-            if (!is_array($node)) {
-                continue;
-            }
-
-            $blockText = $this->extractTextFromNode($node);
-            if ($blockText !== '') {
-                $blocks[] = $blockText;
-            }
-        }
-
-        return implode("\n", $blocks);
-    }
-
-    private function extractTextFromNode(array $node): string
-    {
-        $texts = [];
-
-        if (isset($node['type']) && $node['type'] === 'text' && isset($node['text'])) {
-            $texts[] = $node['text'];
-        }
-
-        if (isset($node['content']) && is_array($node['content'])) {
-            $nestedText = $this->collectInlineTextFromContent($node['content']);
-            if ($nestedText !== '') {
-                $texts[] = $nestedText;
-            }
-        }
-
-        return implode(' ', $texts);
-    }
-
-    private function collectInlineTextFromContent(array $content): string
-    {
-        $texts = [];
-
-        foreach ($content as $node) {
-            if (!is_array($node)) {
-                continue;
-            }
-
-            if (isset($node['type']) && $node['type'] === 'text' && isset($node['text'])) {
-                $texts[] = $node['text'];
-            }
-
-            if (isset($node['content']) && is_array($node['content'])) {
-                $texts[] = $this->collectInlineTextFromContent($node['content']);
-            }
-        }
-
-        return trim(implode(' ', $texts));
+        return app(ContentService::class)->extractTextFromContent($this->content);
     }
 
     public function getColorHexAttribute(): string
@@ -463,158 +401,37 @@ class Note extends Model
         return $this->isChecklist() ? 'list' : 'file-text';
     }
 
-    public function getProgressColor(int $percentage): string
-    {
-        if ($percentage <= 10) return '#FF4C4C';
-        if ($percentage <= 30) return '#FF8A4C';
-        if ($percentage <= 50) return '#FFC04C';
-        if ($percentage <= 70) return '#B4D84C';
-        if ($percentage <= 90) return '#6ED84C';
-        return '#2ABF2A';
-    }
-
+    /**
+     * Получить прогресс чеклиста
+     * @deprecated Используйте ChecklistService::getProgress()
+     */
     public function getChecklistProgress(): array
     {
-        if (!$this->isChecklist() || empty($this->content)) {
-            return [
-                'completed' => 0,
-                'total' => 0,
-                'percentage' => 0,
-                'color' => '#FF4C4C',
-            ];
-        }
-
-        $data = is_string($this->content)
-            ? json_decode($this->content, true)
-            : $this->content;
-
-        if (!is_array($data) || !isset($data['content'])) {
-            return [
-                'completed' => 0,
-                'total' => 0,
-                'percentage' => 0,
-                'color' => '#FF4C4C',
-            ];
-        }
-
-        $stats = $this->countChecklistItems($data['content']);
-
-        $percentage = $stats['total'] > 0
-            ? (int) round(($stats['completed'] / $stats['total']) * 100)
-            : 0;
-
-        $color = $this->getProgressColor($percentage);
+        $dto = app(\App\Services\ChecklistService::class)->getProgress($this);
 
         return [
-            'completed' => $stats['completed'],
-            'total' => $stats['total'],
-            'percentage' => $percentage,
-            'color' => $color,
+            'completed' => $dto->completed,
+            'total' => $dto->total,
+            'percentage' => $dto->percentage,
+            'color' => $dto->color,
         ];
     }
 
-    private function countChecklistItems(array $content): array
-    {
-        $completed = 0;
-        $total = 0;
-
-        foreach ($content as $node) {
-            if (!is_array($node)) {
-                continue;
-            }
-
-            if (isset($node['type']) && $node['type'] === 'checklistItem') {
-                $total++;
-                if (isset($node['attrs']['checked']) && $node['attrs']['checked'] === true) {
-                    $completed++;
-                }
-            }
-
-            if (isset($node['content']) && is_array($node['content'])) {
-                $nested = $this->countChecklistItems($node['content']);
-                $completed += $nested['completed'];
-                $total += $nested['total'];
-            }
-        }
-
-        return ['completed' => $completed, 'total' => $total];
-    }
-
     /**
-     * Извлекает все пути к изображениям из контента заметки.
-     *
-     * @return array
+     * Получить пути к изображениям
+     * @deprecated Используйте ImageService::extractImagePaths()
      */
     public function getImagePaths(): array
     {
-        if (empty($this->content)) {
-            return [];
-        }
-
-        $data = is_string($this->content)
-            ? json_decode($this->content, true)
-            : $this->content;
-
-        if (!is_array($data) || !isset($data['content'])) {
-            return [];
-        }
-
-        return $this->extractImagePaths($data['content']);
+        return app(ImageService::class)->extractImagePaths($this->content);
     }
 
     /**
-     * Рекурсивно извлекает пути изображений из узлов контента.
-     *
-     * @param array $content
-     * @return array
-     */
-    private function extractImagePaths(array $content): array
-    {
-        $paths = [];
-
-        foreach ($content as $node) {
-            if (!is_array($node)) {
-                continue;
-            }
-
-            // Проверяем, является ли узел изображением
-            if (isset($node['type']) && $node['type'] === 'image') {
-                // Приоритетно используем атрибут path
-                if (isset($node['attrs']['path'])) {
-                    $paths[] = $node['attrs']['path'];
-                } elseif (isset($node['attrs']['src'])) {
-                    $src = $node['attrs']['src'];
-                    // Извлекаем путь из URL (например, /storage/notes/images/xxx.jpg -> notes/images/xxx.jpg)
-                    if (str_starts_with($src, '/storage/')) {
-                        $paths[] = substr($src, strlen('/storage/'));
-                    } elseif (str_starts_with($src, 'notes/')) {
-                        $paths[] = $src;
-                    }
-                }
-            }
-
-            // Рекурсивно обрабатываем вложенный контент
-            if (isset($node['content']) && is_array($node['content'])) {
-                $paths = array_merge($paths, $this->extractImagePaths($node['content']));
-            }
-        }
-
-        return $paths;
-    }
-
-    /**
-     * Удаляет все изображения, связанные с заметкой, из хранилища.
-     *
-     * @return void
+     * Удалить изображения заметки
+     * @deprecated Используйте ImageService::deleteNoteImages()
      */
     public function deleteImages(): void
     {
-        $paths = $this->getImagePaths();
-
-        foreach ($paths as $path) {
-            if (Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
-            }
-        }
+        app(ImageService::class)->deleteNoteImages($this);
     }
 }

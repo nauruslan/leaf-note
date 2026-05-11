@@ -2,79 +2,40 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithBackSection;
-use App\Livewire\Traits\WithFavorite;
-use App\Livewire\Traits\WithNoteStore;
-use App\Models\Archive;
-use App\Models\Folder;
+use App\Dto\CreateNoteDto;
+use App\Dto\LocationDto;
+use App\Dto\UpdateNoteDto;
 use App\Models\Note;
-use App\Models\Safe;
 use App\Services\StateManager;
-use App\Services\TemporaryImageService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
-use Livewire\Component;
 
-class CreateNote extends Component
+class CreateNote extends BaseNoteEditor
 {
-    use WithBackSection;
-    use WithNoteStore;
-    use WithFavorite;
-
-    public $heading='Создать заметку';
-    public $section='create-note';
-
-    private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
-
-    public string $title = '';
-    public ?int $folderId = null;
-    public ?int $safeId = null;
-    public ?int $archiveId = null;
-    public ?string $dropdownValue = null;
-    public bool $is_favorite = false;
-    public string $content = '';
-    public bool $isSaving = false;
-    public ?int $noteId = null;
+    public string $heading = 'Создать заметку';
+    public string $section = 'create-note';
     public bool $isFirstSave = true;
 
-    private ?Note $cachedNote = null;
-    private array $originalImagePaths = [];
-
-    // Для отслеживания изменений местоположения
-    public ?int $originalFolderId = null;
-    public ?int $originalSafeId = null;
-    public ?int $originalArchiveId = null;
-
-    protected function rules(): array
-    {
-        return [
-            'title' => 'required|string|max:255',
-        ];
-    }
+    private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
 
     public function mount(): void
     {
         $this->content = self::EMPTY_NOTE_STRUCTURE;
 
         // Очищаем список временных изображений при входе на страницу создания заметки
-        // Это гарантирует, что в сессии будут только изображения, загруженные в текущей сессии
-        $temporaryImageService = app(TemporaryImageService::class);
-        $temporaryImageService->clear();
+        $this->clearTemporaryImages();
 
-        // Если заметка уже создана, загружаем оригинальные пути изображений
-        if ($this->noteId) {
-            $note = Note::where('user_id', Auth::id())
-                ->where('type', Note::TYPE_NOTE)
-                ->find($this->noteId);
-            if ($note && $note->content) {
-                $this->originalImagePaths = $this->extractImagePathsFromContent($note->content);
-            }
-        }
+        // Обработка предустановок из StateManager
+        $this->handlePresetFromStateManager();
+    }
 
-        // Обработка предустановки флага "Избранное"
+    /**
+     * Обработка предустановок из StateManager
+     */
+    protected function handlePresetFromStateManager(): void
+    {
         $presetIsFavorite = StateManager::get('preset_is_favorite', false);
         if ($presetIsFavorite) {
             $this->is_favorite = true;
@@ -114,13 +75,14 @@ class CreateNote extends Component
         }
     }
 
+    /**
+     * Отмена создания заметки
+     */
     public function cancel(): void
     {
         // Если заметка была создана через автосохранение, удаляем её
         if ($this->noteId) {
-            $note = Note::where('user_id', Auth::id())
-                ->where('type', Note::TYPE_NOTE)
-                ->find($this->noteId);
+            $note = $this->noteService->findNote(Auth::id(), $this->noteId);
 
             if ($note) {
                 // Удаляем изображения из хранилища
@@ -132,91 +94,20 @@ class CreateNote extends Component
         }
 
         // Выполняем отложенное удаление изображений и очищаем временные
-        $temporaryImageService = app(TemporaryImageService::class);
-        $temporaryImageService->executePendingDeletion();
-        $temporaryImageService->deleteUnsavedImages();
+        $this->executePendingImageDeletion();
+        $this->deleteUnsavedImages();
 
         $this->dispatch('navigateTo', section: 'dashboard-section');
-        // Обновляем sidebar
         $this->dispatch('refreshSidebar');
     }
 
-
-    public function updatedDropdownValue(): void
-    {
-        // Сохраняем старое местоположение перед изменением
-        $oldFolderId = $this->folderId;
-        $oldSafeId = $this->safeId;
-        $oldArchiveId = $this->archiveId;
-
-        // Обработка префиксов safe_ и archive_
-        if (is_string($this->dropdownValue)) {
-            if (str_starts_with($this->dropdownValue, 'safe_')) {
-                $this->safeId = (int) substr($this->dropdownValue, 5);
-                $this->folderId = null;
-                $this->archiveId = null;
-            } elseif (str_starts_with($this->dropdownValue, 'archive_')) {
-                $this->archiveId = (int) substr($this->dropdownValue, 8);
-                $this->folderId = null;
-                $this->safeId = null;
-            } elseif (is_numeric($this->dropdownValue)) {
-                $this->folderId = (int) $this->dropdownValue;
-                $this->safeId = null;
-                $this->archiveId = null;
-            }
-        }
-
-        // Проверяем, изменилось ли местоположение по сравнению с оригиналом
-        $locationChanged = ($this->folderId !== $this->originalFolderId) ||
-                           ($this->safeId !== $this->originalSafeId) ||
-                           ($this->archiveId !== $this->originalArchiveId);
-
-        $this->autoSave($locationChanged);
-    }
-
-    public function updatedFolderId(): void
-    {
-        // Этот метод может вызываться если folderId изменяется напрямую
-        $this->autoSave();
-    }
-
-    #[On('updateSafeId')]
-    public function setSafeId(int $id): void
-    {
-        $this->safeId = $id;
-        $this->folderId = null;
-        $this->archiveId = null;
-        $this->autoSave();
-    }
-
-    #[On('updateArchiveId')]
-    public function setArchiveId(int $id): void
-    {
-        $this->archiveId = $id;
-        $this->folderId = null;
-        $this->safeId = null;
-        $this->autoSave();
-    }
-
-    public function updatedSafeId(): void
-    {
-        $this->autoSave();
-    }
-
-    public function updatedTitle(): void
-    {
-        $this->autoSave();
-    }
-
-    public function updatedContent(): void
-    {
-        $this->autoSave();
-    }
-
+    /**
+     * Обработка готового контента
+     */
     #[On('noteContentReady')]
     public function handleContentReady($data): void
     {
-        // Извлекаем контент из массива, если он обернут (из JavaScript приходит { content: ... })
+        // Извлекаем контент из массива, если он обернут
         if (is_array($data) && isset($data['content'])) {
             $content = $data['content'];
         } else {
@@ -227,335 +118,136 @@ class CreateNote extends Component
         $this->autoSave();
     }
 
+    /**
+     * Автосохранение
+     */
+    #[Locked]
     public function autoSave(bool $locationChanged = false): void
     {
-        // Если выбранный folderId является сейфом, перемещаем его в safeId
-        if ($this->folderId && $this->isSafeSelected($this->folderId)) {
-            $this->safeId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        // Если выбранный folderId является архивом, перемещаем его в archiveId
-        if ($this->folderId && $this->isArchiveSelected($this->folderId)) {
-            $this->archiveId = $this->folderId;
-            $this->folderId = null;
-        }
-
-        // Условия автосохранения:
-        // 1. Должна быть выбрана папка (folderId) ИЛИ сейф (safeId) ИЛИ архив (archiveId)
-        // 2. Title должен иметь длину хотя бы 1 символ
-        if (($this->folderId === null && $this->safeId === null && $this->archiveId === null) || trim($this->title) === '') {
+        // Проверка условий для сохранения
+        if (!$this->canSave()) {
             return;
         }
 
-        // Проверка уникальности title (исключая текущую заметку если она уже создана)
-        if ($this->isTitleExists(trim($this->title), $this->noteId)) {
-            $this->dispatch('notification', ['title' => 'Внимание', 'content' => 'Заметка с таким названием уже есть. Чтобы избежать путаницы измените название.', 'type' => 'warning']);
+        // Проверка уникальности названия
+        if ($this->noteService->isTitleExists(Auth::id(), trim($this->title), $this->noteId)) {
+            $this->dispatch('notification', [
+                'title' => 'Внимание',
+                'content' => 'Заметка с таким названием уже есть. Чтобы избежать путаницы измените название.',
+                'type' => 'warning',
+            ]);
         }
 
-        try {
-            $this->validateOnly('title');
-        } catch (\Illuminate\Validation\ValidationException) {
-            // При автосохранении не показываем ошибку, просто пропускаем
+        if (!$this->validateAndSave()) {
             return;
         }
 
         $this->isSaving = true;
 
         try {
-            // Если заметка уже создана, обновляем ее
             if ($this->noteId) {
-                if (!$this->cachedNote) {
-                    $this->cachedNote = Note::where('user_id', Auth::id())
-                        ->where('type', Note::TYPE_NOTE)
-                        ->find($this->noteId);
-                }
-
-                if (!$this->cachedNote) {
-                    $this->isSaving = false;
-                    return;
-                }
-
-                // Выполняем отложенное удаление изображений
-                $temporaryImageService = app(TemporaryImageService::class);
-                $temporaryImageService->executePendingDeletion();
-
-                $this->updateTitle($this->cachedNote);
-                $this->updateContent($this->cachedNote);
-                $this->updateLocation($this->cachedNote);
-                $this->updateFavorite($this->cachedNote);
-
-                // Сохраняем только если есть изменения (оптимизация для частых автосохранений)
-                if ($this->cachedNote->isDirty()) {
-                    // Используем транзакцию для обеспечения целостности данных при частых операциях
-                    DB::transaction(function () {
-                        $this->cachedNote->save();
-                    });
-
-                    // Обновляем оригинальные пути изображений только после успешного сохранения
-                    $currentImagePaths = $this->extractImagePathsFromContent($this->content);
-                    $this->originalImagePaths = $currentImagePaths;
-                }
-
-                // Показываем уведомление если изменилось местоположение
-                if ($locationChanged) {
-                    $locationName = $this->getLocationName($this->cachedNote);
-                    $this->dispatch('notification', ['title' => 'Обновлено', 'content' => "Место хранения изменено на «{$locationName}»", 'type' => 'info']);
-
-                    // Обновляем оригинальное местоположение
-                    $this->originalFolderId = $this->cachedNote->folder_id;
-                    $this->originalSafeId = $this->cachedNote->safe_id;
-                    $this->originalArchiveId = $this->cachedNote->archive_id;
-                }
+                $this->updateExistingNote($locationChanged);
             } else {
-                // Создаем новую заметку (первое сохранение)
-                $note = new Note();
-                $note->title = trim($this->title);
-                $note->type = Note::TYPE_NOTE;
-                $note->content = $this->normalizeContent($this->content);
-                $note->is_favorite = $this->is_favorite;
-                $note->user_id = Auth::id();
-
-                if ($this->folderId !== null) {
-                    $note->folder_id = $this->folderId;
-                    $note->safe_id = null;
-                    $note->archive_id = null;
-                } elseif ($this->safeId !== null) {
-                    $note->safe_id = $this->safeId;
-                    $note->folder_id = null;
-                    $note->archive_id = null;
-                } elseif ($this->archiveId !== null) {
-                    $note->archive_id = $this->archiveId;
-                    $note->folder_id = null;
-                    $note->safe_id = null;
-                } else {
-                    // Не должно происходить, т.к. проверка выше
-                    $this->isSaving = false;
-                    return;
-                }
-
-                // Используем транзакцию для создания новой заметки
-                DB::transaction(function () use ($note) {
-                    $note->save();
-                });
-
-                // Сохраняем ID созданной заметки для будущих обновлений
-                $this->noteId = $note->id;
-                $this->cachedNote = $note;
-                // Инициализируем оригинальные пути изображений после создания
-                $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
-
-                // Инициализируем оригинальное местоположение после первого сохранения
-                $this->originalFolderId = $note->folder_id;
-                $this->originalSafeId = $note->safe_id;
-                $this->originalArchiveId = $note->archive_id;
-
-                // Показываем уведомление о первом сохранении только если это первое сохранение
-                if ($this->isFirstSave) {
-                    $locationName = $this->getLocationName($note);
-                    $this->dispatch('notification', ['title' => 'Сохранено', 'content' => "Заметка сохранена в «{$locationName}»", 'type' => 'success']);
-                    $this->isFirstSave = false;
-                }
+                $this->createNewNote();
             }
-
-            // Очищаем список временных изображений при успешном автосохранении
-            // (файлы уже привязаны к заметке и не должны удаляться при уходе со страницы)
-            $temporaryImageService = app(TemporaryImageService::class);
-            $temporaryImageService->clear();
         } catch (\Throwable $e) {
             report($e);
-            // При автосохранении не показываем ошибку пользователю
         } finally {
             $this->isSaving = false;
-            // Обновляем sidebar
             $this->dispatch('refreshSidebar');
         }
     }
 
-    private function extractImagePathsFromContent($content): array
+    /**
+     * Проверить, можно ли сохранить
+     */
+    protected function canSave(): bool
     {
-        if (is_string($content)) {
-            $content = json_decode($content, true);
-        }
-
-        if (!is_array($content) || !isset($content['content'])) {
-            return [];
-        }
-
-        $paths = [];
-        $this->traverseContent($content['content'], $paths);
-
-        return array_values(array_unique($paths));
-    }
-
-    private function traverseContent($nodes, &$paths): void
-    {
-        if (!is_array($nodes)) {
-            return;
-        }
-
-        foreach ($nodes as $node) {
-            if (!is_array($node)) {
-                continue;
-            }
-
-            if (($node['type'] ?? null) === 'image' && isset($node['attrs']['path'])) {
-                $paths[] = $node['attrs']['path'];
-            }
-
-            if (isset($node['content']) && is_array($node['content'])) {
-                $this->traverseContent($node['content'], $paths);
-            }
-        }
-    }
-
-    private function deleteImagesFromStorage(array $paths): void
-    {
-        foreach ($paths as $path) {
-            try {
-                $cleanPath = str_replace('..', '', $path);
-
-                if (str_starts_with($cleanPath, 'notes/') &&
-                    \Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($cleanPath);
-                }
-            } catch (\Exception $e) {
-                report($e);
-            }
-        }
-    }
-
-    private function normalizeContent(mixed $content): string
-    {
-        if (is_string($content) && $content === '') {
-            return self::EMPTY_NOTE_STRUCTURE;
-        }
-
-        if (! is_string($content)) {
-            if (is_array($content) || is_object($content)) {
-                $content = json_encode($content);
-            } else {
-                return self::EMPTY_NOTE_STRUCTURE;
-            }
-        }
-
-        try {
-            $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-
-            if (! is_array($decoded) || empty($decoded)) {
-                return self::EMPTY_NOTE_STRUCTURE;
-            }
-
-            return json_encode($decoded, JSON_UNESCAPED_UNICODE);
-        } catch (\JsonException) {
-            return self::EMPTY_NOTE_STRUCTURE;
-        }
-    }
-
-    private function updateTitle(Note $note): void
-    {
-        $note->title = trim($this->title);
-    }
-
-    private function updateContent(Note $note): void
-    {
-        $note->content = $this->content;
-    }
-
-    private function updateLocation(Note $note): void
-    {
-        if ($this->folderId !== null) {
-            $note->folder_id = $this->folderId;
-            $note->safe_id = null;
-            $note->archive_id = null;
-        } elseif ($this->safeId !== null) {
-            $note->safe_id = $this->safeId;
-            $note->folder_id = null;
-            $note->archive_id = null;
-        } elseif ($this->archiveId !== null) {
-            $note->archive_id = $this->archiveId;
-            $note->folder_id = null;
-            $note->safe_id = null;
-        } else {
-            $note->folder_id = null;
-            $note->safe_id = null;
-            $note->archive_id = Auth::user()->archive->id;
-        }
-    }
-
-    private function updateFavorite(Note $note): void
-    {
-        $note->is_favorite = $this->is_favorite;
-    }
-
-    private function isSafeSelected(?int $selectedId): bool
-    {
-        if ($selectedId === null) {
-            return false;
-        }
-
-        // Проверяем с префиксом safe_
-        return collect($this->safes)->contains('value', 'safe_' . $selectedId);
-    }
-
-    private function isArchiveSelected(?int $selectedId): bool
-    {
-        if ($selectedId === null) {
-            return false;
-        }
-
-        // Проверяем с префиксом archive_
-        return collect($this->archives)->contains('value', 'archive_' . $selectedId);
+        return ($this->folderId !== null || $this->safeId !== null || $this->archiveId !== null)
+            && trim($this->title) !== '';
     }
 
     /**
-     * Получить название места хранения заметки
+     * Создать новую заметку
      */
-    private function getLocationName(Note $note): string
+    protected function createNewNote(): void
     {
-        if ($note->folder_id !== null) {
-            $folder = Folder::find($note->folder_id);
-            return $folder?->title ?? 'Папка';
-        }
+        $dto = new CreateNoteDto(
+            userId: Auth::id(),
+            title: trim($this->title),
+            content: $this->contentService->normalizeNoteContent($this->content),
+            isFavorite: $this->is_favorite,
+            location: new LocationDto(
+                folderId: $this->folderId,
+                safeId: $this->safeId,
+                archiveId: $this->archiveId,
+            ),
+        );
 
-        if ($note->safe_id !== null) {
-            $safe = Safe::find($note->safe_id);
-            return $safe?->name ?? 'Сейф';
-        }
+        $note = $this->noteService->createNote($dto);
 
-        if ($note->archive_id !== null) {
-            $archive = Archive::find($note->archive_id);
-            return $archive?->name ?? 'Архив';
-        }
+        $this->noteId = $note->id;
+        $this->originalFolderId = $note->folder_id;
+        $this->originalSafeId = $note->safe_id;
+        $this->originalArchiveId = $note->archive_id;
 
-        return 'Архив';
+        // Очищаем временные изображения при успешном сохранении
+        $this->clearTemporaryImages();
+
+        if ($this->isFirstSave) {
+            $locationName = $this->locationService->getLocationName($note);
+            $this->dispatch('notification', [
+                'title' => 'Сохранено',
+                'content' => "Заметка сохранена в «{$locationName}»",
+                'type' => 'success',
+            ]);
+            $this->isFirstSave = false;
+        }
     }
 
+    /**
+     * Обновить существующую заметку
+     */
+    protected function updateExistingNote(bool $locationChanged): void
+    {
+        // Выполняем отложенное удаление изображений
+        $this->executePendingImageDeletion();
+
+        $dto = new UpdateNoteDto(
+            userId: Auth::id(),
+            noteId: $this->noteId,
+            title: trim($this->title),
+            content: $this->content,
+            isFavorite: $this->is_favorite,
+            location: new LocationDto(
+                folderId: $this->folderId,
+                safeId: $this->safeId,
+                archiveId: $this->archiveId,
+            ),
+        );
+
+        $note = $this->noteService->updateNote($dto);
+
+        if ($locationChanged) {
+            $this->dispatchLocationChangedNotification($note);
+            $this->originalFolderId = $note->folder_id;
+            $this->originalSafeId = $note->safe_id;
+            $this->originalArchiveId = $note->archive_id;
+        }
+
+        // Очищаем временные изображения при успешном обновлении
+        $this->clearTemporaryImages();
+    }
+
+    /**
+     * Получить заметку
+     */
     #[Computed]
     public function note(): ?Note
     {
         return $this->noteId
-            ? Note::where('user_id', Auth::id())
-                ->where('type', Note::TYPE_NOTE)
-                ->find($this->noteId)
+            ? $this->noteService->findNote(Auth::id(), $this->noteId)
             : null;
-    }
-
-    /**
-     * Проверить существование заметки с указанным названием у текущего пользователя
-     */
-    private function isTitleExists(string $title, ?int $excludeNoteId = null): bool
-    {
-        $query = Note::where('user_id', Auth::id())
-            ->where('type', Note::TYPE_NOTE)
-            ->where('title', $title)
-            ->whereNull('trash_id');
-
-        if ($excludeNoteId) {
-            $query->where('id', '!=', $excludeNoteId);
-        }
-
-        return $query->exists();
     }
 
     public function render(): \Illuminate\View\View

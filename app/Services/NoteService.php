@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Dto\CreateChecklistDto;
+use App\Dto\CreateNoteDto;
 use App\Dto\LocationDto;
 use App\Dto\UpdateChecklistDto;
+use App\Dto\UpdateNoteDto;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 
@@ -60,7 +62,7 @@ class NoteService
     /**
      * Создать заметку
      */
-    public function createNote(CreateChecklistDto $dto): Note
+    public function createNote(CreateNoteDto $dto): Note
     {
         $note = new Note();
         $note->title = $dto->title;
@@ -101,7 +103,7 @@ class NoteService
     /**
      * Обновить заметку
      */
-    public function updateNote(UpdateChecklistDto $dto): Note
+    public function updateNote(UpdateNoteDto $dto): Note
     {
         $note = $this->findNote($dto->userId, $dto->noteId);
 
