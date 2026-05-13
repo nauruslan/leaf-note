@@ -96,6 +96,14 @@ export default class CreateNoteEditor {
             editorElement._editor = null;
         }
 
+        // Удаляем существующий обработчик кнопки изображения перед добавлением нового
+        const imageBtn = document.querySelector('[data-editor-action="image"]');
+        if (imageBtn && imageBtn._noteEditorHandlerAttached) {
+            // Создаем новый элемент кнопки, чтобы удалить все обработчики
+            const newImageBtn = imageBtn.cloneNode(true);
+            imageBtn.parentNode.replaceChild(newImageBtn, imageBtn);
+        }
+
         this.uploadedImages = [];
         this.previousImagePaths = new Set();
         this.lastContent = null;
@@ -245,6 +253,14 @@ export default class CreateNoteEditor {
             this.editorInstance.destroy();
             this.editorInstance = null;
         }
+
+        // Удаляем обработчик кнопки изображения при уничтожении
+        const imageBtn = document.querySelector('[data-editor-action="image"]');
+        if (imageBtn && imageBtn._noteEditorHandlerAttached) {
+            const newImageBtn = imageBtn.cloneNode(true);
+            imageBtn.parentNode.replaceChild(newImageBtn, imageBtn);
+        }
+
         this.uploadedImages = [];
         this.lastContent = null;
         this.previousImagePaths = new Set();

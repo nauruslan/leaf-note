@@ -144,19 +144,22 @@ class TrashService
             );
         }
 
-        // Получаем все заметки в папке
+        // Получаем все заметки в папке (включая те, что в корзине)
         $notes = Note::where('folder_id', $folder->id)
             ->whereNotNull('trash_id')
             ->get();
 
         $notesCount = $notes->count();
 
-        // Удаляем заметки (изображения удаляются автоматически через событие deleting в модели Note)
-        Note::where('folder_id', $folder->id)
-            ->whereNotNull('trash_id')
-            ->delete();
-
         $title = $folder->title;
+
+        // Сначала удаляем все заметки, принадлежащие папке
+        // Изображения удаляются автоматически через событие deleting в модели Note
+        foreach ($notes as $note) {
+            $note->delete(); // Используем delete() для каждой заметки, чтобы сработал обработчик deleting
+        }
+
+        // Затем удаляем саму папку
         $folder->delete();
 
         // Обновляем счётчик корзины
@@ -177,17 +180,37 @@ class TrashService
      */
     public function emptyTrash(int $userId): DeleteResultDto
     {
-        // Сначала удаляем все папки в корзине
-        // (изображения заметок удаляются автоматически через событие deleting в модели Note)
-        Folder::where('user_id', $userId)
+        // Сначала получаем все папки в корзине
+        $folders = Folder::where('user_id', $userId)
             ->whereNotNull('trash_id')
-            ->delete();
+            ->get();
+
+        // Для каждой папки сначала удаляем все заметки, а затем саму папку
+        foreach ($folders as $folder) {
+            // Получаем все заметки в папке (включая те, что в корзине)
+            $notes = Note::where('folder_id', $folder->id)
+                ->whereNotNull('trash_id')
+                ->get();
+
+            // Удаляем каждую заметку отдельно, чтобы сработал обработчик deleting
+            foreach ($notes as $note) {
+                $note->delete();
+            }
+
+            // Затем удаляем саму папку
+            $folder->delete();
+        }
 
         // Затем удаляем заметки без папки
-        Note::where('user_id', $userId)
+        $orphanNotes = Note::where('user_id', $userId)
             ->whereNotNull('trash_id')
             ->whereNull('folder_id')
-            ->delete();
+            ->get();
+
+        // Удаляем каждую заметку отдельно, чтобы сработал обработчик deleting
+        foreach ($orphanNotes as $note) {
+            $note->delete();
+        }
 
         // Сбрасываем счётчик корзины
         $trash = Trash::where('user_id', $userId)->first();

@@ -286,7 +286,7 @@ function initToolbarButtons(editor, onImageUploaded, onUpdate) {
     }
 
     const imageBtn = document.querySelector('[data-editor-action="image"]');
-    if (imageBtn) {
+    if (imageBtn && !imageBtn._noteEditorHandlerAttached) {
         const handler = () => {
             const input = document.createElement('input');
             input.type = 'file';
