@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
  */
 trait WithFavorite
 {
-    protected NoteService $noteService;
+    protected ?NoteService $noteService = null;
 
     /**
      * Инициализация сервиса

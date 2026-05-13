@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\Note;
-use App\Models\Safe;
 use App\Services\NoteQueryService;
 use App\Services\SafeAuthService;
 use App\Services\StateManager;
@@ -34,7 +33,7 @@ class SafeSection extends Base
 
     public function mount(): void
     {
-        $this->attemptResetPollInterval = Safe::getAttemptResetPollInterval();
+        $this->attemptResetPollInterval = \App\Models\Safe::getAttemptResetPollInterval();
 
         // Проверяем, был ли сброшен пароль сейфа через email
         if ($this->safePasswordReset) {
@@ -45,7 +44,7 @@ class SafeSection extends Base
         $this->loadSafe();
 
         // Устанавливаем safeId для предустановки при создании заметок
-        $safe = Safe::where('user_id', Auth::id())->first();
+        $safe = app(SafeAuthService::class)->getUserSafe(Auth::id());
         if ($safe) {
             $this->safeId = $safe->id;
         }
@@ -70,9 +69,9 @@ class SafeSection extends Base
      * persist: false - не кешируется между запросами, данные всегда актуальны.
      */
     #[Computed(persist: false)]
-    public function safe(): ?Safe
+    public function safe(): ?\App\Models\Safe
     {
-        return Safe::where('user_id', Auth::id())->first();
+        return app(SafeAuthService::class)->getUserSafe(Auth::id());
     }
 
     /**
@@ -93,7 +92,7 @@ class SafeSection extends Base
         $query = Note::forUser(Auth::id())->with('folder');
 
         // Фильтруем только заметки конкретного сейфа
-        $safe = Safe::where('user_id', Auth::id())->first();
+        $safe = app(SafeAuthService::class)->getUserSafe(Auth::id());
         if ($safe) {
             $query->where('safe_id', $safe->id);
         } else {

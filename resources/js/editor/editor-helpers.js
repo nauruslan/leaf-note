@@ -700,24 +700,6 @@ export function restoreImage(path) {
         });
 }
 
-/**
- * Выполнить фактическое удаление всех помеченных изображений
- */
-export function executePendingDeletion() {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-    return fetch('/notes/execute-deletion', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': csrfToken,
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-    }).catch((error) => {
-        console.error('[ExecuteDeletion] Error:', error);
-    });
-}
-
 function createViewButtonHTML() {
     return [
         'button',

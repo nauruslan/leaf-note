@@ -41,6 +41,12 @@ class FolderSection extends Base
     }
 
     #[Computed]
+    public function totalFolderNotesCount(): int
+    {
+        return $this->getTotalCount();
+    }
+
+    #[Computed]
     public function folder(): ?Folder
     {
         if (!$this->folderId) {
@@ -48,15 +54,6 @@ class FolderSection extends Base
         }
 
         return app(FolderService::class)->getFolder(Auth::id(), $this->folderId);
-    }
-
-    /**
-     * Общее количество заметок в текущей папке.
-     */
-    #[Computed]
-    public function totalFolderNotesCount(): int
-    {
-        return $this->getTotalCount();
     }
 
     /**

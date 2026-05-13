@@ -114,6 +114,7 @@ class TrashService
         $typeLabel = $note->type === Note::TYPE_NOTE ? 'Заметка' : 'Список';
         $title = $note->title;
 
+        // Изображения удаляются автоматически через событие deleting в модели Note
         $note->delete();
 
         // Обновляем счётчик корзины
@@ -143,10 +144,14 @@ class TrashService
             );
         }
 
-        $notesCount = Note::where('folder_id', $folder->id)
+        // Получаем все заметки в папке
+        $notes = Note::where('folder_id', $folder->id)
             ->whereNotNull('trash_id')
-            ->count();
+            ->get();
 
+        $notesCount = $notes->count();
+
+        // Удаляем заметки (изображения удаляются автоматически через событие deleting в модели Note)
         Note::where('folder_id', $folder->id)
             ->whereNotNull('trash_id')
             ->delete();
@@ -173,6 +178,7 @@ class TrashService
     public function emptyTrash(int $userId): DeleteResultDto
     {
         // Сначала удаляем все папки в корзине
+        // (изображения заметок удаляются автоматически через событие deleting в модели Note)
         Folder::where('user_id', $userId)
             ->whereNotNull('trash_id')
             ->delete();

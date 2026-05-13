@@ -163,4 +163,15 @@ class FolderService
             }])
             ->get();
     }
+
+    /**
+     * Получить активные папки пользователя для dropdown.
+     */
+    public function getActiveFolders(int $userId): \Illuminate\Database\Eloquent\Collection
+    {
+        return Folder::where('user_id', $userId)
+            ->active()
+            ->orderBy('title')
+            ->get();
+    }
 }

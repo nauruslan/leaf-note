@@ -9,5 +9,5 @@
         imageUploadInputId="note-view-image-upload-input" contentInputId="note-view-content-input" />
     <!-- Delete Confirmation Modal -->
     <x-modal type="delete" :show="$confirmingDeletion" title="Удалить заметку?" description="Заметка будет перемещена в корзину"
-        confirmMethod="confirmDelete" cancelMethod="closeModal" />
+        confirmMethod="confirmDeletion" cancelMethod="closeModal" />
 </div>

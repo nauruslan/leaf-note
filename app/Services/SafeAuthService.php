@@ -173,6 +173,14 @@ class SafeAuthService
     }
 
     /**
+     * Получить Safe пользователя.
+     */
+    public function getUserSafe(int $userId): ?Safe
+    {
+        return Safe::where('user_id', $userId)->first();
+    }
+
+    /**
      * Проверить и сбросить попытки (для wire:poll).
      */
     public function checkAndResetAttempts(int $userId): ?string

@@ -16,6 +16,9 @@ class EditNote extends BaseNoteEditor
     public bool $confirmingDeletion = false;
     public bool $isLoaded = false;
 
+    // Сохраняем оригинальные пути изображений для отслеживания изменений
+    protected array $originalImagePaths = [];
+
     #[Locked]
     public ?int $noteId = null;
 
@@ -69,6 +72,9 @@ class EditNote extends BaseNoteEditor
             content: $this->content,
             originalImagePaths: $this->extractImagePathsFromContent($note->content)
         );
+
+        // Сохраняем оригинальные пути изображений
+        $this->originalImagePaths = $this->extractImagePathsFromContent($note->content);
     }
 
     /**
@@ -82,17 +88,37 @@ class EditNote extends BaseNoteEditor
             : null;
     }
 
-    /**
-     * Отмена редактирования
-     */
-    public function cancel(): void
-    {
-        // Очищаем отложенные удаления изображений
-        $this->temporaryImageService->clearPendingDeletion();
 
-        $this->js('localStorage.clear()');
-        $this->dispatch('restoreNoteOriginalState');
-        $this->dispatch('navigateTo', section: 'dashboard-section');
+    /**
+     * Обработать событие обновления контента для отслеживания удаленных изображений
+     */
+    #[On('editorContent')]
+    public function onEditorContent($content): void
+    {
+        $this->content = $content;
+
+        // Если есть оригинальные пути, проверяем удаленные изображения
+        if (!empty($this->originalImagePaths)) {
+            $currentPaths = $this->extractImagePathsFromContent($content);
+            $this->deleteRemovedImages($this->originalImagePaths, $currentPaths, $this->noteId);
+        }
+    }
+
+    /**
+     * Открыть модальное окно удаления
+     */
+    public function openDeleteModal(): void
+    {
+        $this->confirmingDeletion = true;
+    }
+
+    /**
+     * Закрыть модальное окно
+     */
+    public function closeModal(): void
+    {
+        $this->confirmingDeletion = false;
+        $this->dispatch('modalClosed');
     }
 
     /**
@@ -121,23 +147,6 @@ class EditNote extends BaseNoteEditor
     }
 
     /**
-     * Открыть модальное окно удаления
-     */
-    public function openDeleteModal(): void
-    {
-        $this->confirmingDeletion = true;
-    }
-
-    /**
-     * Закрыть модальное окно
-     */
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-        $this->dispatch('modalClosed');
-    }
-
-    /**
      * Автосохранение
      */
     #[Locked]
@@ -162,8 +171,8 @@ class EditNote extends BaseNoteEditor
         $this->isSaving = true;
 
         try {
-            // Выполняем отложенное удаление изображений
-            $this->executePendingImageDeletion();
+            // Получаем текущие пути изображений из контента
+            $currentImagePaths = $this->extractImagePathsFromContent($this->content);
 
             $dto = new UpdateNoteDto(
                 userId: Auth::id(),
@@ -200,18 +209,13 @@ class EditNote extends BaseNoteEditor
     #[On('noteUpdated')]
     public function onNoteUpdated(): void
     {
-        $this->dispatch('navigateTo', section: 'dashboard-section');
-    }
+        // Обновляем оригинальные пути после успешного сохранения
+        $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
 
-    /**
-     * Обработать навигацию
-     */
-    #[On('navigateTo')]
-    public function handleNavigateTo(string $section, ?int $folderId = null): void
-    {
-        if ($section === 'edit-note' && $folderId) {
-            $this->openNote($folderId);
-        }
+        // Очищаем временные изображения после успешного сохранения
+        $this->clearTemporaryImages();
+
+        $this->dispatch('navigateTo', section: 'dashboard-section');
     }
 
     /**

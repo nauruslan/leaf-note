@@ -34,7 +34,7 @@
                             Назад
                         </button>|
                         <button class="text-gray-500 hover:text-red-600 focus:outline-none" title="Удалить"
-                            wire:click.prevent="confirmDeletion" wire:loading.attr="disabled">Удалить
+                            wire:click.prevent="openDeleteModal" wire:loading.attr="disabled">Удалить
                         </button>
                     </div>
                 @elseif($section === 'create-note' || $section === 'create-checklist' || $section === 'create-folder')

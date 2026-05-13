@@ -1,4 +1,4 @@
-import { executePendingDeletion, restoreImage, softDeleteImage } from './editor-helpers';
+import { restoreImage, softDeleteImage } from './editor-helpers';
 import { initNoteEditor } from './note';
 
 /**
@@ -214,11 +214,6 @@ export default class CreateNoteEditor {
             this.sendContentToLivewire();
         });
 
-        // Удаление загруженных изображений
-        document.addEventListener('delete-uploaded-images', () => {
-            this.deleteAllUploadedImages();
-        });
-
         // Обработка событий update-safe-id и update-archive-id
         document.addEventListener('update-safe-id', (e) => {
             if (typeof Livewire !== 'undefined') {
@@ -271,14 +266,6 @@ export default class CreateNoteEditor {
         if (content) {
             Livewire.dispatch('noteContentReady', { content: JSON.stringify(content) });
         }
-    }
-
-    /**
-     * Выполнить фактическое удаление всех помеченных изображений
-     * Вызывается при сохранении заметки или уходе со страницы
-     */
-    deleteAllUploadedImages() {
-        return executePendingDeletion();
     }
 
     /**

@@ -19,6 +19,7 @@ class CreateChecklist extends BaseChecklistEditor
 
     public function mount(): void
     {
+        // Инициализация контента
         $this->content = $this->contentService->normalizeChecklistContent('');
 
         // Обработка предустановок из StateManager

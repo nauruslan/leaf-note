@@ -33,7 +33,7 @@ abstract class BaseFolderEditor extends Component
     public ?int $folderId = null;
 
     // Внедряемый сервис
-    protected FolderService $folderService;
+    protected ?FolderService $folderService = null;
 
     /**
      * Инициализация сервиса

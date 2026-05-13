@@ -2,147 +2,49 @@
 
 namespace App\Livewire;
 
-use App\Dto\LocationDto;
-use App\Livewire\Traits\WithBackSection;
-use App\Livewire\Traits\WithFavorite;
-use App\Livewire\Traits\WithNoteStore;
-use App\Services\ContentService;
-use App\Services\DropdownValueParser;
 use App\Services\ImageService;
-use App\Services\LocationService;
-use App\Services\NoteService;
 use App\Services\TemporaryImageService;
-use Livewire\Component;
-use Livewire\Attributes\Locked;
-use Livewire\Attributes\On;
-use Livewire\Attributes\Rule;
 
-abstract class BaseNoteEditor extends Component
+/**
+ * Базовый класс для редакторов заметок
+ */
+abstract class BaseNoteEditor extends BaseEditor
 {
-    use WithBackSection;
-    use WithNoteStore;
-    use WithFavorite;
-
-    // Публичные свойства для UI
-    #[Rule('required|string|max:255')]
-    public string $title = '';
-
-    public ?int $folderId = null;
-    public ?int $safeId = null;
-    public ?int $archiveId = null;
-    public ?string $dropdownValue = null;
-    public bool $is_favorite = false;
-    public string $content = '';
-    public bool $isSaving = false;
-
-    // Защищённые от параллельных запросов
-    #[Locked]
-    public ?int $noteId = null;
-
-    // Оригинальное местоположение для отслеживания изменений
-    protected ?int $originalFolderId = null;
-    protected ?int $originalSafeId = null;
-    protected ?int $originalArchiveId = null;
-
-    // Внедряемые сервисы
-    protected NoteService $noteService;
-    protected ContentService $contentService;
-    protected LocationService $locationService;
-    protected DropdownValueParser $dropdownParser;
+    // Дополнительные сервисы для работы с изображениями
     protected ImageService $imageService;
     protected TemporaryImageService $temporaryImageService;
 
-    public function boot(
-        NoteService $noteService,
-        ContentService $contentService,
-        LocationService $locationService,
-        DropdownValueParser $dropdownParser,
+    /**
+     * Инициализация сервисов для работы с изображениями
+     */
+    public function bootBaseNoteEditor(
         ImageService $imageService,
         TemporaryImageService $temporaryImageService,
     ): void {
-        $this->noteService = $noteService;
-        $this->contentService = $contentService;
-        $this->locationService = $locationService;
-        $this->dropdownParser = $dropdownParser;
         $this->imageService = $imageService;
         $this->temporaryImageService = $temporaryImageService;
     }
 
-    // Общие методы
-    abstract public function autoSave(bool $locationChanged = false): void;
-
-    public function updatedDropdownValue(): void
+    /**
+     * Получить сервис изображений
+     */
+    protected function getImageService(): ImageService
     {
-        $location = $this->dropdownParser->parse($this->dropdownValue);
-
-        $locationChanged = ($location->folderId !== $this->originalFolderId) ||
-                           ($location->safeId !== $this->originalSafeId) ||
-                           ($location->archiveId !== $this->originalArchiveId);
-
-        $this->folderId = $location->folderId;
-        $this->safeId = $location->safeId;
-        $this->archiveId = $location->archiveId;
-
-        $this->autoSave($locationChanged);
-    }
-
-    #[On('updateSafeId')]
-    public function setSafeId(int $id): void
-    {
-        $this->safeId = $id;
-        $this->folderId = null;
-        $this->archiveId = null;
-        $this->dropdownValue = $this->locationService->buildDropdownValue(
-            $this->folderId,
-            $this->safeId,
-            $this->archiveId
-        );
-        $this->autoSave();
-    }
-
-    #[On('updateArchiveId')]
-    public function setArchiveId(int $id): void
-    {
-        $this->archiveId = $id;
-        $this->folderId = null;
-        $this->safeId = null;
-        $this->dropdownValue = $this->locationService->buildDropdownValue(
-            $this->folderId,
-            $this->safeId,
-            $this->archiveId
-        );
-        $this->autoSave();
-    }
-
-    public function updatedTitle(): void
-    {
-        $this->autoSave();
-    }
-
-    public function updatedContent(): void
-    {
-        $this->autoSave();
-    }
-
-    protected function validateAndSave(): bool
-    {
-        try {
-            $this->validateOnly('title');
-        } catch (\Illuminate\Validation\ValidationException) {
-            return false;
+        if (!isset($this->imageService)) {
+            $this->imageService = app(ImageService::class);
         }
-
-        return true;
+        return $this->imageService;
     }
 
-    protected function dispatchLocationChangedNotification(\App\Models\Note $note): void
+    /**
+     * Получить сервис временных изображений
+     */
+    protected function getTemporaryImageService(): TemporaryImageService
     {
-        $locationName = $this->locationService->getLocationName($note);
-        $this->dispatch('notification', [
-            'title' => 'Обновлено',
-            'content' => "Место хранения изменено на «{$locationName}»",
-            'type' => 'info',
-        ]);
+        if (!isset($this->temporaryImageService)) {
+            $this->temporaryImageService = app(TemporaryImageService::class);
+        }
+        return $this->temporaryImageService;
     }
 
     /**
@@ -150,7 +52,7 @@ abstract class BaseNoteEditor extends Component
      */
     protected function extractImagePathsFromContent(mixed $content): array
     {
-        return $this->imageService->extractImagePaths($content);
+        return $this->getImageService()->extractImagePaths($content);
     }
 
     /**
@@ -158,15 +60,18 @@ abstract class BaseNoteEditor extends Component
      */
     protected function deleteImagesFromStorage(array $paths): void
     {
-        $this->imageService->deleteImagesFromStorage($paths);
+        $this->getImageService()->deleteImagesFromStorage($paths);
     }
 
     /**
      * Выполнить отложенное удаление изображений
+     *
+     * @param array $currentPaths Пути изображений, которые сейчас в контенте (не удалять)
+     * @param int|null $excludeNoteId ID заметки, которую нужно исключить из проверки
      */
-    protected function executePendingImageDeletion(): void
+    protected function executePendingImageDeletion(array $currentPaths = [], ?int $excludeNoteId = null): void
     {
-        $this->temporaryImageService->executePendingDeletion();
+        $this->getTemporaryImageService()->executePendingDeletion($currentPaths, $excludeNoteId);
     }
 
     /**
@@ -174,14 +79,46 @@ abstract class BaseNoteEditor extends Component
      */
     protected function clearTemporaryImages(): void
     {
-        $this->temporaryImageService->clear();
+        $this->getTemporaryImageService()->clear();
+    }
+
+    /**
+     * Восстановить все изображения из списка на удаление
+     * Используется при отмене редактирования (cancel)
+     */
+    protected function restoreAllPendingDeletions(): void
+    {
+        $this->getTemporaryImageService()->restoreAllPendingDeletions();
+    }
+
+    /**
+     * Удалить изображения, которые были удалены из контента
+     *
+     * @param array $oldPaths Пути изображений из старого контента
+     * @param array $newPaths Пути изображений из нового контента
+     * @param int|null $excludeNoteId ID заметки, которую нужно исключить из проверки
+     */
+    protected function deleteRemovedImages(array $oldPaths, array $newPaths, ?int $excludeNoteId = null): void
+    {
+        $this->getTemporaryImageService()->deleteRemovedImages($oldPaths, $newPaths, $excludeNoteId);
     }
 
     /**
      * Удалить несохранённые изображения
+     *
+     * @param int|null $excludeNoteId ID заметки, которую нужно исключить из проверки
      */
-    protected function deleteUnsavedImages(): void
+    protected function deleteUnsavedImages(?int $excludeNoteId = null): void
     {
-        $this->temporaryImageService->deleteUnsavedImages();
+        $this->getTemporaryImageService()->deleteUnsavedImages($excludeNoteId);
+    }
+
+    /**
+     * Очистить бэкапы изображений, помеченных на удаление
+     * Используется при уходе со страницы редактирования/создания заметки
+     */
+    protected function cleanupPendingBackups(): void
+    {
+        $this->getTemporaryImageService()->cleanupPendingBackups();
     }
 }

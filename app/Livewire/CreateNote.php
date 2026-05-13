@@ -18,11 +18,13 @@ class CreateNote extends BaseNoteEditor
     public string $section = 'create-note';
     public bool $isFirstSave = true;
 
-    private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"paragraph"}]}';
+    // Сохраняем оригинальные пути изображений для отслеживания изменений
+    protected array $originalImagePaths = [];
 
     public function mount(): void
     {
-        $this->content = self::EMPTY_NOTE_STRUCTURE;
+        // Инициализация контента
+        $this->content = $this->contentService->normalizeNoteContent('');
 
         // Очищаем список временных изображений при входе на страницу создания заметки
         $this->clearTemporaryImages();
@@ -75,30 +77,20 @@ class CreateNote extends BaseNoteEditor
         }
     }
 
+
     /**
-     * Отмена создания заметки
+     * Обработать событие обновления контента для отслеживания удаленных изображений
      */
-    public function cancel(): void
+    #[On('editorContent')]
+    public function onEditorContent($content): void
     {
-        // Если заметка была создана через автосохранение, удаляем её
-        if ($this->noteId) {
-            $note = $this->noteService->findNote(Auth::id(), $this->noteId);
+        $this->content = $content;
 
-            if ($note) {
-                // Удаляем изображения из хранилища
-                $imagePaths = $this->extractImagePathsFromContent($note->content);
-                $this->deleteImagesFromStorage($imagePaths);
-                // Удаляем заметку
-                $note->delete();
-            }
+        // Если есть оригинальные пути, проверяем удаленные изображения
+        if (!empty($this->originalImagePaths)) {
+            $currentPaths = $this->extractImagePathsFromContent($content);
+            $this->deleteRemovedImages($this->originalImagePaths, $currentPaths, $this->noteId);
         }
-
-        // Выполняем отложенное удаление изображений и очищаем временные
-        $this->executePendingImageDeletion();
-        $this->deleteUnsavedImages();
-
-        $this->dispatch('navigateTo', section: 'dashboard-section');
-        $this->dispatch('refreshSidebar');
     }
 
     /**
@@ -194,6 +186,9 @@ class CreateNote extends BaseNoteEditor
         // Очищаем временные изображения при успешном сохранении
         $this->clearTemporaryImages();
 
+        // Сохраняем оригинальные пути после первого сохранения
+        $this->originalImagePaths = $this->extractImagePathsFromContent($this->content);
+
         if ($this->isFirstSave) {
             $locationName = $this->locationService->getLocationName($note);
             $this->dispatch('notification', [
@@ -210,8 +205,8 @@ class CreateNote extends BaseNoteEditor
      */
     protected function updateExistingNote(bool $locationChanged): void
     {
-        // Выполняем отложенное удаление изображений
-        $this->executePendingImageDeletion();
+        // Получаем текущие пути изображений из контента
+        $currentImagePaths = $this->extractImagePathsFromContent($this->content);
 
         $dto = new UpdateNoteDto(
             userId: Auth::id(),
@@ -237,6 +232,9 @@ class CreateNote extends BaseNoteEditor
 
         // Очищаем временные изображения при успешном обновлении
         $this->clearTemporaryImages();
+
+        // Обновляем оригинальные пути после успешного сохранения
+        $this->originalImagePaths = $currentImagePaths;
     }
 
     /**

@@ -9,5 +9,5 @@
         editorId="edit-checklist-editor" contentInputId="checklist-content-input" contentDebounce="500ms" />
     <!-- Delete Confirmation Modal -->
     <x-modal type="delete" :show="$confirmingDeletion" title="Удалить список?" description="Список будет перемещен в корзину"
-        confirmMethod="confirmDelete" cancelMethod="closeModal" />
+        confirmMethod="confirmDeletion" cancelMethod="closeModal" />
 </div>

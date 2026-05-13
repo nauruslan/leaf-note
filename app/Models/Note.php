@@ -38,6 +38,12 @@ class Note extends Model
 
     protected static function booted(): void
     {
+        // Автоматическое удаление изображений при физическом удалении заметки
+        static::deleting(function (Note $note) {
+            $imageService = app(ImageService::class);
+            $imageService->deleteNoteImages($note);
+        });
+
         // Автоматическое заполнение search_content из content при создании и обновлении
         static::saving(function (Note $note) {
             if ($note->isDirty('content')) {

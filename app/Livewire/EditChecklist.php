@@ -31,7 +31,13 @@ class EditChecklist extends BaseChecklistEditor
             return;
         }
 
-        $checklist = $this->noteService->findChecklist(Auth::id(), $noteId);
+        $this->noteId = $noteId;
+
+        if ($this->noteId === null) {
+            return;
+        }
+
+        $checklist = $this->noteService->findChecklist(Auth::id(), $this->noteId);
 
         if (!$checklist) {
             $this->dispatch('notification', [
@@ -43,7 +49,6 @@ class EditChecklist extends BaseChecklistEditor
             return;
         }
 
-        $this->noteId = $checklist->id;
         $this->title = $checklist->title;
         $this->folderId = $checklist->folder_id;
         $this->safeId = $checklist->safe_id;
@@ -76,6 +81,23 @@ class EditChecklist extends BaseChecklistEditor
     }
 
     /**
+     * Открыть модальное окно удаления
+     */
+    public function openDeleteModal(): void
+    {
+        $this->confirmingDeletion = true;
+    }
+
+    /**
+     * Закрыть модальное окно
+     */
+    public function closeModal(): void
+    {
+        $this->confirmingDeletion = false;
+        $this->dispatch('modalClosed');
+    }
+
+    /**
      * Подтвердить удаление
      */
     public function confirmDeletion(): void
@@ -98,23 +120,6 @@ class EditChecklist extends BaseChecklistEditor
         ]);
         $this->dispatch('navigateTo', section: 'dashboard-section');
         $this->dispatch('refreshSidebar');
-    }
-
-    /**
-     * Открыть модальное окно удаления
-     */
-    public function openDeleteModal(): void
-    {
-        $this->confirmingDeletion = true;
-    }
-
-    /**
-     * Закрыть модальное окно
-     */
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-        $this->dispatch('modalClosed');
     }
 
     /**

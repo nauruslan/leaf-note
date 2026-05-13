@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Traits;
 
-use App\Models\Folder;
+use App\Services\FolderService;
 use App\Services\LocationService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
@@ -14,14 +14,18 @@ use Livewire\Attributes\Computed;
  */
 trait WithNoteStore
 {
-    protected LocationService $locationService;
+    protected ?LocationService $locationService = null;
+    protected ?FolderService $folderService = null;
 
     /**
-     * Инициализация сервиса
+     * Инициализация сервисов
      */
-    public function bootWithNoteStore(LocationService $locationService): void
-    {
+    public function bootWithNoteStore(
+        LocationService $locationService,
+        FolderService $folderService,
+    ): void {
         $this->locationService = $locationService;
+        $this->folderService = $folderService;
     }
 
     /**
@@ -30,10 +34,7 @@ trait WithNoteStore
     #[Computed]
     public function folders(): EloquentCollection
     {
-        return Folder::forUser(Auth::user())
-            ->active()
-            ->orderBy('title')
-            ->get();
+        return $this->folderService->getActiveFolders(Auth::id());
     }
 
     /**
