@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithFavorite;
 use App\Livewire\Traits\WithNoteStore;
 use App\Services\ContentService;
 use App\Services\DropdownValueParser;
+use App\Services\FolderService;
 use App\Services\LocationService;
 use App\Services\NoteService;
 use Illuminate\Support\Facades\Auth;
@@ -47,41 +48,27 @@ abstract class BaseEditor extends Component
     protected ?int $originalArchiveId = null;
 
     // Внедряемые сервисы
-    protected ?NoteService $noteService = null;
-    protected ?ContentService $contentService = null;
-    protected ?LocationService $locationService = null;
-    protected ?DropdownValueParser $dropdownParser = null;
+    protected NoteService $noteService;
+    protected ContentService $contentService;
+    protected LocationService $locationService;
+    protected DropdownValueParser $dropdownParser;
+    protected FolderService $folderService;
 
     /**
-     * Инициализация базовых сервисов
+     * Инициализация сервисов через boot
      */
-    public function bootBaseEditor(
+    public function boot(
         NoteService $noteService,
         ContentService $contentService,
         LocationService $locationService,
         DropdownValueParser $dropdownParser,
+        FolderService $folderService,
     ): void {
         $this->noteService = $noteService;
         $this->contentService = $contentService;
         $this->locationService = $locationService;
         $this->dropdownParser = $dropdownParser;
-    }
-
-    /**
-     * Метод boot
-     */
-    public function boot(
-        ?NoteService $noteService = null,
-        ?ContentService $contentService = null,
-        ?LocationService $locationService = null,
-        ?DropdownValueParser $dropdownParser = null,
-    ): void {
-        if ($noteService !== null) {
-            $this->noteService = $noteService;
-            $this->contentService = $contentService;
-            $this->locationService = $locationService;
-            $this->dropdownParser = $dropdownParser;
-        }
+        $this->folderService = $folderService;
     }
 
     /**

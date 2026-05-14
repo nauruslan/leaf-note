@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Livewire\Traits\WithBackSection;
 use App\Services\FolderService;
+use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -41,6 +42,14 @@ abstract class BaseFolderEditor extends Component
     public function boot(FolderService $folderService): void
     {
         $this->folderService = $folderService;
+    }
+
+    /**
+     * Инициализация компонента
+     */
+    public function mount(): void
+    {
+
     }
 
     /**

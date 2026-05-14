@@ -100,4 +100,38 @@ class DemoUserService
 
         return $count;
     }
+
+    /**
+     * Проверить, нужно ли показать демо-модальное окно
+     */
+    public function shouldShowDemoModal(User $user): bool
+    {
+        if (!$user->isDemoUser()) {
+            return false;
+        }
+
+        // Показываем только при первом входе в сессию
+        return !session()->has('demo_modal_shown');
+    }
+
+    /**
+     * Получить время истечения демо-аккаунта в отформатированном виде
+     */
+    public function getDemoExpirationTime(User $user): string
+    {
+        if (!$user->isDemoUser()) {
+            return '';
+        }
+
+        $expirationDate = $user->created_at->addMinutes(self::DEMO_LIFETIME_MINUTES);
+        return $expirationDate->format('d.m.Y H:i');
+    }
+
+    /**
+     * Отметить, что демо-модальное окно было показано
+     */
+    public function markDemoModalShown(): void
+    {
+        session()->put('demo_modal_shown', true);
+    }
 }

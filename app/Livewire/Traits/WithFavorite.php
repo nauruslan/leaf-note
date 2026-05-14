@@ -10,22 +10,13 @@ use Illuminate\Support\Facades\Auth;
  */
 trait WithFavorite
 {
-    protected ?NoteService $noteService = null;
-
-    /**
-     * Инициализация сервиса
-     */
-    public function bootWithFavorite(NoteService $noteService): void
-    {
-        $this->noteService = $noteService;
-    }
-
     /**
      * Обновление статуса избранного
      */
     public function updatedIsFavorite($value): void
     {
         if ($this->noteId) {
+            // NoteService доступен через BaseEditor
             $this->noteService->toggleFavorite(Auth::id(), $this->noteId, (bool) $value);
 
             $this->dispatch('notification', [

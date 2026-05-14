@@ -14,19 +14,7 @@ use Livewire\Attributes\Computed;
  */
 trait WithNoteStore
 {
-    protected ?LocationService $locationService = null;
-    protected ?FolderService $folderService = null;
-
-    /**
-     * Инициализация сервисов
-     */
-    public function bootWithNoteStore(
-        LocationService $locationService,
-        FolderService $folderService,
-    ): void {
-        $this->locationService = $locationService;
-        $this->folderService = $folderService;
-    }
+    // Сервисы будут инициализированы в BaseEditor через boot()
 
     /**
      * Получить список папок

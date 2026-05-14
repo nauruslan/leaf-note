@@ -7,6 +7,9 @@ use App\Dto\CreateNoteDto;
 use App\Dto\LocationDto;
 use App\Dto\UpdateChecklistDto;
 use App\Dto\UpdateNoteDto;
+use App\Events\ChecklistCreated;
+use App\Events\ChecklistDeleted;
+use App\Events\ChecklistUpdated;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 
@@ -56,6 +59,9 @@ class NoteService
 
         $note->save();
 
+        // Отправляем событие о создании чеклиста
+        event(new ChecklistCreated($note, $dto->userId));
+
         return $note;
     }
 
@@ -89,6 +95,11 @@ class NoteService
             throw new \InvalidArgumentException('Чеклист не найден');
         }
 
+        // Сохраняем старые значения местоположения для проверки изменений
+        $oldFolderId = $note->folder_id;
+        $oldSafeId = $note->safe_id;
+        $oldArchiveId = $note->archive_id;
+
         $note->title = $dto->title;
         $note->content = $dto->content;
         $note->is_favorite = $dto->isFavorite;
@@ -96,6 +107,9 @@ class NoteService
         $this->locationService->updateNoteLocation($note, $dto->location);
 
         $note->save();
+
+        // Отправляем событие об обновлении чеклиста
+        event(new ChecklistUpdated($note, $dto->userId));
 
         return $note;
     }
@@ -110,6 +124,11 @@ class NoteService
         if (!$note) {
             throw new \InvalidArgumentException('Заметка не найдена');
         }
+
+        // Сохраняем старые значения местоположения для проверки изменений
+        $oldFolderId = $note->folder_id;
+        $oldSafeId = $note->safe_id;
+        $oldArchiveId = $note->archive_id;
 
         $note->title = $dto->title;
         $note->content = $dto->content;
@@ -162,6 +181,9 @@ class NoteService
                 'message' => 'Корзина переполнена. Очистите корзину перед удалением.',
             ];
         }
+
+        // Отправляем событие об удалении чеклиста
+        event(new ChecklistDeleted($checklist, $userId));
 
         return [
             'success' => true,

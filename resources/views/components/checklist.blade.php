@@ -1,11 +1,11 @@
 @props(['note'])
 
 @php
-    $progress = $note->getChecklistProgress();
-    $percentage = $progress['percentage'];
-    $completed = $progress['completed'];
-    $total = $progress['total'];
-    $color = $progress['color'];
+    $progressDto = app(\App\Services\ChecklistService::class)->getProgress($note);
+    $percentage = $progressDto->percentage;
+    $completed = $progressDto->completed;
+    $total = $progressDto->total;
+    $color = $progressDto->color;
     // Длина окружности: 2 * π * r = 2 * 3.14159 * 45 ≈ 283
     $PI = 3.14159;
     $radius = 45;

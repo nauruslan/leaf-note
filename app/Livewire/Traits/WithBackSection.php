@@ -9,9 +9,6 @@ use App\Services\StateManager;
  */
 trait WithBackSection
 {
-    /**
-     * Навигация назад к предыдущей секции
-     */
     public function back(): void
     {
         $previousSection = StateManager::get('previous_section');

@@ -3,9 +3,9 @@ namespace App\Livewire;
 
 use App\Livewire\Actions\Logout;
 use App\Services\FolderService;
+use App\Services\NavigationService;
 use App\Services\SafeAuthService;
-use App\Services\SidebarNavigationService;
-use App\Services\SidebarStatisticsService;
+use App\Services\StatisticsService;
 use App\Services\StateManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -36,8 +36,8 @@ class NavigationSidebar extends Component
     public ?int $previousFolderId = null;
 
     // Внедряемые сервисы
-    protected SidebarStatisticsService $statisticsService;
-    protected SidebarNavigationService $navigationService;
+    protected StatisticsService $statisticsService;
+    protected NavigationService $navigationService;
     protected FolderService $folderService;
     protected SafeAuthService $safeAuthService;
 
@@ -45,8 +45,8 @@ class NavigationSidebar extends Component
      * Инициализация сервисов
      */
     public function boot(
-        SidebarStatisticsService $statisticsService,
-        SidebarNavigationService $navigationService,
+        StatisticsService $statisticsService,
+        NavigationService $navigationService,
         FolderService $folderService,
         SafeAuthService $safeAuthService,
     ): void {
@@ -150,6 +150,7 @@ class NavigationSidebar extends Component
     #[Locked]
     public function goTo(string $section, ?int $folderId = null): void
     {
+
         if ($this->section === $section && $this->folderId === $folderId) {
             return;
         }
@@ -157,30 +158,21 @@ class NavigationSidebar extends Component
         $this->isLoading = true;
         $this->loadingSection = $section;
 
-        // Сохраняем текущую секцию как предыдущую перед переходом
-        StateManager::set('previous_section', $this->section);
-        StateManager::set('previous_folderId', $this->folderId);
-        StateManager::set('previous_noteId', null);
-
-        // Подготавливаем состояние навигации
-        $state = $this->navigationService->prepareNavigationState(
+        // Используем NavigationService для правильного сохранения предыдущей секции
+        $this->navigationService->navigateTo(
             $section,
             $folderId,
+            null, // noteId
             $this->section,
             $this->folderId,
+            null // currentNoteId
         );
 
-        // Обновляем свойства
-        $this->section = $state->section;
-        $this->folderId = $state->folderId;
-        $this->previousSection = $state->previousSection;
-        $this->previousFolderId = $state->previousFolderId;
-
-        // Сохраняем состояние в StateManager
-        StateManager::set('section', $this->section);
-        StateManager::set('folderId', $this->folderId);
-        StateManager::set('previous_section', $this->previousSection);
-        StateManager::set('previous_folderId', $this->previousFolderId);
+        // Получаем обновленное состояние из StateManager
+        $this->section = StateManager::get('section');
+        $this->folderId = StateManager::get('folderId');
+        $this->previousSection = StateManager::get('previous_section');
+        $this->previousFolderId = StateManager::get('previous_folderId');
 
         // Проверяем пароль сейфа
         if ($section === 'safe-section' && $this->safeAuthService->shouldOpenPasswordModal(Auth::id())) {
@@ -218,6 +210,7 @@ class NavigationSidebar extends Component
     #[On('stateUpdated')]
     public function updateState(string $section, ?int $folderId = null): void
     {
+
         // Обновляем свойства без перезаписи предыдущей секции
         $this->section = $section;
         $this->folderId = $folderId;

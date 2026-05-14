@@ -19,19 +19,30 @@ class LocationService
      */
     public function getLocationName(Note $note): string
     {
+        // Используем отношения, загруженные заранее, если они доступны
+        if ($note->relationLoaded('folder') && $note->folder) {
+            return $note->folder->title;
+        }
+
+        if ($note->relationLoaded('safe') && $note->safe) {
+            return $note->safe->name;
+        }
+
+        if ($note->relationLoaded('archive') && $note->archive) {
+            return $note->archive->name;
+        }
+
+        // Иначе используем прямые запросы
         if ($note->folder_id !== null) {
-            $folder = Folder::find($note->folder_id);
-            return $folder?->title ?? 'Папка';
+            return Folder::find($note->folder_id)?->title ?? 'Папка';
         }
 
         if ($note->safe_id !== null) {
-            $safe = Safe::find($note->safe_id);
-            return $safe?->name ?? 'Сейф';
+            return Safe::find($note->safe_id)?->name ?? 'Сейф';
         }
 
         if ($note->archive_id !== null) {
-            $archive = Archive::find($note->archive_id);
-            return $archive?->name ?? 'Архив';
+            return Archive::find($note->archive_id)?->name ?? 'Архив';
         }
 
         return 'Архив';
@@ -120,6 +131,7 @@ class LocationService
                 'text' => $archive->name ?? 'Архив',
             ]);
     }
+
 
     /**
      * Проверить, изменилось ли местоположение

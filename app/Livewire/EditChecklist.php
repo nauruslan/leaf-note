@@ -118,7 +118,18 @@ class EditChecklist extends BaseChecklistEditor
             'content' => $result['message'],
             'type' => 'danger',
         ]);
-        $this->dispatch('navigateTo', section: 'dashboard-section');
+
+        // Получаем предыдущую секцию из StateManager
+        $previousSection = \App\Services\StateManager::get('previous_section', 'dashboard-section');
+        $previousFolderId = \App\Services\StateManager::get('previous_folderId', null);
+
+        // Если предыдущая секция - это секция редактирования, то переходим на dashboard
+        if (in_array($previousSection, ['edit-note', 'edit-checklist', 'edit-folder'])) {
+            $previousSection = 'dashboard-section';
+            $previousFolderId = null;
+        }
+
+        $this->dispatch('navigateTo', section: $previousSection, folderId: $previousFolderId);
         $this->dispatch('refreshSidebar');
     }
 

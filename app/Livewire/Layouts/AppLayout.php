@@ -2,138 +2,148 @@
 
 namespace App\Livewire\Layouts;
 
+use App\Services\AppLayoutService;
 use App\Services\DemoUserService;
-use App\Services\StateManager;
-use App\Services\TemporaryImageService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
+use Livewire\Attributes\Session;
 use Livewire\Component;
 
 class AppLayout extends Component
 {
+    #[Session]
     public string $section = 'dashboard-section';
+    
+    #[Session]
     public ?int $folderId = null;
+    
+    #[Session]
     public ?int $noteId = null;
+    
     public int $componentKey = 0;
     public bool $showDemoModal = false;
     public string $demoExpirationTime = '';
     public bool $isLoading = false;
     public ?string $loadingSection = null;
+    public ?int $loadingNoteId = null;
 
+    private AppLayoutService $appLayoutService;
+
+    public function boot(AppLayoutService $appLayoutService): void
+    {
+        $this->appLayoutService = $appLayoutService;
+    }
 
     public function mount(): void
     {
-        $this->section = StateManager::get('section', 'dashboard-section');
-        $this->folderId = StateManager::get('folderId', null);
-        $this->noteId = StateManager::get('noteId', null);
+        $this->initializeState();
+        $this->checkNotifications();
+    }
 
-        $this->initDemoModal();
+    /**
+     * Инициализация состояния компонента
+     */
+    private function initializeState(): void
+    {
+        $state = $this->appLayoutService->initializeComponentState();
+        $this->section = $state['section'];
+        $this->folderId = $state['folderId'];
+        $this->noteId = $state['noteId'];
 
-        // Проверяем, был ли сброшен пароль сейфа через email
-        if (session()->has('safe_password_reset')) {
-            session()->forget('safe_password_reset');
-            $this->dispatch('notification', ['title' => 'Внимание', 'content' => 'Был сброшен пароль от сейфа', 'type' => 'warning']);
+        $this->initializeDemoModal();
+    }
+
+    /**
+     * Проверка и отправка уведомлений
+     */
+    private function checkNotifications(): void
+    {
+        $notificationService = app(NotificationService::class);
+        $notification = $notificationService->checkSafePasswordResetNotification();
+        
+        if ($notification) {
+            $this->dispatch('notification', $notification);
         }
     }
 
     /**
-     * Инициализация модального окна для демо-пользователей.
-     * Показывает информацию о сроке действия демо-аккаунта.
+     * Инициализация модального окна для демо-пользователей
      */
-    protected function initDemoModal(): void
+    private function initializeDemoModal(): void
     {
         $user = Auth::user();
+        
+        if (!$user) {
+            return;
+        }
 
-        if ($user && $user->isDemoUser()) {
-            // Проверяем, нужно ли показать модальное окно (только при первом входе в сессию)
-            if (!session()->has('demo_modal_shown')) {
-                $this->showDemoModal = true;
-                session()->put('demo_modal_shown', true);
-            }
+        $demoData = $this->appLayoutService->initializeDemoModal($user);
+        $this->showDemoModal = $demoData['showDemoModal'];
+        $this->demoExpirationTime = $demoData['demoExpirationTime'];
 
-            // Вычисляем время истечения демо-аккаунта
-            $expirationDate = $user->created_at->addMinutes(DemoUserService::DEMO_LIFETIME_MINUTES);
-            $this->demoExpirationTime = $expirationDate->format('d.m.Y H:i');
+        // Если модальное окно было показано, отмечаем это в сессии
+        if ($this->showDemoModal) {
+            $demoUserService = app(DemoUserService::class);
+            $demoUserService->markDemoModalShown();
         }
     }
 
-    // Закрыть модальное окно демо-информации.
+    /**
+     * Закрыть модальное окно демо-информации
+     */
     public function closeDemoModal(): void
     {
         $this->showDemoModal = false;
     }
 
-    protected $listeners = [
-        'navigateTo' => 'navigateTo',
-        'startLoading' => 'startLoading',
-        'finishLoading' => 'finishLoading',
-    ];
-
-    public ?int $loadingNoteId = null;
-
+    /**
+     * Начать загрузку
+     */
+    #[On('startLoading')]
     public function startLoading(string $section, ?int $folderId = null, ?int $noteId = null): void
     {
-        $this->isLoading = true;
-        $this->loadingSection = $section;
-        $this->loadingNoteId = $noteId;
+        $loadingData = $this->appLayoutService->prepareLoadingData($section, $folderId, $noteId);
+        $this->isLoading = $loadingData['isLoading'];
+        $this->loadingSection = $loadingData['loadingSection'];
+        $this->loadingNoteId = $loadingData['loadingNoteId'];
     }
 
+    /**
+     * Завершить загрузку
+     */
+    #[On('finishLoading')]
     public function finishLoading(): void
     {
-        $this->isLoading = false;
-        $this->loadingSection = null;
-        $this->loadingNoteId = null;
+        $loadingData = $this->appLayoutService->resetLoadingData();
+        $this->isLoading = $loadingData['isLoading'];
+        $this->loadingSection = $loadingData['loadingSection'];
+        $this->loadingNoteId = $loadingData['loadingNoteId'];
     }
 
-    public function navigateTo(string $section, ?int $folderId=null, ?int $noteId=null): void
+    /**
+     * Выполнить навигацию
+     */
+    #[On('navigateTo')]
+    public function navigateTo(string $section, ?int $folderId = null, ?int $noteId = null): void
     {
-       // Сохраняем текущую секцию как предыдущую перед переходом
-        // Но не перезаписываем, если уходим с страницы создания (текущая секция - create-секция)
-        // потому что previous_section уже был правильно сохранен при переходе к create
-        $createSections = ['create-note', 'create-checklist', 'create-folder'];
-        if (!in_array($this->section, $createSections)) {
-            StateManager::set('previous_section', $this->section);
-            StateManager::set('previous_folderId', $this->folderId);
-            StateManager::set('previous_noteId', $this->noteId);
-        }
-
-        // Если переходим на страницу создания, всегда сохраняем текущую секцию как предыдущую
-        if (in_array($section, $createSections)) {
-            StateManager::set('previous_section', $this->section);
-            StateManager::set('previous_folderId', $this->folderId);
-            StateManager::set('previous_noteId', $this->noteId);
-        }
-
-        // Если покидаем контекст сейфа (переход из safe-секции в другую секцию),
-        // Safe-контекст: safe, edit-note, edit-checklist, create-note, create-checklist
-        $safeContextSections = ['safe-section', 'edit-note', 'edit-checklist', 'create-note', 'create-checklist'];
-        $leavingSafeContext = in_array($this->section, $safeContextSections) && !in_array($section, $safeContextSections);
-        if ($leavingSafeContext) {
-            StateManager::remove('safe_unlocked');
-        }
-
-        // Если покидаем страницу создания или редактирования заметки, удаляем помеченные изображения
-        if (($this->section === 'create-note' || $this->section === 'edit-note') &&
-            $section !== 'create-note' && $section !== 'edit-note') {
-            $temporaryImageService = app(TemporaryImageService::class);
-            $temporaryImageService->cleanupPendingBackups();
-        }
-
-        StateManager::set('section', $section);
-        StateManager::set('folderId', $folderId);
-        StateManager::set('noteId', $noteId);
-
-        $this->section = (string) $section;
-        $this->folderId = $folderId;
-        $this->noteId = $noteId;
+        $navigationData = $this->appLayoutService->prepareNavigationData($section, $folderId, $noteId);
+        
+        // Обновляем свойства компонента
+        $this->section = $navigationData['section'];
+        $this->folderId = $navigationData['folderId'];
+        $this->noteId = $navigationData['noteId'];
         $this->componentKey++;
 
+        // Прокрутка страницы наверх
         $this->js('() => window.scrollTo({ top: 0, behavior: "smooth" })');
 
-        $this->dispatch('stateUpdated', section:$section, folderId:$folderId);
+        // Отправляем события
+        $this->dispatch('stateUpdated', section: $section, folderId: $folderId);
         $this->dispatch('finishLoading');
     }
 
-    public function render()
+    public function render(): \Illuminate\View\View
     {
         return view('livewire.layouts.app-layout');
     }
