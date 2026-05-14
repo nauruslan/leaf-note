@@ -86,13 +86,18 @@ class AppLayout extends Component
 
     public function navigateTo(string $section, ?int $folderId=null, ?int $noteId=null): void
     {
-        // Сохраняем текущую секцию как предыдущую перед переходом
-        // Но не перезаписываем, если:
-        // 1. Переходим на страницу создания (create-note, create-checklist, create-folder)
-        // 2. Уходим с страницы создания (текущая секция - create-секция)
-        // потому что previous_section уже был правильно сохранен в NavigationSidebar::goTo()
+       // Сохраняем текущую секцию как предыдущую перед переходом
+        // Но не перезаписываем, если уходим с страницы создания (текущая секция - create-секция)
+        // потому что previous_section уже был правильно сохранен при переходе к create
         $createSections = ['create-note', 'create-checklist', 'create-folder'];
-        if (!in_array($section, $createSections) && !in_array($this->section, $createSections)) {
+        if (!in_array($this->section, $createSections)) {
+            StateManager::set('previous_section', $this->section);
+            StateManager::set('previous_folderId', $this->folderId);
+            StateManager::set('previous_noteId', $this->noteId);
+        }
+
+        // Если переходим на страницу создания, всегда сохраняем текущую секцию как предыдущую
+        if (in_array($section, $createSections)) {
             StateManager::set('previous_section', $this->section);
             StateManager::set('previous_folderId', $this->folderId);
             StateManager::set('previous_noteId', $this->noteId);
@@ -117,7 +122,7 @@ class AppLayout extends Component
         StateManager::set('folderId', $folderId);
         StateManager::set('noteId', $noteId);
 
-        $this->section = $section;
+        $this->section = (string) $section;
         $this->folderId = $folderId;
         $this->noteId = $noteId;
         $this->componentKey++;

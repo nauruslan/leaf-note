@@ -15,7 +15,7 @@ class SidebarNavigationService
     private const EDITING_SECTIONS = ['edit-note', 'edit-checklist', 'edit-folder'];
 
     /**
-     * Секции создания (не сохраняют предыдущую секцию)
+     * Секции создания (сохраняют предыдущую секцию для возврата назад)
      */
     private const CREATE_SECTIONS = ['create-note', 'create-checklist', 'create-folder'];
 
@@ -24,20 +24,15 @@ class SidebarNavigationService
      */
     public function getActiveSection(string $currentSection, ?string $previousSection): string
     {
+        // Для секций редактирования подсвечиваем предыдущую секцию
         if (in_array($currentSection, self::EDITING_SECTIONS) && $previousSection) {
             return $previousSection;
         }
 
+        // Для секций создания подсвечиваем саму секцию создания
         return $currentSection;
     }
 
-    /**
-     * Проверить, нужно ли сохранять предыдущую секцию
-     */
-    public function shouldSavePreviousSection(string $currentSection): bool
-    {
-        return !in_array($currentSection, self::CREATE_SECTIONS);
-    }
 
     /**
      * Подготовить состояние навигации
@@ -51,8 +46,8 @@ class SidebarNavigationService
         return new NavigationStateDto(
             section: $section,
             folderId: $folderId,
-            previousSection: $this->shouldSavePreviousSection($section) ? $previousSection : null,
-            previousFolderId: $this->shouldSavePreviousSection($section) ? $previousFolderId : null,
+            previousSection: $previousSection,
+            previousFolderId: $previousFolderId,
         );
     }
 }

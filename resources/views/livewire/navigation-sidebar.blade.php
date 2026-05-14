@@ -75,8 +75,8 @@
                     @foreach ($this->folders as $folder)
                         <li wire:key="folder-{{ $folder->id }}">
                             <x-sidebar-item icon="{{ $folder->icon }}" label="{{ $folder->title }}"
-                                wireClick="goTo('folder-section', {{ $folder->id }})" :active="$this->activeSection === 'folder-section' && ($folderId ?? $previousFolderId) == $folder->id"
-                                :count="$folder->notes_count" :isLoading="$isLoading && $loadingSection === 'folder-section' && $folderId == $folder->id" />
+                                wireClick="goTo('folder-section', {{ $folder->id }})" :count="$folder->notes_count"
+                                :active="$this->activeSection === 'folder-section' && ($folderId ?? $previousFolderId) == $folder->id" :isLoading="$isLoading && $loadingSection === 'folder-section' && $folderId == $folder->id" />
                         </li>
                     @endforeach
                 </ul>

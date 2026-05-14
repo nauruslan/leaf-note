@@ -157,6 +157,11 @@ class NavigationSidebar extends Component
         $this->isLoading = true;
         $this->loadingSection = $section;
 
+        // Сохраняем текущую секцию как предыдущую перед переходом
+        StateManager::set('previous_section', $this->section);
+        StateManager::set('previous_folderId', $this->folderId);
+        StateManager::set('previous_noteId', null);
+
         // Подготавливаем состояние навигации
         $state = $this->navigationService->prepareNavigationState(
             $section,
@@ -213,25 +218,16 @@ class NavigationSidebar extends Component
     #[On('stateUpdated')]
     public function updateState(string $section, ?int $folderId = null): void
     {
-        // Подготавливаем состояние навигации
-        $state = $this->navigationService->prepareNavigationState(
-            $section,
-            $folderId,
-            $this->section,
-            $this->folderId,
-        );
+        // Обновляем свойства без перезаписи предыдущей секции
+        $this->section = $section;
+        $this->folderId = $folderId;
 
-        // Обновляем свойства
-        $this->section = $state->section;
-        $this->folderId = $state->folderId;
-        $this->previousSection = $state->previousSection;
-        $this->previousFolderId = $state->previousFolderId;
+        $this->previousSection = StateManager::get('previous_section');
+        $this->previousFolderId = StateManager::get('previous_folderId');
 
         // Сохраняем состояние в StateManager
         StateManager::set('section', $this->section);
         StateManager::set('folderId', $this->folderId);
-        StateManager::set('previous_section', $this->previousSection);
-        StateManager::set('previous_folderId', $this->previousFolderId);
     }
 
     /**

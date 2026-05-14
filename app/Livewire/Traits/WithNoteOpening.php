@@ -16,14 +16,14 @@ trait WithNoteOpening
         if (! empty($this->folderId)) {
             StateManager::set('preset_folder_id', $this->folderId);
         }
-        if (! empty($this->safeId)) {
+        if (property_exists($this, 'safeId') && ! empty($this->safeId)) {
             StateManager::set('preset_safe_id', $this->safeId);
         }
-        if (! empty($this->archiveId)) {
+        if (property_exists($this, 'archiveId') && ! empty($this->archiveId)) {
             StateManager::set('preset_archive_id', $this->archiveId);
         }
         // Для избранного используем специальный флаг
-        if (isset($this->isFavorite)) {
+        if (property_exists($this, 'isFavorite') && isset($this->isFavorite)) {
             StateManager::set('preset_is_favorite', $this->isFavorite ? true : false);
         }
     }
@@ -31,13 +31,49 @@ trait WithNoteOpening
     public function openCreateNotePage(): void
     {
         $this->setPresets();
+        // Сохраняем текущую секцию как предыдущую перед переходом
+        $currentSection = StateManager::get('section', 'dashboard-section');
+        $currentFolderId = StateManager::get('folderId');
+        $currentNoteId = StateManager::get('noteId');
+
+        StateManager::set('previous_section', $currentSection);
+        StateManager::set('previous_folderId', $currentFolderId);
+        StateManager::set('previous_noteId', $currentNoteId);
+
         $this->dispatch('navigateTo', section: 'create-note');
     }
 
     public function openCreateChecklistPage(): void
     {
         $this->setPresets();
+        // Сохраняем текущую секцию как предыдущую перед переходом
+        $currentSection = StateManager::get('section', 'dashboard-section');
+        $currentFolderId = StateManager::get('folderId');
+        $currentNoteId = StateManager::get('noteId');
+
+        StateManager::set('previous_section', $currentSection);
+        StateManager::set('previous_folderId', $currentFolderId);
+        StateManager::set('previous_noteId', $currentNoteId);
+
         $this->dispatch('navigateTo', section: 'create-checklist');
+    }
+
+    /**
+     * Открыть страницу создания папки
+     */
+    public function openCreateFolderPage(): void
+    {
+        $this->setPresets();
+        // Сохраняем текущую секцию как предыдущую перед переходом
+        $currentSection = StateManager::get('section', 'dashboard-section');
+        $currentFolderId = StateManager::get('folderId');
+        $currentNoteId = StateManager::get('noteId');
+
+        StateManager::set('previous_section', $currentSection);
+        StateManager::set('previous_folderId', $currentFolderId);
+        StateManager::set('previous_noteId', $currentNoteId);
+
+        $this->dispatch('navigateTo', section: 'create-folder');
     }
 
     public function openNote(int $noteId): void

@@ -14,18 +14,13 @@ trait WithBackSection
      */
     public function back(): void
     {
-        $previousSection = StateManager::get('previous_section', 'dashboard-section');
+        $previousSection = StateManager::get('previous_section');
         $previousFolderId = StateManager::get('previous_folderId');
-
-        // Если предыдущая секция - сейф, возвращаемся в сейф
-        if ($previousSection === 'safe-section') {
-            $previousSection = 'safe-section';
-            $previousFolderId = null;
-        }
+        $previousNoteId = StateManager::get('previous_noteId');
 
         // Уведомляем AppLayout об изменении состояния
-        $this->dispatch('navigateTo', section: $previousSection, folderId: $previousFolderId);
+        $this->dispatch('navigateTo', section: $previousSection, folderId: $previousFolderId, noteId: $previousNoteId);
         // Уведомляем NavigationSidebar об изменении состояния
-        $this->dispatch('stateUpdated', section: $previousSection, folderId: $previousFolderId);
+        $this->dispatch('stateUpdated', section: $previousSection, folderId: $previousFolderId, noteId: $previousNoteId);
     }
 }

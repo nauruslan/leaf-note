@@ -124,7 +124,6 @@ class Folder extends Model
         });
 
         static::deleting(function (Folder $folder) {
-            // Удаляем только активные заметки (изображения удаляются автоматически через событие deleting в модели Note)
             Note::where('folder_id', $folder->id)
                 ->whereNull('trash_id')
                 ->whereNull('archive_id')

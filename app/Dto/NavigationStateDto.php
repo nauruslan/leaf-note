@@ -12,5 +12,6 @@ readonly class NavigationStateDto
         public ?int $folderId,
         public ?string $previousSection,
         public ?int $previousFolderId,
+        public ?int $previousNoteId = null,
     ) {}
 }
