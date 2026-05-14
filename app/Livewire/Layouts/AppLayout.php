@@ -14,13 +14,13 @@ class AppLayout extends Component
 {
     #[Session]
     public string $section = 'dashboard-section';
-    
+
     #[Session]
     public ?int $folderId = null;
-    
+
     #[Session]
     public ?int $noteId = null;
-    
+
     public int $componentKey = 0;
     public bool $showDemoModal = false;
     public string $demoExpirationTime = '';
@@ -61,7 +61,7 @@ class AppLayout extends Component
     {
         $notificationService = app(NotificationService::class);
         $notification = $notificationService->checkSafePasswordResetNotification();
-        
+
         if ($notification) {
             $this->dispatch('notification', $notification);
         }
@@ -73,7 +73,7 @@ class AppLayout extends Component
     private function initializeDemoModal(): void
     {
         $user = Auth::user();
-        
+
         if (!$user) {
             return;
         }
@@ -128,19 +128,19 @@ class AppLayout extends Component
     public function navigateTo(string $section, ?int $folderId = null, ?int $noteId = null): void
     {
         $navigationData = $this->appLayoutService->prepareNavigationData($section, $folderId, $noteId);
-        
+
         // Обновляем свойства компонента
         $this->section = $navigationData['section'];
         $this->folderId = $navigationData['folderId'];
         $this->noteId = $navigationData['noteId'];
         $this->componentKey++;
 
-        // Прокрутка страницы наверх
-        $this->js('() => window.scrollTo({ top: 0, behavior: "smooth" })');
-
-        // Отправляем события
+        // Отправляем события перед прокруткой
         $this->dispatch('stateUpdated', section: $section, folderId: $folderId);
         $this->dispatch('finishLoading');
+
+        // Прокрутка страницы наверх с задержкой, чтобы убедиться, что DOM обновлен
+        $this->js('setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50)');
     }
 
     public function render(): \Illuminate\View\View

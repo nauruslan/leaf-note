@@ -13,7 +13,9 @@
 </head>
 
 <body class="bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
-    <livewire:layouts.app-layout />
+    <div class="max-w-[1920px] mx-auto min-h-screen relative" id="app-container">
+        <livewire:layouts.app-layout />
+    </div>
 
     <livewire:connection-status />
 

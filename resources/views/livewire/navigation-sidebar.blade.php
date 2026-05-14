@@ -1,6 +1,6 @@
 <!-- Боковое меню NavigationSidebar -->
 <aside id="navigation-sidebar"
-    class="group fixed left-0 top-0 h-full z-[9999] flex flex-col bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out w-[72px] hover:w-64 overflow-hidden"
+    class="group fixed top-0 h-screen z-[9999] flex flex-col bg-white border-r border-gray-200 shadow-xl transition-all duration-300 ease-in-out w-[72px] hover:w-64 overflow-hidden"
     role="navigation" aria-label="Основное меню">
     <!-- Логотип -->
     <div class="flex items-center h-16 border-b border-gray-200 px-4 shrink-0">
@@ -12,7 +12,7 @@
             LeafNote</h2>
     </div>
     <!-- Навигация -->
-    <nav id="sidebar-nav" class="flex-1 py-4 px-2 overflow-hidden group-hover:overflow-y-auto">
+    <nav id="sidebar-nav" class="flex-1 py-4 px-2 overflow-hidden group-hover:overflow-y-auto max-h-[calc(100vh-4rem)]">
         <ul class="space-y-1">
             <!-- Основное меню -->
             <li>

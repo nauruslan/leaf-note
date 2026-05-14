@@ -9,6 +9,7 @@ export default class Sidebar {
         this.sidebar = null;
         this.nav = null;
         this.observer = null;
+        this.appContainer = null;
 
         // Состояние компонента
         this.isHovered = false;
@@ -16,6 +17,9 @@ export default class Sidebar {
         this.collapseTimer = null;
         this.scrollTimeout = null;
         this.STORAGE_KEY = 'sidebar_scroll';
+
+        // Позиционирование
+        this.boundUpdateSidebarPosition = this.updateSidebarPosition.bind(this);
 
         // Привязанные методы для корректного удаления обработчиков
         this.boundHandleMouseEnter = this.handleMouseEnter.bind(this);
@@ -44,6 +48,7 @@ export default class Sidebar {
     initSidebar() {
         this.sidebar = document.getElementById('navigation-sidebar');
         this.nav = document.getElementById('sidebar-nav');
+        this.appContainer = document.getElementById('app-container');
 
         if (!this.sidebar || !this.nav) {
             return;
@@ -52,6 +57,7 @@ export default class Sidebar {
         this.updateExpandedAttribute();
         this.restoreScrollPosition();
         this.setupEventListeners();
+        this.updateSidebarPosition();
 
         // Если мышь уже находится над сайдбаром (например, после Livewire-обновления),
         // сразу разворачиваем панель, чтобы не было моргания
@@ -73,6 +79,10 @@ export default class Sidebar {
 
         // Событие прокрутки на навигационном контейнере
         this.nav.addEventListener('scroll', this.boundHandleScroll);
+
+        // События для обновления позиции sidebar
+        window.addEventListener('resize', this.boundUpdateSidebarPosition);
+        window.addEventListener('scroll', this.boundUpdateSidebarPosition);
 
         // Событие перед закрытием страницы
         document.addEventListener('beforeunload', this.boundHandleBeforeUnload);
@@ -325,6 +335,23 @@ export default class Sidebar {
     }
 
     /**
+     * Обновление позиции sidebar относительно контейнера приложения
+     */
+    updateSidebarPosition() {
+        if (!this.sidebar || !this.appContainer) return;
+
+        // Получаем границы контейнера приложения
+        const containerRect = this.appContainer.getBoundingClientRect();
+
+        // Вычисляем левую позицию для sidebar
+        // Если контейнер центрирован, то левая позиция будет равна отступу контейнера от левого края окна
+        const leftPosition = containerRect.left;
+
+        // Устанавливаем позицию sidebar
+        this.sidebar.style.left = `${leftPosition}px`;
+    }
+
+    /**
      * Прокрутка к активному пункту меню
      */
     scrollToActiveItem() {
@@ -382,6 +409,8 @@ export default class Sidebar {
         document.removeEventListener('beforeunload', this.boundHandleBeforeUnload);
         window.removeEventListener('navigateTo', this.boundHandleNavigateTo);
         window.removeEventListener('stateUpdated', this.boundHandleStateUpdated);
+        window.removeEventListener('resize', this.boundUpdateSidebarPosition);
+        window.removeEventListener('scroll', this.boundUpdateSidebarPosition);
 
         // Отключаем наблюдатель
         if (this.observer) {

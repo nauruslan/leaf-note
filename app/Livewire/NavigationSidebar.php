@@ -181,7 +181,9 @@ class NavigationSidebar extends Component
 
         $this->dispatch('navigateTo', section: $section, folderId: $folderId);
         $this->dispatch('startLoading', section: $section, folderId: $folderId);
-        $this->js('window.scrollTo(0, 0)');
+
+        // Удаляем прямую прокрутку, так как она будет обрабатываться в AppLayout
+        // Это предотвращает конфликт с пагинацией
     }
 
     /**

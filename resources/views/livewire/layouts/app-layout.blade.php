@@ -8,7 +8,8 @@
                 <x-loader class="w-20 h-20 animate-spin text-indigo-600" />
             </div>
         @else
-            <livewire:is :component="$section" :section="$section" :folder-id="$folderId" :note-id="$noteId" :key="$section . '-' . $componentKey" />
+            <livewire:is :component="$section" :section="$section" :folder-id="$folderId" :note-id="$noteId"
+                :key="$section . '-' . $componentKey" />
         @endif
     </div>
     <div class="ml-16">
