@@ -21,17 +21,20 @@ Route::get('/clear-session', function() {
 // Главная страница (требует аутентификации и верификации)
 Route::view('/', 'layouts.app')->middleware(['auth', 'verified'])->name('app');
 
-// Загрузка изображения
-Route::post('/notes/upload-image', [NoteImageController::class, 'upload'])
-    ->name('notes.upload-image');
+// Загрузка и управление изображениями (требуют аутентификации)
+Route::middleware(['auth'])->group(function () {
+    // Загрузка изображения
+    Route::post('/notes/upload-image', [NoteImageController::class, 'upload'])
+        ->name('notes.upload-image');
 
-// Мягкое удаление изображения (для undo/redo)
-Route::post('/notes/soft-delete-image', [NoteImageController::class, 'softDelete'])
-    ->name('notes.soft-delete-image');
+    // Мягкое удаление изображения (для undo/redo)
+    Route::post('/notes/soft-delete-image', [NoteImageController::class, 'softDelete'])
+        ->name('notes.soft-delete-image');
 
-// Восстановление изображения (при undo)
-Route::post('/notes/restore-image', [NoteImageController::class, 'restore'])
-    ->name('notes.restore-image');
+    // Восстановление изображения (при undo)
+    Route::post('/notes/restore-image', [NoteImageController::class, 'restore'])
+        ->name('notes.restore-image');
+});
 
 // Подключение маршрутов из auth.php
 require __DIR__.'/auth.php';

@@ -119,6 +119,7 @@ abstract class BaseNoteEditor extends BaseEditor
      */
     protected function cleanupPendingBackups(): void
     {
-        $this->getTemporaryImageService()->cleanupPendingBackups();
+        $this->getTemporaryImageService()->cleanupPendingBackups($this->noteId);
     }
+
 }

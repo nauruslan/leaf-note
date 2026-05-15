@@ -129,6 +129,15 @@ class AppLayout extends Component
     {
         $navigationData = $this->appLayoutService->prepareNavigationData($section, $folderId, $noteId);
 
+        // Очищаем помеченные на удаление изображения, если уходим со страницы редактирования/создания заметки
+        $previousSection = $navigationData['previousSection'] ?? null;
+        $previousNoteId = $navigationData['previousNoteId'] ?? null;
+
+        if (in_array($previousSection, ['create-note', 'edit-note'])) {
+            $temporaryImageService = app(\App\Services\TemporaryImageService::class);
+            $temporaryImageService->cleanupPendingBackups($previousNoteId);
+        }
+
         // Обновляем свойства компонента
         $this->section = $navigationData['section'];
         $this->folderId = $navigationData['folderId'];

@@ -189,17 +189,17 @@ class TemporaryImageService
      * Очистить изображения, помеченных на удаление
      * Используется при уходе со страницы редактирования/создания заметки
      * Выполняет фактическое удаление файлов, если они не используются в других заметках
+     *
+     * @param int|null $excludeNoteId ID заметки, которую нужно исключить из проверки
      */
-    public function cleanupPendingBackups(): void
+    public function cleanupPendingBackups(?int $excludeNoteId = null): void
     {
         $pendingDelete = $this->getPendingDelete();
 
+        // Удаляем файлы, которые не используются в других заметках (исключая текущую)
         foreach ($pendingDelete as $item) {
             $path = $item['path'];
-
-            // Проверяем, используется ли изображение в какой-либо заметке
-            if (!$this->isFileUsedInNotes($path, null)) {
-                // Удаляем сам файл изображения
+            if (!$this->isFileUsedInNotes($path, $excludeNoteId)) {
                 $this->deleteFile($path);
             }
         }

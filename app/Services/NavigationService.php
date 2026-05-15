@@ -146,7 +146,8 @@ class NavigationService
     {
         if ($this->shouldCleanupImages($currentSection, $newSection)) {
             $temporaryImageService = app(TemporaryImageService::class);
-            $temporaryImageService->cleanupPendingBackups();
+            $excludeNoteId = StateManager::get('previous_noteId');
+            $temporaryImageService->cleanupPendingBackups($excludeNoteId);
         }
     }
 
