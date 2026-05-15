@@ -94,14 +94,9 @@ export default class Pagination {
      * Прокрутка страницы вниз
      */
     scrollToBottom() {
-        this.clearScrollTimeout();
-
-        this.scrollTimeout = setTimeout(() => {
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth',
-            });
-        }, 100);
+        window.scrollTo({
+            top: document.body.scrollHeight,
+        });
     }
 
     /**
