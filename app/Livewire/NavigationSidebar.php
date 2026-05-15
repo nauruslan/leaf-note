@@ -2,6 +2,7 @@
 namespace App\Livewire;
 
 use App\Livewire\Actions\Logout;
+use App\Livewire\Traits\WithModal;
 use App\Services\FolderService;
 use App\Services\NavigationService;
 use App\Services\SafeAuthService;
@@ -17,8 +18,9 @@ use Livewire\Component;
 
 class NavigationSidebar extends Component
 {
+    use WithModal;
+
     // UI State - публичные свойства для привязки
-    public bool $confirmingLogout = false;
     public bool $isLoading = false;
     public ?string $loadingSection = null;
 
@@ -239,16 +241,11 @@ class NavigationSidebar extends Component
      */
     public function confirmLogout(): void
     {
-        $this->confirmingLogout = true;
-    }
-
-    /**
-     * Закрытие модального окна выхода
-     */
-    public function closeLogoutModal(): void
-    {
-        $this->confirmingLogout = false;
-        $this->dispatch('modalClosed');
+        $this->confirm(
+            title: 'Вы хотите выйти из аккаунта?',
+            description: 'Требуется подтверждение',
+            data: ['icon' => 'log-out', 'confirmText' => 'Выйти']
+        );
     }
 
     /**
@@ -257,11 +254,51 @@ class NavigationSidebar extends Component
     #[Locked]
     public function logout()
     {
-        $this->closeLogoutModal();
+        $this->closeModal('confirm');
         $this->js("localStorage.removeItem('sidebar_scroll')");
 
         app(Logout::class)();
         return redirect()->route('login');
+    }
+
+    /**
+     * Проверить, открыто ли модальное окно
+     */
+    #[Computed]
+    public function isModalOpen(string $modalName): bool
+    {
+        return $this->modals[$modalName] ?? false;
+    }
+
+    /**
+     * Получить данные модального окна
+     */
+    #[Computed]
+    public function getModalData(string $modalName, string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->modalData[$modalName] ?? [];
+        }
+
+        return $this->modalData[$modalName][$key] ?? $default;
+    }
+
+    /**
+     * Получить заголовок модального окна
+     */
+    #[Computed]
+    public function getModalTitle(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'title', '');
+    }
+
+    /**
+     * Получить описание модального окна
+     */
+    #[Computed]
+    public function getModalDescription(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'description', '');
     }
 
     /**

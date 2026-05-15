@@ -8,6 +8,6 @@
     <x-note-editor-content-section :title="$title" :content="$content" :note="$this->note" editorId="note-view-editor"
         imageUploadInputId="note-view-image-upload-input" contentInputId="note-view-content-input" />
     <!-- Delete Confirmation Modal -->
-    <x-modal type="delete" :show="$confirmingDeletion" title="Удалить заметку?" description="Заметка будет перемещена в корзину"
-        confirmMethod="confirmDeletion" cancelMethod="closeModal" />
+    <x-modal type="delete" :show="$this->isModalOpen('delete')" :title="$this->getModalTitle('delete')" :description="$this->getModalDescription('delete')" confirmMethod="confirmDeletion"
+        cancelMethod="closeModal('delete')" />
 </div>

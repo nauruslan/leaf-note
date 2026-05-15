@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Dto\LocationDto;
 use App\Dto\UpdateChecklistDto;
+use App\Livewire\Traits\WithModal;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -12,9 +13,9 @@ use Livewire\Attributes\On;
 
 class EditChecklist extends BaseChecklistEditor
 {
+    use WithModal;
 
     public string $section = 'edit-checklist';
-    public bool $confirmingDeletion = false;
 
     #[Locked]
     public ?int $noteId = null;
@@ -85,16 +86,7 @@ class EditChecklist extends BaseChecklistEditor
      */
     public function openDeleteModal(): void
     {
-        $this->confirmingDeletion = true;
-    }
-
-    /**
-     * Закрыть модальное окно
-     */
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-        $this->dispatch('modalClosed');
+        $this->confirmDelete($this->noteId, 'checklist', 'Удалить список?', 'Список будет перемещен в корзину');
     }
 
     /**
@@ -118,6 +110,9 @@ class EditChecklist extends BaseChecklistEditor
             'content' => $result['message'],
             'type' => 'danger',
         ]);
+
+        // Закрываем модальное окно
+        $this->closeModal('delete');
 
         // Получаем предыдущую секцию из StateManager
         $previousSection = \App\Services\StateManager::get('previous_section', 'dashboard-section');
@@ -194,6 +189,46 @@ class EditChecklist extends BaseChecklistEditor
     public function onChecklistUpdated(): void
     {
         $this->dispatch('navigateTo', section: 'dashboard-section');
+    }
+
+    /**
+     * Проверить, открыто ли модальное окно
+     */
+    #[Computed]
+    public function isModalOpen(string $modalName): bool
+    {
+        return $this->modals[$modalName] ?? false;
+    }
+
+    /**
+     * Получить данные модального окна
+     */
+    #[Computed]
+    public function getModalData(string $modalName, string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->modalData[$modalName] ?? [];
+        }
+
+        return $this->modalData[$modalName][$key] ?? $default;
+    }
+
+    /**
+     * Получить заголовок модального окна
+     */
+    #[Computed]
+    public function getModalTitle(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'title', '');
+    }
+
+    /**
+     * Получить описание модального окна
+     */
+    #[Computed]
+    public function getModalDescription(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'description', '');
     }
 
     public function render(): \Illuminate\View\View

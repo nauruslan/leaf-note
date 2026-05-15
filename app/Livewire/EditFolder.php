@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Dto\UpdateFolderDto;
+use App\Livewire\Traits\WithModal;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
@@ -10,9 +11,10 @@ use Livewire\Attributes\On;
 
 class EditFolder extends BaseFolderEditor
 {
+    use WithModal;
+
     public string $heading = 'Редактирование папки';
     public string $section = 'edit-folder';
-    public bool $confirmingDeletion = false;
 
     // Исходные значения для сравнения
     protected string $originalTitle = '';
@@ -123,28 +125,11 @@ class EditFolder extends BaseFolderEditor
     }
 
     /**
-     * Подтвердить удаление
-     */
-    public function confirmDeletion(): void
-    {
-        $this->confirmingDeletion = true;
-    }
-
-    /**
-     * Закрыть модальное окно
-     */
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-        $this->dispatch('modalClosed');
-    }
-
-    /**
      * Открыть модальное окно удаления
      */
     public function openDeleteModal(): void
     {
-        $this->confirmDeletion();
+        $this->confirmDelete($this->folderId, 'folder', 'Удалить папку?', 'Папка будет перемещена в корзину. Вы сможете восстановить её позже.');
     }
 
     /**
@@ -161,7 +146,7 @@ class EditFolder extends BaseFolderEditor
                 'content' => $result['message'],
                 'type' => 'danger'
             ]);
-            $this->confirmingDeletion = false;
+            $this->closeModal('delete');
             return;
         }
 
@@ -171,9 +156,49 @@ class EditFolder extends BaseFolderEditor
             'type' => 'danger'
         ]);
 
+        $this->closeModal('delete');
         $this->dispatch('navigateTo', section: 'dashboard-section');
         $this->dispatch('refreshSidebar');
-        $this->confirmingDeletion = false;
+    }
+
+    /**
+     * Проверить, открыто ли модальное окно
+     */
+    #[Computed]
+    public function isModalOpen(string $modalName): bool
+    {
+        return $this->modals[$modalName] ?? false;
+    }
+
+    /**
+     * Получить данные модального окна
+     */
+    #[Computed]
+    public function getModalData(string $modalName, string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->modalData[$modalName] ?? [];
+        }
+
+        return $this->modalData[$modalName][$key] ?? $default;
+    }
+
+    /**
+     * Получить заголовок модального окна
+     */
+    #[Computed]
+    public function getModalTitle(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'title', '');
+    }
+
+    /**
+     * Получить описание модального окна
+     */
+    #[Computed]
+    public function getModalDescription(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'description', '');
     }
 
     public function render(): \Illuminate\View\View

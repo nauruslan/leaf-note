@@ -6,6 +6,7 @@ use App\Dto\ProfileDto;
 use App\Dto\SafePasswordDto;
 use App\Dto\TrashSettingsDto;
 use App\Dto\UserStatisticsDto;
+use App\Livewire\Traits\WithModal;
 use App\Services\UserService;
 use App\Services\SafePasswordService;
 use App\Services\TrashService;
@@ -21,6 +22,7 @@ use Livewire\Attributes\Computed;
 
 class ProfileSection extends Component
 {
+    use WithModal;
     // Заголовки
     public string $heading = 'Настройки профиля';
     public string $subheading = 'Управление вашими личными данными и настройками';
@@ -49,11 +51,8 @@ class ProfileSection extends Component
     // Состояние
     public bool $hasUnsavedChanges = false;
 
-    // Модальные окна
-    public bool $showPasswordResetModal = false;
-    public bool $showSafePasswordResetModal = false;
-
     // Состояние отправки
+
     public bool $sendingSafePasswordReset = false;
     public bool $safePasswordResetSent = false;
 
@@ -333,22 +332,20 @@ class ProfileSection extends Component
     // Модальные окна
     public function openAccountPasswordResetModal(): void
     {
-        $this->showPasswordResetModal = true;
-    }
-
-    public function closeAccountPasswordResetModal(): void
-    {
-        $this->showPasswordResetModal = false;
+        $this->confirm(
+            title: 'Сброс пароля аккаунта',
+            description: 'Вы уверены, что хотите сбросить пароль аккаунта? Ссылка для сброса будет отправлена на вашу почту.',
+            data: ['confirmText' => 'Да, отправить', 'modalType' => 'accountPasswordReset']
+        );
     }
 
     public function openSafePasswordResetModal(): void
     {
-        $this->showSafePasswordResetModal = true;
-    }
-
-    public function closeSafePasswordResetModal(): void
-    {
-        $this->showSafePasswordResetModal = false;
+        $this->confirm(
+            title: 'Сброс пароля сейфа',
+            description: 'Вы уверены, что хотите сбросить пароль сейфа? Ссылка для сброса будет отправлена на вашу почту.',
+            data: ['confirmText' => 'Да, отправить', 'modalType' => 'safePasswordReset']
+        );
     }
 
     // Сбросить состояние отправки ссылки
@@ -364,7 +361,7 @@ class ProfileSection extends Component
             $success = $this->userService->sendPasswordResetLink($this->email);
 
             if (!$success) {
-                $this->closeAccountPasswordResetModal();
+                $this->closeModal('confirm');
                 $this->dispatch('notification', [
                     'title' => 'Ошибка',
                     'content' => 'Не удалось отправить ссылку для сброса пароля',
@@ -373,7 +370,7 @@ class ProfileSection extends Component
                 return;
             }
 
-            $this->closeAccountPasswordResetModal();
+            $this->closeModal('confirm');
             $this->dispatch('notification', [
                 'title' => 'Успешно',
                 'content' => 'Ссылка для сброса пароля отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для установки нового пароля.',
@@ -381,7 +378,7 @@ class ProfileSection extends Component
             ]);
         } catch (\Exception $e) {
             Log::error('Account password reset error: ' . $e->getMessage());
-            $this->closeAccountPasswordResetModal();
+            $this->closeModal('confirm');
             $this->dispatch('notification', [
                 'title' => 'Ошибка',
                 'content' => 'Не удалось отправить ссылку для сброса пароля',
@@ -398,14 +395,14 @@ class ProfileSection extends Component
         try {
             $this->safePasswordService->sendResetLink(Auth::id());
 
-            $this->closeSafePasswordResetModal();
+            $this->closeModal('confirm');
             $this->dispatch('notification', [
                 'title' => 'Успешно',
                 'content' => 'Ссылка для сброса пароля сейфа отправлена на вашу почту. Проверьте ваш email и перейдите по ссылке для подтверждения сброса.',
                 'type' => 'success'
             ]);
         } catch (\InvalidArgumentException $e) {
-            $this->closeSafePasswordResetModal();
+            $this->closeModal('confirm');
             $this->dispatch('notification', [
                 'title' => 'Ошибка',
                 'content' => $e->getMessage(),
@@ -413,7 +410,7 @@ class ProfileSection extends Component
             ]);
         } catch (\Exception $e) {
             Log::error('Safe password reset error: ' . $e->getMessage());
-            $this->closeSafePasswordResetModal();
+            $this->closeModal('confirm');
             $this->dispatch('notification', [
                 'title' => 'Ошибка',
                 'content' => 'Не удалось отправить ссылку для сброса пароля',
@@ -422,6 +419,46 @@ class ProfileSection extends Component
         } finally {
             $this->sendingSafePasswordReset = false;
         }
+    }
+
+    /**
+     * Проверить, открыто ли модальное окно
+     */
+    #[Computed]
+    public function isModalOpen(string $modalName): bool
+    {
+        return $this->modals[$modalName] ?? false;
+    }
+
+    /**
+     * Получить данные модального окна
+     */
+    #[Computed]
+    public function getModalData(string $modalName, string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->modalData[$modalName] ?? [];
+        }
+
+        return $this->modalData[$modalName][$key] ?? $default;
+    }
+
+    /**
+     * Получить заголовок модального окна
+     */
+    #[Computed]
+    public function getModalTitle(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'title', '');
+    }
+
+    /**
+     * Получить описание модального окна
+     */
+    #[Computed]
+    public function getModalDescription(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'description', '');
     }
 
     public function render(): \Illuminate\View\View

@@ -50,7 +50,7 @@
         <div class="col-span-full">
             @if ($totalCount === 0)
                 <x-no-data :icon="$emptyIcon" :title="$emptyTitle" :description="$emptyDescription" />
-            @elseif ($isSearching)
+            @elseif (!empty($search))
                 <x-no-data :icon="$noResultsIcon" :title="$noResultsTitle" :description="$noResultsDescription" />
             @else
                 <x-no-data :icon="$noFilterResultsIcon" :title="$noFilterResultsTitle" :description="$noFilterResultsDescription" />

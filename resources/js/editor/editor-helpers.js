@@ -93,7 +93,7 @@ export function openLinkModal(editor) {
     input.value = currentLink || '';
     input.placeholder = currentLink ? 'Измените ссылку' : 'https://example.com';
 
-    modal.classList.add('active');
+    modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
     setTimeout(() => input.focus(), 100);
@@ -105,7 +105,7 @@ export function closeLinkModal() {
     const modal = document.getElementById('link-modal');
     if (!modal) return;
 
-    modal.classList.remove('active');
+    modal.classList.add('hidden');
     document.body.style.overflow = '';
     linkModalCallback = null;
 }
@@ -166,7 +166,7 @@ export function initLinkModal() {
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('active')) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
                 handleLinkModalAction('cancel');
             }
         });

@@ -8,6 +8,7 @@ use App\Dto\TrashSettingsDto;
 use App\Models\Folder;
 use App\Models\Note;
 use App\Models\Trash;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Сервис для управления корзиной
@@ -312,5 +313,54 @@ class TrashService
         return $isChecklist
             ? 'Список будет перемещен в архив'
             : 'Заметка будет перемещена в архив';
+    }
+
+    /**
+     * Получить карту сортировок для корзины.
+     */
+    public function getSortMap(): array
+    {
+        return [
+            'deleted' => 'moved_to_trash_at',
+            'title' => 'title',
+        ];
+    }
+
+    /**
+     * Получить направления сортировок для корзины.
+     */
+    public function getSortDirections(): array
+    {
+        return [
+            'deleted' => 'desc',
+            'title' => 'asc',
+        ];
+    }
+
+    /**
+     * Получить удалённые папки с поиском и сортировкой.
+     */
+    public function getTrashedFolders(
+        int $userId,
+        ?string $search = null,
+        string $sort = 'deleted',
+    ): Collection {
+        $sortMap = $this->getSortMap();
+        $sortDirections = $this->getSortDirections();
+
+        $query = Folder::where('user_id', $userId)
+            ->whereNotNull('trash_id');
+
+        // Применяем поиск
+        if ($search) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        // Применяем сортировку
+        $sortColumn = $sortMap[$sort] ?? 'moved_to_trash_at';
+        $sortDirection = $sortDirections[$sort] ?? 'desc';
+        $query->orderBy($sortColumn, $sortDirection);
+
+        return $query->get();
     }
 }

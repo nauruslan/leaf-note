@@ -103,7 +103,6 @@
     </nav>
 
     <!-- Модальное окно подтверждения выхода -->
-    <x-modal type="confirm" :show="$confirmingLogout" title="Вы хотите выйти из аккаунта?"
-        description="Требуется подтверждение" icon="log-out" confirmText="Выйти" confirmMethod="logout"
-        cancelMethod="closeLogoutModal" />
+    <x-modal type="confirm" :show="$this->isModalOpen('confirm')" :title="$this->getModalTitle('confirm')" :description="$this->getModalDescription('confirm')" :icon="$this->getModalData('confirm', 'icon')"
+        :confirmText="$this->getModalData('confirm', 'confirmText')" confirmMethod="logout" cancelMethod="closeModal('confirm')" />
 </aside>

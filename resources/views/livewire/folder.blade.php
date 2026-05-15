@@ -1,6 +1,6 @@
 <div>
     @if (!$this->folder)
-        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="fixed inset-x-0 top-0 bottom-20 flex items-center justify-center bg-indigo-10">
             <x-no-data icon="folder-x" title="Папка не найдена"
                 description="Папка была удалена или у вас нет к ней доступа" />
         </div>
@@ -17,8 +17,7 @@
             noFilterResultsIcon="{{ $this->folder->icon }}" noFilterResultsTitle="Совпадений нет"
             noFilterResultsDescription="Попробуйте изменить фильтры" />
         <!-- Delete Confirmation Modal -->
-        <x-modal type="delete" title="Удалить папку?"
-            description="Папка будет перемещена в корзину. Вы сможете восстановить её позже." :show="$confirmingDeletion"
-            confirmMethod="deleteFolder" cancelMethod="closeModal" />
+        <x-modal type="delete" :show="$this->isModalOpen('delete')" :title="$this->getModalTitle('delete')" :description="$this->getModalDescription('delete')" confirmMethod="deleteFolder"
+            cancelMethod="closeModal('delete')" />
     @endif
 </div>

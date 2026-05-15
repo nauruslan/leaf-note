@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Dto\LocationDto;
 use App\Dto\UpdateNoteDto;
+use App\Livewire\Traits\WithModal;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -12,8 +13,9 @@ use Livewire\Attributes\On;
 
 class EditNote extends BaseNoteEditor
 {
+    use WithModal;
+
     public string $section = 'edit-note';
-    public bool $confirmingDeletion = false;
     public bool $isLoaded = false;
 
     // Сохраняем оригинальные пути изображений для отслеживания изменений
@@ -109,16 +111,7 @@ class EditNote extends BaseNoteEditor
      */
     public function openDeleteModal(): void
     {
-        $this->confirmingDeletion = true;
-    }
-
-    /**
-     * Закрыть модальное окно
-     */
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-        $this->dispatch('modalClosed');
+        $this->confirmDelete($this->noteId, 'note', 'Удалить заметку?', 'Заметка будет перемещена в корзину');
     }
 
     /**
@@ -142,6 +135,9 @@ class EditNote extends BaseNoteEditor
             'content' => $result['message'],
             'type' => 'danger',
         ]);
+
+        // Закрываем модальное окно
+        $this->closeModal('delete');
 
         // Получаем предыдущую секцию из StateManager
         $previousSection = \App\Services\StateManager::get('previous_section', 'dashboard-section');
@@ -237,6 +233,46 @@ class EditNote extends BaseNoteEditor
     {
         $this->noteId = $noteId;
         $this->loadNote();
+    }
+
+    /**
+     * Проверить, открыто ли модальное окно
+     */
+    #[Computed]
+    public function isModalOpen(string $modalName): bool
+    {
+        return $this->modals[$modalName] ?? false;
+    }
+
+    /**
+     * Получить данные модального окна
+     */
+    #[Computed]
+    public function getModalData(string $modalName, string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->modalData[$modalName] ?? [];
+        }
+
+        return $this->modalData[$modalName][$key] ?? $default;
+    }
+
+    /**
+     * Получить заголовок модального окна
+     */
+    #[Computed]
+    public function getModalTitle(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'title', '');
+    }
+
+    /**
+     * Получить описание модального окна
+     */
+    #[Computed]
+    public function getModalDescription(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'description', '');
     }
 
     public function render(): \Illuminate\View\View

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\WithModal;
 use App\Models\Folder;
 use App\Services\FolderService;
 use App\Services\NoteQueryService;
@@ -11,15 +12,9 @@ use Livewire\Attributes\On;
 
 class FolderSection extends Base
 {
-    public string $section = 'folder-section';
-    public bool $confirmingDeletion = false;
+    use WithModal;
 
-    #[On('closeModal')]
-    public function closeModal(): void
-    {
-        $this->confirmingDeletion = false;
-        $this->dispatch('modalClosed');
-    }
+    public string $section = 'folder-section';
 
     public function mount(?int $folderId = null): void
     {
@@ -71,7 +66,7 @@ class FolderSection extends Base
 
     public function confirmDeletion(): void
     {
-        $this->confirmingDeletion = true;
+        $this->confirmDelete($this->folderId, 'folder', 'Удалить папку?', 'Папка будет перемещена в корзину. Вы сможете восстановить её позже.');
     }
 
     public function deleteFolder(?int $folderId = null): void
@@ -79,7 +74,7 @@ class FolderSection extends Base
         $targetFolderId = $folderId ?? $this->folderId;
 
         if (!$targetFolderId) {
-            $this->confirmingDeletion = false;
+            $this->closeModal('delete');
             return;
         }
 
@@ -92,11 +87,11 @@ class FolderSection extends Base
             // Обновляем sidebar (получит новое значение section через проп от AppLayout)
             $this->dispatch('refreshSidebar');
             // Закрыть модальное окно
-            $this->confirmingDeletion = false;
+            $this->closeModal('delete');
         } else {
             // Корзина переполнена или папка не найдена
             $this->dispatch('notification', ['title' => 'Ошибка', 'content' => $result['message'], 'type' => 'danger']);
-            $this->confirmingDeletion = false;
+            $this->closeModal('delete');
         }
     }
 
@@ -107,6 +102,46 @@ class FolderSection extends Base
         }
 
         $this->dispatch('navigateTo', section: 'edit-folder', folderId: $id, noteId: null);
+    }
+
+    /**
+     * Проверить, открыто ли модальное окно
+     */
+    #[Computed]
+    public function isModalOpen(string $modalName): bool
+    {
+        return $this->modals[$modalName] ?? false;
+    }
+
+    /**
+     * Получить данные модального окна
+     */
+    #[Computed]
+    public function getModalData(string $modalName, string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->modalData[$modalName] ?? [];
+        }
+
+        return $this->modalData[$modalName][$key] ?? $default;
+    }
+
+    /**
+     * Получить заголовок модального окна
+     */
+    #[Computed]
+    public function getModalTitle(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'title', '');
+    }
+
+    /**
+     * Получить описание модального окна
+     */
+    #[Computed]
+    public function getModalDescription(string $modalName): string
+    {
+        return $this->getModalData($modalName, 'description', '');
     }
 
     public function render()

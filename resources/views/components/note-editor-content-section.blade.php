@@ -217,18 +217,32 @@
     </div>
     <!-- Link Modal (ignored) -->
     <div wire:ignore>
-        <div id="link-modal" class="link-modal">
-            <div class="link-modal-content">
-                <h3 class="link-modal-title">Введите ссылку</h3>
-                <input type="url" id="link-input" class="link-modal-input" placeholder="https://example.com"
-                    autocomplete="off">
-                <div class="link-modal-buttons">
-                    <button type="button" class="link-modal-btn link-modal-btn-ok" data-link-action="ok">
-                        ОК
-                    </button>
-                    <button type="button" class="link-modal-btn link-modal-btn-cancel" data-link-action="cancel">
-                        Отменить
-                    </button>
+        <div id="link-modal" class="fixed inset-0 z-50 hidden">
+            <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+            <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+                <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 pointer-events-auto">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900">Введите ссылку</h3>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <input type="url" id="link-input"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="https://example.com" autocomplete="off">
+                    </div>
+                    <div class="flex gap-4 mt-6 justify-end">
+                        <button type="button"
+                            class="link-modal-btn link-modal-btn-cancel px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                            data-link-action="cancel">
+                            Отмена
+                        </button>
+                        <button type="button"
+                            class="link-modal-btn link-modal-btn-ok px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                            data-link-action="ok">
+                            ОК
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

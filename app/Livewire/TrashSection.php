@@ -2,72 +2,140 @@
 
 namespace App\Livewire;
 
-use App\Livewire\Traits\WithComponentPagination;
-use App\Livewire\Traits\WithFiltering;
-use App\Livewire\Traits\WithSearch;
-use App\Livewire\Traits\WithTrashModals;
 use App\Services\TrashService;
-use App\Services\TrashQueryService;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
-use Livewire\Component;
+use Livewire\Attributes\On;
+use App\Livewire\Traits\WithModal;
 
-class TrashSection extends Component
+class TrashSection extends Base
 {
-    use WithComponentPagination;
-    use WithSearch;
-    use WithFiltering;
-    use WithTrashModals;
+    use WithModal;
 
     public string $section = 'trash-section';
-    public string $heading = 'Корзина';
-    public string $subheading = '';
 
-    // Внедряемые сервисы
-    protected TrashService $trashService;
-    protected TrashQueryService $trashQueryService;
+    private TrashService $trashService;
+    private ?string $subheading = null;
+    public $trashedFolders;
 
-    public function boot(
-        TrashService $trashService,
-        TrashQueryService $trashQueryService,
-    ): void {
+    /**
+     * Значение сортировки по умолчанию для корзины.
+     */
+    public string $sort = 'deleted';
+
+    public function boot(TrashService $trashService): void
+    {
         $this->trashService = $trashService;
-        $this->trashQueryService = $trashQueryService;
     }
 
     public function mount(): void
     {
-        $this->sort = 'deleted';
+        $this->initPagination(12);
+        $this->loadTrashedFolders();
         $this->setSubheading();
     }
 
     /**
-     * Установить subheading в зависимости от настроек автоочистки
+     * Базовые условия для корзины.
+     * Условия уже применены в buildNotesQuery(), поэтому возвращаем пустой массив.
      */
-    private function setSubheading(): void
+    protected function getBaseConditions(): array
     {
-        $autoDeleteDays = $this->trashService->getAutoDeleteDays(Auth::id());
-        if ($autoDeleteDays !== 'disabled') {
-            $this->subheading = 'Включена автоочистка корзины';
-        }
+        return [];
     }
 
     /**
-     * Подтвердить восстановление
+     * Общее количество элементов в корзине.
+     */
+    protected function getTotalCount(): int
+    {
+        return $this->trashService->getTotalCount(Auth::id());
+    }
+
+    /**
+     * Установить подзаголовок на основе текущего состояния.
+     */
+    private function setSubheading(): void
+    {
+        $this->subheading = match (true) {
+            !empty($this->search) => "Результаты поиска: {$this->search}",
+            $this->filter !== 'all' => match ($this->filter) {
+                'notes' => 'Только заметки',
+                'folders' => 'Только папки',
+                default => 'Все элементы',
+            },
+            default => null,
+        };
+    }
+
+    /**
+     * Открыть модальное окно удаления.
+     */
+    public function deleteItem(int $id, string $type): void
+    {
+        $this->openModal('delete', [
+            'id' => $id,
+            'type' => $type,
+            'title' => 'Удалить навсегда?',
+            'description' => 'Это действие необратимо. Элемент будет удален безвозвратно.'
+        ]);
+    }
+
+    /**
+     * Открыть модальное окно восстановления.
+     */
+    public function restoreItem(int $id, string $type): void
+    {
+        $restoreDescription = $this->trashService
+            ->getRestoreDescription(Auth::id(), $id, $type);
+
+        $this->openModal('restore', [
+            'id' => $id,
+            'type' => $type,
+            'description' => $restoreDescription
+        ]);
+    }
+
+    /**
+     * Открыть модальное окно восстановления всех элементов.
+     */
+    public function confirmRestoreAll(): void
+    {
+        $this->openModal('restoreAll', [
+            'title' => 'Восстановить все элементы?',
+            'description' => 'Это действие восстановит все удаленные заметки и папки из корзины.'
+        ]);
+    }
+
+    /**
+     * Открыть модальное окно очистки корзины.
+     */
+    public function confirmEmptyTrash(): void
+    {
+        $this->openModal('emptyTrash', [
+            'title' => 'Очистить корзину?',
+            'description' => 'Это действие удалит все элементы из корзины безвозвратно.'
+        ]);
+    }
+
+    /**
+     * Подтвердить восстановление.
      */
     #[Locked]
     public function confirmRestore(): void
     {
-        if ($this->pendingRestoreId === null || $this->pendingRestoreType === null) {
-            $this->closeModal();
+        $pendingRestoreId = $this->getModalData('restore', 'id');
+        $pendingRestoreType = $this->getModalData('restore', 'type');
+
+        if ($pendingRestoreId === null || $pendingRestoreType === null) {
+            $this->closeModal('restore');
             return;
         }
 
-        $result = $this->pendingRestoreType === 'folder'
-            ? $this->trashService->restoreFolder(Auth::id(), $this->pendingRestoreId)
-            : $this->trashService->restoreNote(Auth::id(), $this->pendingRestoreId);
+        $result = $pendingRestoreType === 'folder'
+            ? $this->trashService->restoreFolder(Auth::id(), $pendingRestoreId)
+            : $this->trashService->restoreNote(Auth::id(), $pendingRestoreId);
 
         if ($result->success) {
             $this->dispatch('notification', [
@@ -76,25 +144,33 @@ class TrashSection extends Component
                 'type' => 'info',
             ]);
             $this->dispatch('refreshSidebar');
+
+            // Обновляем список папок, если восстановили папку
+            if ($pendingRestoreType === 'folder') {
+                $this->loadTrashedFolders();
+            }
         }
 
-        $this->closeModal();
+        $this->closeModal('restore');
     }
 
     /**
-     * Подтвердить удаление
+     * Подтвердить удаление.
      */
     #[Locked]
     public function confirmDelete(): void
     {
-        if ($this->pendingDeleteId === null || $this->pendingDeleteType === null) {
-            $this->closeModal();
+        $pendingDeleteId = $this->getModalData('delete', 'id');
+        $pendingDeleteType = $this->getModalData('delete', 'type');
+
+        if ($pendingDeleteId === null || $pendingDeleteType === null) {
+            $this->closeModal('delete');
             return;
         }
 
-        $result = $this->pendingDeleteType === 'folder'
-            ? $this->trashService->deleteFolder(Auth::id(), $this->pendingDeleteId)
-            : $this->trashService->deleteNote(Auth::id(), $this->pendingDeleteId);
+        $result = $pendingDeleteType === 'folder'
+            ? $this->trashService->deleteFolder(Auth::id(), $pendingDeleteId)
+            : $this->trashService->deleteNote(Auth::id(), $pendingDeleteId);
 
         if ($result->success) {
             $this->dispatch('notification', [
@@ -103,33 +179,26 @@ class TrashSection extends Component
                 'type' => 'info',
             ]);
             $this->dispatch('refreshSidebar');
+
+            // Обновляем список папок, если удалили папку
+            if ($pendingDeleteType === 'folder') {
+                $this->loadTrashedFolders();
+            }
         }
 
-        $this->closeModal();
+        $this->closeModal('delete');
     }
 
     /**
-     * Очистить корзину
+     * Подтвердить удаление элемента (метод для вызова из модального окна).
      */
-    #[Locked]
-    public function emptyTrash(): void
+    public function confirmDeleteItem(): void
     {
-        $result = $this->trashService->emptyTrash(Auth::id());
-
-        if ($result->success) {
-            $this->dispatch('notification', [
-                'title' => 'Информация',
-                'content' => $result->message,
-                'type' => 'info',
-            ]);
-            $this->dispatch('refreshSidebar');
-        }
-
-        $this->closeEmptyTrashModal();
+        $this->confirmDelete();
     }
 
     /**
-     * Восстановить всё
+     * Подтвердить восстановление всех элементов.
      */
     #[Locked]
     public function restoreAll(): void
@@ -143,51 +212,127 @@ class TrashSection extends Component
                 'type' => 'info',
             ]);
             $this->dispatch('refreshSidebar');
+
+            // Обновляем список папок
+            $this->loadTrashedFolders();
         }
 
-        $this->closeRestoreAllModal();
+        $this->closeModal('restoreAll');
     }
 
     /**
-     * Удалённые заметки
+     * Подтвердить очистку корзины.
      */
-    #[Computed]
-    public function trashedNotes(): LengthAwarePaginator
+    #[Locked]
+    public function emptyTrash(): void
     {
-        return $this->trashQueryService->getTrashedNotes(
-            userId: Auth::id(),
-            search: $this->search,
-            filter: $this->filter,
-            sort: $this->sort,
-            page: $this->page,
-            perPage: $this->perPage,
-        );
+        $result = $this->trashService->emptyTrash(Auth::id());
+
+        if ($result->success) {
+            $this->dispatch('notification', [
+                'title' => 'Информация',
+                'content' => $result->message,
+                'type' => 'info',
+            ]);
+            $this->dispatch('refreshSidebar');
+
+            // Обновляем список папок
+            $this->loadTrashedFolders();
+        }
+
+        $this->closeModal('emptyTrash');
     }
 
-    /**
-     * Удалённые папки
-     */
     #[Computed]
-    public function trashedFolders(): \Illuminate\Database\Eloquent\Collection
+    public function heading(): string
     {
-        return $this->trashQueryService->getTrashedFolders(
-            userId: Auth::id(),
-            search: $this->search,
-            sort: $this->sort,
-        );
+        return 'Корзина';
     }
 
-    /**
-     * Общее количество элементов в корзине
-     */
+    #[Computed]
+    public function subheading(): ?string
+    {
+        return $this->subheading ?? null;
+    }
+
     #[Computed]
     public function totalCount(): int
+    {
+        return $this->notes()->total() + $this->trashedFolders->count();
+    }
+
+    #[Computed]
+    public function totalTrashCount(): int
     {
         return $this->trashService->getTotalCount(Auth::id());
     }
 
-    public function render()
+    #[Computed]
+    public function isRestoreAllModalOpen(): bool
+    {
+        return $this->isModalOpen('restoreAll');
+    }
+
+    #[Computed]
+    public function isEmptyTrashModalOpen(): bool
+    {
+        return $this->isModalOpen('emptyTrash');
+    }
+
+    public function render(): \Illuminate\View\View
     {
         return view('livewire.trash');
+    }
+
+    /**
+     * Переопределяем buildNotesQuery для корзины.
+     * В корзине не используем withTrashed(), а фильтруем по trash_id.
+     */
+    protected function buildNotesQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = \App\Models\Note::where('user_id', Auth::id())
+            ->whereNotNull('trash_id')
+            ->whereNull('folder_id')
+            ->with('folder');
+
+        // Применяем скоупы (если есть)
+        $this->applyScopes($query);
+
+        // Применяем базовые условия
+        $this->applyBaseConditions($query);
+
+        return $query;
+    }
+
+    /**
+     * Загрузить удалённые папки.
+     */
+    private function loadTrashedFolders(): void
+    {
+        $this->trashedFolders = $this->trashService->getTrashedFolders(
+            Auth::id(),
+            $this->search,
+            $this->sort
+        );
+    }
+
+    /**
+     * Обновить список элементов при изменении параметров.
+     */
+    #[On('refreshTrash')]
+    public function refreshTrash(): void
+    {
+        $this->loadTrashedFolders();
+        $this->setSubheading();
+    }
+
+    /**
+     * Обновить данные при изменении свойств.
+     */
+    public function updated(string $property): void
+    {
+        parent::updated($property);
+        $this->loadTrashedFolders();
+        $this->setSubheading();
     }
 }
