@@ -9,8 +9,8 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <!-- Left Block: Actions -->
             <div class="flex flex-wrap items-center gap-3">
-                <x-button-restore-all wire:click="confirmRestoreAll" :class="$this->totalCount ? '' : '!cursor-not-allowed'" />
-                <x-button-delete-all wire:click="confirmEmptyTrash" :class="$this->totalCount ? '' : '!cursor-not-allowed'" />
+                <x-button-restore-all wire:click="confirmRestoreAll" :disabled="!$this->isTrashActive" />
+                <x-button-delete-all wire:click="confirmEmptyTrash" :disabled="!$this->isTrashActive" />
             </div>
             <!-- Right Block: Filters -->
             <div class="flex flex-wrap items-center gap-4 justify-end">

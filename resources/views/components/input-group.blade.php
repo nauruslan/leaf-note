@@ -22,7 +22,13 @@
         '48px' => 'h-12',
         default => 'h-10',
     };
-    $hasError = $error !== null ? (bool) $error : ($field ? $errors->has($field) : false);
+
+    // Определяем поле для проверки ошибок валидации
+    $validationField = $field ?? $wireModel;
+
+    // Если $error явно передан как true - показываем ошибку
+    // В противном случае (false или null) проверяем ошибки валидации
+    $hasError = $error === true ? true : ($validationField ? $errors->has($validationField) : false);
     $hasIcon = $slot->isNotEmpty();
     $paddingLeft = $hasIcon ? 'pl-10' : 'px-4';
 @endphp
@@ -47,7 +53,7 @@
             @if ($placeholder) placeholder="{{ $placeholder }}" @endif
             class="w-full {{ $paddingLeft }} pr-4 py-3 border {{ $hasError ? 'border-red-500' : 'border-gray-300' }} rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all {{ $disabled ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : '' }} {{ $heightClass }}">
     </div>
-    @error($field)
+    @error($validationField)
         <span class="text-red-500 text-sm mt-1 inline-block">{{ $message }}</span>
     @enderror
 </div>

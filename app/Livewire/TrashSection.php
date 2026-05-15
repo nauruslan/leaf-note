@@ -267,6 +267,15 @@ class TrashSection extends Base
         return $this->trashService->getTotalCount(Auth::id());
     }
 
+    /**
+     * Проверить, активна ли корзина (есть ли в ней элементы)
+     */
+    #[Computed]
+    public function isTrashActive(): bool
+    {
+        return $this->trashService->isActive(Auth::id());
+    }
+
     #[Computed]
     public function isRestoreAllModalOpen(): bool
     {

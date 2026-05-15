@@ -296,6 +296,14 @@ class TrashService
     }
 
     /**
+     * Проверить, активна ли корзина (есть ли в ней элементы)
+     */
+    public function isActive(int $userId): bool
+    {
+        return $this->getTotalCount($userId) > 0;
+    }
+
+    /**
      * Получить описание для восстановления
      */
     public function getRestoreDescription(int $userId, int $id, string $type): string

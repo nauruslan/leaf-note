@@ -52,7 +52,6 @@ class ProfileSection extends Component
     public bool $hasUnsavedChanges = false;
 
     // Состояние отправки
-
     public bool $sendingSafePasswordReset = false;
     public bool $safePasswordResetSent = false;
 
@@ -64,10 +63,10 @@ class ProfileSection extends Component
     public bool $canChangePassword = true;
 
     // Исходные значения для сравнения
-    protected string $originalName = '';
-    protected string $originalEmail = '';
-    protected string $originalNotificationsEnabled = '0';
-    protected string $originalAutoDeleteDays = 'disabled';
+    public string $originalName = '';
+    public string $originalEmail = '';
+    public string $originalNotificationsEnabled = '0';
+    public string $originalAutoDeleteDays = 'disabled';
 
     // Внедряемые сервисы
     protected UserService $userService;
@@ -136,30 +135,43 @@ class ProfileSection extends Component
     protected function hasChanges(): bool
     {
         // Проверяем личные данные и настройки
-        if ($this->originalName !== $this->name) {
+        if (trim($this->originalName) !== trim($this->name)) {
             return true;
         }
-        if ($this->originalEmail !== $this->email) {
+        if (trim($this->originalEmail) !== trim($this->email)) {
             return true;
         }
-        if ($this->originalNotificationsEnabled !== $this->notificationsEnabled) {
+        if ((string)$this->originalNotificationsEnabled !== (string)$this->notificationsEnabled) {
             return true;
         }
-        if ($this->originalAutoDeleteDays !== $this->autoDeleteDays) {
+        if ((string)$this->originalAutoDeleteDays !== (string)$this->autoDeleteDays) {
             return true;
         }
 
-        // Проверяем поля смены пароля аккаунта
-        if (!empty($this->currentPassword) || !empty($this->newPassword) || !empty($this->confirmPassword)) {
+        // Проверяем поля смены пароля аккаунта - используем trim для удаления пробелов
+        $currentPassword = trim($this->currentPassword);
+        $newPassword = trim($this->newPassword);
+        $confirmPassword = trim($this->confirmPassword);
+
+        if (!empty($currentPassword) || !empty($newPassword) || !empty($confirmPassword)) {
             return true;
         }
 
         // Проверяем поля пароля сейфа
-        if (!empty($this->safePassword) || !empty($this->safeConfirmPassword)) {
-            return true;
-        }
-        if ($this->hasSafePassword && !empty($this->safeCurrentPassword)) {
-            return true;
+        $safeCurrentPassword = trim($this->safeCurrentPassword);
+        $safePassword = trim($this->safePassword);
+        $safeConfirmPassword = trim($this->safeConfirmPassword);
+
+        if ($this->hasSafePassword) {
+            // Если пароль уже установлен, нужен текущий пароль для изменения
+            if (!empty($safeCurrentPassword) || !empty($safePassword) || !empty($safeConfirmPassword)) {
+                return true;
+            }
+        } else {
+            // Если пароль не установлен, проверяем только новый пароль
+            if (!empty($safePassword) || !empty($safeConfirmPassword)) {
+                return true;
+            }
         }
 
         return false;
