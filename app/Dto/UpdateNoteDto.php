@@ -11,7 +11,7 @@ readonly class UpdateNoteDto
         public int $userId,
         public int $noteId,
         public string $title,
-        public string $content,
+        public array $content,
         public bool $isFavorite,
         public \App\Dto\LocationDto $location,
     ) {}

@@ -1,3 +1,6 @@
+// Глобальные объявления для ESLint
+/* global console */
+
 class ChecklistEditor {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);

@@ -55,7 +55,7 @@ class EditNote extends BaseNoteEditor
         $this->safeId = $note->safe_id;
         $this->archiveId = $note->archive_id;
         $this->is_favorite = (bool) $note->is_favorite;
-        $this->content = $note->content;
+        $this->content = $this->contentService->contentToArray($note->content);
         $this->isLoaded = true;
 
         // Сохраняем оригинальное местоположение для отслеживания изменений
@@ -97,13 +97,28 @@ class EditNote extends BaseNoteEditor
     #[On('editorContent')]
     public function onEditorContent($content): void
     {
-        $this->content = $content;
+        // Если контент пришел как объект, преобразуем его в массив
+        if (is_object($content)) {
+            $content = json_decode(json_encode($content), true);
+        }
+        $this->content = $this->contentService->contentToArray($content);
 
         // Если есть оригинальные пути, проверяем удаленные изображения
         if (!empty($this->originalImagePaths)) {
             $currentPaths = $this->extractImagePathsFromContent($content);
             $this->deleteRemovedImages($this->originalImagePaths, $currentPaths, $this->noteId);
         }
+    }
+
+    /**
+     * Обновление content
+     */
+    public function updatedContent(): void
+    {
+        if (is_string($this->content)) {
+            $this->content = $this->contentService->contentToArray($this->content);
+        }
+        $this->autoSave();
     }
 
     /**

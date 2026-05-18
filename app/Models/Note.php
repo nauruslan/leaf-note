@@ -31,7 +31,7 @@ class Note extends Model
     ];
 
     protected $casts = [
-        'content' => 'array',
+        'content' => 'json',
         'is_favorite' => 'boolean',
         'moved_to_trash_at' => 'datetime',
     ];

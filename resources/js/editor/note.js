@@ -28,6 +28,9 @@ import {
     updateToolbarButtons,
 } from './editor-helpers';
 
+// Глобальные объявления для ESLint
+/* global console, FormData, fetch, alert */
+
 const DEFAULT_CONFIG = {
     extensions: [
         StarterKit.configure({
@@ -100,7 +103,8 @@ export function initNoteEditor(options) {
         onUpdate,
         onSelectionUpdate,
         onImageUploaded,
-        type = 'note',
+        // eslint-disable-next-line no-unused-vars
+        editorType = 'note',
     } = options;
 
     const editorElement = document.querySelector(`#${elementId}`);
@@ -220,7 +224,28 @@ export function destroyNoteEditor(elementId) {
 export function getEditorContent(elementId) {
     const editorElement = document.querySelector(`#${elementId}`);
     if (!editorElement || !editorElement._editor) return null;
-    return editorElement._editor.getJSON();
+
+    const content = editorElement._editor.getJSON();
+
+    // Оборачиваем контент в структуру note для единообразия
+    if (content && content.type === 'doc' && Array.isArray(content.content)) {
+        // Проверяем, уже ли контент обернут в структуру note
+        const hasNoteWrapper = content.content.length > 0 && content.content[0].type === 'note';
+
+        if (!hasNoteWrapper) {
+            return {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'note',
+                        content: content.content,
+                    },
+                ],
+            };
+        }
+    }
+
+    return content;
 }
 
 export function sendContentToLivewire(elementId) {
@@ -299,6 +324,7 @@ function initToolbarButtons(editor, onImageUploaded, onUpdate) {
                 try {
                     const formData = new FormData();
                     formData.append('image', file);
+
                     const response = await fetch('/notes/upload-image', {
                         method: 'POST',
                         headers: {

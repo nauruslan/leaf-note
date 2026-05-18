@@ -99,6 +99,18 @@ export default class NoteEdit {
         if (content) {
             try {
                 content = JSON.parse(content);
+
+                // Извлекаем контент из структуры note, если она есть
+                if (content && content.type === 'doc' && Array.isArray(content.content)) {
+                    const noteNode = content.content.find((node) => node.type === 'note');
+                    if (noteNode && noteNode.content) {
+                        content = {
+                            type: 'doc',
+                            content: noteNode.content,
+                        };
+                    }
+                }
+
                 this.originalContent = content;
                 this.originalImagePaths = Array.from(this.extractImagePathsFromContent(content));
                 this.previousImagePaths = this.extractImagePathsFromContent(content);
@@ -233,6 +245,21 @@ export default class NoteEdit {
             if (typeof parsedContent === 'string') {
                 try {
                     parsedContent = JSON.parse(parsedContent);
+
+                    // Извлекаем контент из структуры note, если она есть
+                    if (
+                        parsedContent &&
+                        parsedContent.type === 'doc' &&
+                        Array.isArray(parsedContent.content)
+                    ) {
+                        const noteNode = parsedContent.content.find((node) => node.type === 'note');
+                        if (noteNode && noteNode.content) {
+                            parsedContent = {
+                                type: 'doc',
+                                content: noteNode.content,
+                            };
+                        }
+                    }
                 } catch {
                     parsedContent = '';
                 }

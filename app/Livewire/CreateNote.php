@@ -24,7 +24,7 @@ class CreateNote extends BaseNoteEditor
     public function mount(): void
     {
         // Инициализация контента
-        $this->content = $this->contentService->normalizeNoteContent('');
+        $this->content = $this->contentService->contentToArray('');
 
         // Очищаем список временных изображений при входе на страницу создания заметки
         $this->clearTemporaryImages();
@@ -84,7 +84,7 @@ class CreateNote extends BaseNoteEditor
     #[On('editorContent')]
     public function onEditorContent($content): void
     {
-        $this->content = $content;
+        $this->content = $this->contentService->contentToArray($content);
 
         // Если есть оригинальные пути, проверяем удаленные изображения
         if (!empty($this->originalImagePaths)) {
@@ -106,7 +106,18 @@ class CreateNote extends BaseNoteEditor
             $content = $data;
         }
 
-        $this->content = $content;
+        $this->content = $this->contentService->contentToArray($content);
+        $this->autoSave();
+    }
+
+    /**
+     * Обновление content
+     */
+    public function updatedContent(): void
+    {
+        if (is_string($this->content)) {
+            $this->content = $this->contentService->contentToArray($this->content);
+        }
         $this->autoSave();
     }
 
@@ -167,7 +178,7 @@ class CreateNote extends BaseNoteEditor
         $dto = new CreateNoteDto(
             userId: Auth::id(),
             title: trim($this->title),
-            content: $this->contentService->normalizeNoteContent($this->content),
+            content: $this->content,
             isFavorite: $this->is_favorite,
             location: new LocationDto(
                 folderId: $this->folderId,

@@ -8,7 +8,7 @@ namespace App\Services;
 class ContentService
 {
     private const EMPTY_CHECKLIST_STRUCTURE = '{"type":"doc","content":[{"type":"checklist","content":[]}]}';
-    private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[]}';
+    private const EMPTY_NOTE_STRUCTURE = '{"type":"doc","content":[{"type":"note","content":[]}]}';
 
     /**
      * Нормализовать контент чеклиста
@@ -37,7 +37,7 @@ class ContentService
 
         if (!is_string($content)) {
             if (is_array($content) || is_object($content)) {
-                $content = json_encode($content);
+                $content = json_encode($content, JSON_UNESCAPED_UNICODE);
             } else {
                 return $defaultStructure;
             }
@@ -50,7 +50,7 @@ class ContentService
                 return $defaultStructure;
             }
 
-            return json_encode($decoded, JSON_UNESCAPED_UNICODE);
+            return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (\JsonException) {
             return $defaultStructure;
         }
@@ -62,7 +62,11 @@ class ContentService
     public function extractTextFromContent(mixed $content): string
     {
         if (is_string($content)) {
-            $data = json_decode($content, true);
+            try {
+                $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                return '';
+            }
         } else {
             $data = $content;
         }
@@ -149,9 +153,15 @@ class ContentService
             return [];
         }
 
-        $data = is_string($content)
-            ? json_decode($content, true)
-            : $content;
+        if (is_string($content)) {
+            try {
+                $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                return [];
+            }
+        } else {
+            $data = $content;
+        }
 
         if (!is_array($data) || !isset($data['content'])) {
             return [];
@@ -204,5 +214,45 @@ class ContentService
         } catch (\JsonException) {
             return false;
         }
+    }
+
+    /**
+     * Преобразовать контент в массив для сохранения в базу данных
+     */
+    public function contentToArray(mixed $content): array
+    {
+        if (is_array($content)) {
+            return $content;
+        }
+
+        if (is_string($content)) {
+            try {
+                return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                return json_decode($this->normalizeNoteContent(''), true, 512, JSON_THROW_ON_ERROR);
+            }
+        }
+
+        return json_decode($this->normalizeNoteContent(''), true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Преобразовать контент в массив для чеклиста
+     */
+    public function checklistContentToArray(mixed $content): array
+    {
+        if (is_array($content)) {
+            return $content;
+        }
+
+        if (is_string($content)) {
+            try {
+                return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                return json_decode($this->normalizeChecklistContent(''), true, 512, JSON_THROW_ON_ERROR);
+            }
+        }
+
+        return json_decode($this->normalizeChecklistContent(''), true, 512, JSON_THROW_ON_ERROR);
     }
 }

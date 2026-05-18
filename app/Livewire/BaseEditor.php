@@ -35,7 +35,7 @@ abstract class BaseEditor extends Component
     public ?int $archiveId = null;
     public ?string $dropdownValue = null;
     public bool $is_favorite = false;
-    public string $content = '';
+    public $content = '';
     public bool $isSaving = false;
 
     // Защищённые от параллельных запросов

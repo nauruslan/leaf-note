@@ -21,7 +21,7 @@ class CreateChecklist extends BaseChecklistEditor
     {
 
         // Инициализация контента
-        $this->content = $this->contentService->normalizeChecklistContent('');
+        $this->content = $this->contentService->checklistContentToArray('');
 
         // Обработка предустановок из StateManager
         $this->handlePresetFromStateManager();
@@ -72,7 +72,18 @@ class CreateChecklist extends BaseChecklistEditor
     #[On('checklistContentReady')]
     public function handleContentReady(string $content): void
     {
-        $this->content = $content;
+        $this->content = $this->contentService->checklistContentToArray($content);
+        $this->autoSave();
+    }
+
+    /**
+     * Обновление content
+     */
+    public function updatedContent(): void
+    {
+        if (is_string($this->content)) {
+            $this->content = $this->contentService->checklistContentToArray($this->content);
+        }
         $this->autoSave();
     }
 
@@ -141,7 +152,7 @@ class CreateChecklist extends BaseChecklistEditor
         $dto = new CreateChecklistDto(
             userId: Auth::id(),
             title: trim($this->title),
-            content: $this->contentService->normalizeChecklistContent($this->content),
+            content: $this->content,
             isFavorite: $this->is_favorite,
             location: new LocationDto(
                 folderId: $this->folderId,

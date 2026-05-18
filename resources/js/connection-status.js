@@ -1,3 +1,6 @@
+// Глобальные объявления для ESLint
+/* global navigator, fetch */
+
 export default class ConnectionStatus {
     constructor() {
         this.initialized = false;
@@ -86,7 +89,7 @@ export default class ConnectionStatus {
         }
 
         try {
-            const response = await fetch(window.location.href, {
+            await fetch(window.location.href, {
                 method: 'HEAD',
                 mode: 'no-cors',
                 cache: 'no-cache',

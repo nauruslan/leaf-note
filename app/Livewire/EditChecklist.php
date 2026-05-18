@@ -55,7 +55,7 @@ class EditChecklist extends BaseChecklistEditor
         $this->safeId = $checklist->safe_id;
         $this->archiveId = $checklist->archive_id;
         $this->is_favorite = (bool) $checklist->is_favorite;
-        $this->content = $this->contentService->normalizeChecklistContent($checklist->content);
+        $this->content = $this->contentService->checklistContentToArray($checklist->content);
 
         $this->originalFolderId = $checklist->folder_id;
         $this->originalSafeId = $checklist->safe_id;
@@ -68,6 +68,17 @@ class EditChecklist extends BaseChecklistEditor
         );
 
         $this->dispatch('checklistLoaded', content: $this->content);
+    }
+
+    /**
+     * Обновление content
+     */
+    public function updatedContent(): void
+    {
+        if (is_string($this->content)) {
+            $this->content = $this->contentService->checklistContentToArray($this->content);
+        }
+        $this->autoSave();
     }
 
     /**

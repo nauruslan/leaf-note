@@ -198,6 +198,23 @@ export default class EditChecklistEditor {
             if (typeof parsedContent === 'string') {
                 try {
                     parsedContent = JSON.parse(parsedContent);
+
+                    // Извлекаем контент из структуры checklist, если она есть
+                    if (
+                        parsedContent &&
+                        parsedContent.type === 'doc' &&
+                        Array.isArray(parsedContent.content)
+                    ) {
+                        const checklistNode = parsedContent.content.find(
+                            (node) => node.type === 'checklist',
+                        );
+                        if (checklistNode && checklistNode.content) {
+                            parsedContent = {
+                                type: 'doc',
+                                content: [checklistNode],
+                            };
+                        }
+                    }
                 } catch {
                     parsedContent = '';
                 }

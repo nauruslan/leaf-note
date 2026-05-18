@@ -1,5 +1,8 @@
 import { Node } from '@tiptap/core';
 
+// Глобальные объявления для ESLint
+/* global console, fetch, getComputedStyle */
+
 let activeImageWrapper = null;
 let linkModalCallback = null;
 

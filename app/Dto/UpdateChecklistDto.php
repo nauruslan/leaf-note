@@ -11,7 +11,7 @@ readonly class UpdateChecklistDto
         public int $userId,
         public int $noteId,
         public string $title,
-        public string $content,
+        public array $content,
         public bool $isFavorite,
         public LocationDto $location,
     ) {}
