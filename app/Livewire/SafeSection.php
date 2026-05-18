@@ -8,6 +8,7 @@ use App\Services\SafeAuthService;
 use App\Services\StateManager;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Session;
 
@@ -27,6 +28,9 @@ class SafeSection extends Base
     public ?string $errorMessage = null;
     public bool $showUnprotectedModal = false;
     public int $attemptResetPollInterval;
+
+    // UI State для загрузчика
+    public bool $isLoading = false;
 
     #[Session]
     public ?bool $safePasswordReset = null;
@@ -123,10 +127,14 @@ class SafeSection extends Base
         $result = app(SafeAuthService::class)->verifyPassword(Auth::id(), $this->password);
 
         if ($result->success) {
+            // Показываем загрузчик после успешной валидации
+            $this->isLoading = true;
             $this->isUnlocked = true;
             $this->confirmingPassword = false;
             $this->password = '';
             $this->errorMessage = null;
+
+            $this->dispatch('finishSafeLoading');
             return;
         }
 
@@ -137,6 +145,15 @@ class SafeSection extends Base
             app(SafeAuthService::class)->performLogoutDueToLockout(Auth::id());
             redirect()->route('login');
         }
+    }
+
+    /**
+     * Завершение загрузки сейфа
+     */
+    #[On('finishSafeLoading')]
+    public function finishSafeLoading(): void
+    {
+        $this->isLoading = false;
     }
 
 

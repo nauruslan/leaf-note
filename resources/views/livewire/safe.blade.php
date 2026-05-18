@@ -1,19 +1,26 @@
-<div wire:poll.{{ $attemptResetPollInterval }}ms="checkAttempts">
+<div wire:poll.{{ $attemptResetPollInterval }}ms="checkAttempts" wire:init="checkAttempts">
     {{-- Модальное окно предупреждения о незащищённом сейфе --}}
     <x-modal type="info" :show="$showUnprotectedModal" title="Сейф не защищён"
         description="Пароль для сейфа не установлен. Вы можете установить его в разделе Профиль." icon="lock"
         confirmMethod="closeModal" />
     @if ($isUnlocked)
-        <!-- Header Section -->
-        <x-header :heading="$heading" :subheading="$subheading" showSearch />
-        <!-- ControlPanel Section -->
-        <x-notes-control-panel :perPage="$perPage" :filter="$filter" :sort="$sort" />
-        <!-- Content Section -->
-        <x-content-section :notes="$this->notes" :totalCount="$this->getTotalCount()" :search="$search" emptyIcon="lock" emptyTitle="Сейф пуст"
-            emptyDescription="Создайте первую защищенную заметку" noResultsIcon="search-x"
-            noResultsTitle="Совпадений не найдено" noResultsDescription="Попробуйте изменить поисковый запрос"
-            noFilterResultsIcon="lock" noFilterResultsTitle="Совпадений нет"
-            noFilterResultsDescription="Попробуйте изменить фильтры" />
+        @if ($isLoading)
+            <!-- Загрузчик после успешной валидации -->
+            <div class="flex-1 flex items-center justify-center  min-h-[calc(100vh-4rem)]">
+                <x-loader class="w-20 h-20 animate-spin text-indigo-600" />
+            </div>
+        @else
+            <!-- Header Section -->
+            <x-header :heading="$heading" :subheading="$subheading" showSearch />
+            <!-- ControlPanel Section -->
+            <x-notes-control-panel :perPage="$perPage" :filter="$filter" :sort="$sort" />
+            <!-- Content Section -->
+            <x-content-section :notes="$this->notes" :totalCount="$this->getTotalCount()" :search="$search" emptyIcon="lock"
+                emptyTitle="Сейф пуст" emptyDescription="Создайте первую защищенную заметку" noResultsIcon="search-x"
+                noResultsTitle="Совпадений не найдено" noResultsDescription="Попробуйте изменить поисковый запрос"
+                noFilterResultsIcon="lock" noFilterResultsTitle="Совпадений нет"
+                noFilterResultsDescription="Попробуйте изменить фильтры" />
+        @endif
     @else
         <!-- Заблокированное состояние -->
         <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -34,8 +41,12 @@
                     <form wire:submit="verifyPassword" class="space-y-4">
                         <x-input-group type="password" wireModel="password" placeholder="Пароль" height="48px"
                             autofocus :error="$errorMessage ? true : false" />
-                        <x-primary-button type="submit" class="w-full" height="h-12">
-                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        <x-primary-button type="submit" class="w-full" height="h-12" :disabled="$isLoading">
+                            @if ($isLoading)
+                                <x-loader class="w-4 h-4 mr-2" />
+                            @else
+                                <i data-lucide="lock" class="w-4 h-4"></i>
+                            @endif
                             Открыть сейф
                         </x-primary-button>
                     </form>
