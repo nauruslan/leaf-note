@@ -6,21 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     public function up(): void
     {
-        Schema::create('trashes', function (Blueprint $table) {
+        Schema::create('archives', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('capacity')->default(100);
-            $table->unsignedInteger('current_quantity')->default(0);
-            $table->integer('auto_delete_days')->nullable();
             $table->timestamps();
+            $table->index('user_id', 'idx_archives_user_id');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('trashes');
+        Schema::dropIfExists('archives');
     }
 };

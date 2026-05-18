@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     public function up(): void
     {
         Schema::create('safes', function (Blueprint $table) {
@@ -15,6 +14,7 @@ return new class extends Migration
             $table->string('password_hash')->nullable();
             $table->integer('max_attempts')->default(3);
             $table->integer('failed_attempts')->default(0);
+            $table->timestamp('last_failed_attempt_at')->nullable(); 
             $table->timestamp('locked_until')->nullable();
             $table->timestamp('last_accessed_at')->nullable();
             $table->timestamps();

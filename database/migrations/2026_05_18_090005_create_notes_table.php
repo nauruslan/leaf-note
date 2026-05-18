@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     public function up(): void
     {
         Schema::create('notes', function (Blueprint $table) {
@@ -30,7 +29,7 @@ return new class extends Migration
             $table->index(['user_id', 'is_favorite'], 'idx_notes_favorite');
             $table->index(['user_id', 'updated_at'], 'idx_notes_user_updated');
             $table->index(['moved_to_trash_at', 'trash_id'], 'idx_notes_trash_cleanup');
-            $table->unique(['user_id', 'title', 'folder_id'], 'unique_note_in_folder');
+            // Уникальный индекс удален согласно миграции 2026_04_24_remove_unique_note_in_folder_index
         });
     }
 

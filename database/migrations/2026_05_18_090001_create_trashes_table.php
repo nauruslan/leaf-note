@@ -6,24 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('archives', function (Blueprint $table) {
+        Schema::create('trashes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
+            $table->unsignedInteger('capacity')->default(100);
+            $table->unsignedInteger('current_quantity')->default(0);
+            $table->string('auto_delete_days', 10)->nullable(); // Изменено на string согласно миграции 2026_04_16_070400
             $table->timestamps();
-            $table->index('user_id', 'idx_archives_user_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('archives');
+        Schema::dropIfExists('trashes');
     }
 };

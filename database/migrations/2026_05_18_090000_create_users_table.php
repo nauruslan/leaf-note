@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -14,10 +13,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable(); // Сделано nullable согласно миграции 2026_04_19_161825
             $table->boolean('is_demo')->default(false);
             $table->string('google_id')->nullable()->unique();
-            $table->boolean('notifications_enabled')->default(false);
+            $table->boolean('notifications_enabled')->default(true); // Изменено на true согласно миграции 2026_04_20_105753
             $table->rememberToken();
             $table->timestamps();
         });
