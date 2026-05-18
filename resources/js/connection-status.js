@@ -1,6 +1,3 @@
-// Глобальные объявления для ESLint
-/* global navigator, fetch */
-
 export default class ConnectionStatus {
     constructor() {
         this.initialized = false;

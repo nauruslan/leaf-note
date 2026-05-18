@@ -1,8 +1,5 @@
 import { Node } from '@tiptap/core';
 
-// Глобальные объявления для ESLint
-/* global console, fetch, getComputedStyle */
-
 let activeImageWrapper = null;
 let linkModalCallback = null;
 
@@ -57,7 +54,7 @@ export function initImageModal() {
     modal.innerHTML = `
         <div class="image-modal-content">
             <button class="image-modal-close" aria-label="Закрыть">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -474,6 +471,7 @@ export const CustomImage = Node.create({
                 {
                     ...HTMLAttributes,
                     class: 'rounded-lg max-w-full h-auto shadow-md cursor-pointer',
+                    style: 'max-width: 600px; height: 300px; object-fit: cover;',
                 },
             ],
             createImageOverlay(),

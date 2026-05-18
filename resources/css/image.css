@@ -10,8 +10,9 @@
     display: block;
     width: 100%;
     max-width: 600px;
+    height: 300px !important;
     margin: 0 auto;
-    height: auto !important;
+    object-fit: cover !important;
     border-radius: 0.5rem !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
     transition: box-shadow 0.2s ease !important;
@@ -138,7 +139,7 @@
     right: 0px;
     background: transparent;
     border: none;
-    color: #ef4444;
+    color: #ef4444e0;
     cursor: pointer;
     padding: 8px;
     transition: all 0.2s ease;
@@ -146,7 +147,7 @@
 
 .image-modal-close:hover {
     color: #ef4444;
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .image-modal-caption {
